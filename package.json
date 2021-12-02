@@ -1,0 +1,41 @@
+{
+  "name": "twitch-bot",
+  "version": "0.0.0",
+  "description": "A sample open source Twitch bot using NodeCG and the Twurple Twitch libraries",
+  "homepage": "https://github.com/OdatNurd/devember-2021",
+  "author": {
+    "name": "OdatNurd",
+    "email": "odatnurd@gmail.com",
+    "url": "https://odatnurd.net"
+  },
+  "files": [
+    "dashboard",
+    "graphics",
+    "extension.js",
+    "extension"
+  ],
+  "keywords": [
+    "",
+    "nodecg-bundle"
+  ],
+  "nodecg": {
+    "compatibleRange": "^1.1.1",
+    "dashboardPanels": [
+      {
+        "name": "twitch",
+        "title": "Twitch",
+        "file": "twitch.html",
+        "fullbleed": true,
+        "headerColor": "#525F78"
+      }
+    ],
+    "graphics": [
+      {
+        "file": "graphic.html",
+        "width": 1920,
+        "height": 1080
+      }
+    ]
+  },
+  "license": "MIT"
+}
