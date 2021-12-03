@@ -37,5 +37,14 @@
       }
     ]
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@twurple/api": "^5.0.10",
+    "@twurple/auth": "^5.0.10",
+    "@twurple/chat": "^5.0.10",
+    "@twurple/eventsub": "^5.0.10",
+    "convict": "^6.2.1",
+    "dotenv": "^10.0.0",
+    "json5": "^2.2.0"
+  }
 }

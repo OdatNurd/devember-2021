@@ -1,5 +1,8 @@
 'use strict';
 
+// TODO would-be-nice tasks
+//   - Wrap the logger so that anything that uses it will send their output to
+//     a log panel in the IO
 module.exports = function (nodecg) {
 	nodecg.log.info('Hello, from your bundle\'s extension!');
 	nodecg.log.info('I\'m where you put all your server-side code.');
