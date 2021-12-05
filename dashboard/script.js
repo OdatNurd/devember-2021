@@ -1,10 +1,12 @@
-document.getElementById('auth').addEventListener('click', e => {
-  console.log('we did it');
+// Rewrite the authorization button's href property with the proper auth link
+// every time the back end tells us what the URL is.
+nodecg.listenFor('auth-redirect-url', url => {
+  const link = document.getElementById('auth-link');
+  link.href = url;
 });
 
-// Define our constants, you will change these with your own
-const TWITCH_CLIENT_ID = 'q0xqvkmbfl8834g1rvqamjwbvxf3if';
-const CALLBACK_URL     = 'http://localhost:9090/auth/twitch/callback';
+// Ask for an auth URL.
+nodecg.sendMessage('get-twitch-auth-url');
 
 
 // OAuth Client Credentials Flow - App Token

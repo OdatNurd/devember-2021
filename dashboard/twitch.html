@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-	<style>
-		.monospace {
-			font-family: monospace;
-		}
-	</style>
+  <style>
+    .monospace {
+      font-family: monospace;
+    }
+  </style>
 </head>
 <body>
-	<a href="https://id.twitch.tv/oauth2/authorize?client_id=q0xqvkmbfl8834g1rvqamjwbvxf3if&redirect_uri=http%3A%2F%2Flocalhost%3A9090%2Fauth%2Ftwitch%2Fcallback&force_verify=true&response_type=code&scope=user:read:email" target="_top">This is dumb</a>
-	<button id="auth">Authorize</button>
-	<script type="text/javascript" src="script.js"></script>
+  <a id="auth-link" href="#" target="_top"><button id="twitch-authorize">Authorize</button></a>
+
+  <script type="text/javascript" src="script.js"></script>
 </body>
 </html>
