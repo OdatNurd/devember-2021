@@ -1,13 +1,47 @@
 'use strict';
 
+const axios = require('axios');
+
+const TWITCH_CLIENT_ID = 'q0xqvkmbfl8834g1rvqamjwbvxf3if';
+const TWITCH_SECRET    = process.env.DEVEMBER_CLIENT_SECRET;
+const SESSION_SECRET   = process.env.DEVEMBER_SESSION_SECRET;
+const CALLBACK_URL     = 'http://localhost:9090/auth/twitch/callback';
+
+async function getAccessToken(code) {
+	try {
+		const response = await axios({
+			url: 'https://id.twitch.tv/oauth2/token',
+			method: 'POST',
+			data: {
+				client_id: TWITCH_CLIENT_ID,
+				client_secret: TWITCH_SECRET,
+				code,
+				grant_type: 'authorization_code',
+				redirect_uri: CALLBACK_URL
+			}
+		});
+
+		console.log(response);
+	}
+	catch (error) {
+		console.log(`ERROR: ${error}`);
+	}
+}
+
 // TODO would-be-nice tasks
 //   - Wrap the logger so that anything that uses it will send their output to
 //     a log panel in the IO
 module.exports = function (nodecg) {
-	nodecg.log.info('Hello, from your bundle\'s extension!');
-	nodecg.log.info('I\'m where you put all your server-side code.');
-	nodecg.log.info(`To edit me, open "${__filename}" in your favorite text editor or IDE.`);
-	nodecg.log.info('You can use any libraries, frameworks, and tools you want. There are no limits.');
-	nodecg.log.info('Visit https://nodecg.com for full documentation.');
-	nodecg.log.info('Good luck!');
+	const app = nodecg.Router();
+
+	app.get('/auth/twitch/callback', (req, res) => {
+		const code = req.query.code;
+		const scope = req.query.scope;
+
+		console.log(`We got a code of ${code} for scopes ${scope}`);
+		getAccessToken(code);
+		res.redirect('/dashboard/')
+	});
+
+	nodecg.mount(app);
 };

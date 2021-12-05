@@ -43,6 +43,7 @@
     "@twurple/auth": "^5.0.10",
     "@twurple/chat": "^5.0.10",
     "@twurple/eventsub": "^5.0.10",
+    "axios": "^0.24.0",
     "convict": "^6.2.1",
     "dotenv": "^10.0.0",
     "json5": "^2.2.0"
