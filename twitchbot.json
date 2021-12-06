@@ -1,0 +1,27 @@
+// This specifies the configuration information for the bot. This file is loaded
+// at startup to initialize the configuration object within the code.
+//
+// Each option has a default value specified in the code, which will be used
+// unless there is a value specified in this file. Some configuration options
+// can be set via environment variables, and if so the default and the value
+// in this are ignored in favour of the environment variable.
+//
+// Not all configuration options can be configured via an environemnt variable;
+// those that can are annotated as such.
+
+{
+  "twitch": {
+    // The configuration values here represent the core of the bot's ability to
+    // talk to Twitch. All of these values must be given or the bot will refuse
+    // to function.
+    //
+    // NOTE: The clientSecret should not be specified in the configuration file
+    // as it could be accidentally leaked if you view the code on stream (for
+    // example); it's best set by a private environment variable.
+    "core": {
+      "clientId": null,     // TWITCHBOT_CLIENT_ID
+      "clientSecret": null, // TWITCHBOT_CLIENT_SECRET
+      "callbackURL": null,  // TWITCHBOT_AUTH_CALLBACK
+    }
+  }
+}

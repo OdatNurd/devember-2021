@@ -1,5 +1,15 @@
 'use strict';
 
+// Before doing anything else, load the .env file in the current directory to
+// backfill any missing environment variables; anything that is already defined
+// will be left untouched.
+const path = require('path')
+require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') })
+
+// Load up our configuration information up and obtain the configuration
+// object.
+const config = require('./config');
+
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
@@ -12,6 +22,8 @@ const CALLBACK_URL     = 'http://localhost:9090/auth/twitch/callback';
 //   - Wrap the logger so that anything that uses it will send their output to
 //     a log panel in the IO
 module.exports = function (nodecg) {
+  nodecg.log.info(`configuration is ${config.toString()}`);
+
   function getAuthURL(state) {
     const params = {
       client_id: TWITCH_CLIENT_ID,
