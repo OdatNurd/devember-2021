@@ -13,11 +13,6 @@ const config = require('./config');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
-const TWITCH_CLIENT_ID = 'q0xqvkmbfl8834g1rvqamjwbvxf3if';
-const TWITCH_SECRET    = process.env.DEVEMBER_CLIENT_SECRET;
-const SESSION_SECRET   = process.env.DEVEMBER_SESSION_SECRET;
-const CALLBACK_URL     = 'http://localhost:9090/auth/twitch/callback';
-
 // TODO would-be-nice tasks
 //   - Wrap the logger so that anything that uses it will send their output to
 //     a log panel in the IO
@@ -26,8 +21,8 @@ module.exports = function (nodecg) {
 
   function getAuthURL(state) {
     const params = {
-      client_id: TWITCH_CLIENT_ID,
-      redirect_uri: CALLBACK_URL,
+      client_id: config.get('twitch.core.clientId'),
+      redirect_uri: config.get('twitch.core.callbackURL'),
       force_verify: true,
       response_type: 'code',
       scope: 'user:read:email',
@@ -43,11 +38,11 @@ module.exports = function (nodecg) {
         url: 'https://id.twitch.tv/oauth2/token',
         method: 'POST',
         data: {
-          client_id: TWITCH_CLIENT_ID,
-          client_secret: TWITCH_SECRET,
+          client_id: config.get('twitch.core.clientId'),
+          client_secret: config.get('twitch.core.clientSecret'),
           code,
           grant_type: 'authorization_code',
-          redirect_uri: CALLBACK_URL
+          redirect_uri: config.get('twitch.core.callbackURL')
         }
       });
 
