@@ -10,13 +10,13 @@ const { v4: uuidv4 } = require('uuid');
  * consists of NodeCG messages that allow for us to share information with the
  * front end code as well as responding to requests made by Twitch during the
  * flow. */
-function setup_auth(nodecg, config) {
+function setup_auth(api) {
   /* Construct and return an authorization URL. This is the URL that the browser
    * needs to display in order for the authentication to start. */
   function getAuthURL(state) {
     const params = {
-      client_id: config.get('twitch.core.clientId'),
-      redirect_uri: config.get('twitch.core.callbackURL'),
+      client_id: api.config.get('twitch.core.clientId'),
+      redirect_uri: api.config.get('twitch.core.callbackURL'),
       force_verify: true,
       response_type: 'code',
       scope: 'user:read:email',
@@ -35,11 +35,11 @@ function setup_auth(nodecg, config) {
         url: 'https://id.twitch.tv/oauth2/token',
         method: 'POST',
         data: {
-          client_id: config.get('twitch.core.clientId'),
-          client_secret: config.get('twitch.core.clientSecret'),
+          client_id: api.config.get('twitch.core.clientId'),
+          client_secret: api.config.get('twitch.core.clientSecret'),
           code,
           grant_type: 'authorization_code',
-          redirect_uri: config.get('twitch.core.callbackURL')
+          redirect_uri: api.config.get('twitch.core.callbackURL')
         }
       });
 
@@ -51,12 +51,12 @@ function setup_auth(nodecg, config) {
       //   scope: [ 'user:read:email' ],
       //   token_type: 'bearer'
       // }
-      nodecg.log.info(response.data);
+      api.log.info(response.data);
     }
 
     catch (error) {
-      nodecg.log.error(`${error.response.status} : ${JSON.stringify(error.response.data)}`);
-      nodecg.log.error(`${error}`);
+      api.log.error(`${error.response.status} : ${JSON.stringify(error.response.data)}`);
+      api.log.error(`${error}`);
     }
   }
 
@@ -74,18 +74,18 @@ function setup_auth(nodecg, config) {
   // it back in another message.
   //
   // Every time this happens a new authorization state value is generated.
-  nodecg.listenFor('get-twitch-auth-url', () => {
+  api.nodecg.listenFor('get-twitch-auth-url', () => {
     state = uuidv4();
-    nodecg.sendMessage('auth-redirect-url', getAuthURL(state));
+    api.nodecg.sendMessage('auth-redirect-url', getAuthURL(state));
   });
 
   // Ask the express server in NodeCG to create a new router for us.
-  const app = nodecg.Router();
+  const app = api.nodecg.Router();
 
   // Listen for an incoming request from Twitch; this will happen in response to
   // the user clicking either Authorize or Cancel on the authorization page that
   // Twitch presents.
-  app.get(new URL(config.get('twitch.core.callbackURL')).pathname, (req, res) => {
+  app.get(new URL(api.config.get('twitch.core.callbackURL')).pathname, (req, res) => {
     // The query paramters that come back include a code value that we need to
     // use to obtain our actual access token.
     const code = req.query.code;
@@ -94,13 +94,13 @@ function setup_auth(nodecg, config) {
     // If no code comes back, it's because the user decided not to authorize.
     // We should respond to this by removing any tokens that we currently have.
     if (code === undefined) {
-      nodecg.log.error(`User did not confirm authorization`);
+      api.log.error(`User did not confirm authorization`);
     } else {
       // There is a code; if the state is not the same as the one that we gave
       // to Twitch when the authorization started, don't trust anything in this
       // resonse.
       if (inState !== state) {
-        nodecg.log.error(`auth callback got out of date authorization code; potential spoof?`);
+        api.log.error(`auth callback got out of date authorization code; potential spoof?`);
       } else {
         // Fetch the token.
         getAccessToken(code);
@@ -112,7 +112,7 @@ function setup_auth(nodecg, config) {
     res.redirect('/dashboard/')
   });
 
-  nodecg.mount(app);
+  api.nodecg.mount(app);
 }
 
 module.exports = setup_auth;
