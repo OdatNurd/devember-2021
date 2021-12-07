@@ -10,7 +10,7 @@ const { v4: uuidv4 } = require('uuid');
  * consists of NodeCG messages that allow for us to share information with the
  * front end code as well as responding to requests made by Twitch during the
  * flow. */
-function auth(nodecg, config) {
+function setup_auth(nodecg, config) {
   /* Construct and return an authorization URL. This is the URL that the browser
    * needs to display in order for the authentication to start. */
   function getAuthURL(state) {
@@ -115,4 +115,4 @@ function auth(nodecg, config) {
   nodecg.mount(app);
 }
 
-module.exports = auth;
+module.exports = setup_auth;

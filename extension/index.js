@@ -9,7 +9,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') })
 // Load up our configuration information up and obtain the configuration
 // object.
 const config = require('./config');
-const auth = require('./auth');
+const setup_auth = require('./auth/');
 
 // TODO would-be-nice tasks
 //   - Wrap the logger so that anything that uses it will send their output to
@@ -20,5 +20,5 @@ module.exports = function (nodecg) {
   // Initialize the authorization code; this allows the front end to ask us for
   // auth URL's so that it can authorize on demand, and also sets up the back
   // end service endpoint that Twitch will call back to.
-  auth(nodecg, config);
+  setup_auth(nodecg, config);
 };
