@@ -6,7 +6,7 @@
 // can be set via environment variables, and if so the default and the value
 // in this are ignored in favour of the environment variable.
 //
-// Not all configuration options can be configured via an environemnt variable;
+// Not all configuration options can be configured via an environment variable;
 // those that can are annotated as such.
 
 {
@@ -23,5 +23,13 @@
       "clientSecret": null, // TWITCHBOT_CLIENT_SECRET
       "callbackURL": null,  // TWITCHBOT_AUTH_CALLBACK
     }
+  },
+
+  "crypto": {
+    // Some data in the database is stored encrypted and decrypted when it's
+    // loaded. This value is used to set up the encryption. Much like
+    // twitch.clientSecret this should be kept a secret from everyone, because
+    // loose lips make it easy to decrypt.
+    "secret": null,         // TWITCHBOT_CRYPTO_SECRET
   }
 }

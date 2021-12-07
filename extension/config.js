@@ -19,6 +19,16 @@ const required = value => {
   }
 };
 
+/* This handler is an extension of the above and further verifies that the
+ * value is exactly 32 characters long; this is required for the encruption
+ * secret. */
+const required_len_32 = value => {
+  required(value);
+  if (value.length !== 32) {
+    throw new Error('This value must be exactly 32 characters long');
+  }
+}
+
 /* This sets the configuration schema to be used for the bot configuration. It's
  * split up into sections based on functionality.
  *
@@ -55,6 +65,15 @@ const config = convict({
       }
     },
   },
+  crypto: {
+    secret: {
+      doc: 'The encryption secret; this must be exactly 32 characters long',
+      format: required_len_32,
+      default: null,
+      env: 'TWITCHBOT_CRYPTO_SECRET',
+      sensitive: true
+    }
+  }
 });
 
 // Load and validate the configuration.
