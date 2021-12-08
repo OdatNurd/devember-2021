@@ -17,6 +17,7 @@ const AuthorizationSchema = {
   token: { type: String, nullable: false },
   refreshToken: { type: String, nullable: false },
   scopes: { type: Array, defaultsTo: [] },
+  obtained: { type: Number, defaultsTo: 0 },
   expiration: { type: Number, defaultsTo: 0 },
 };
 

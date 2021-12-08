@@ -47,6 +47,7 @@ async function getAccessToken(api, name, code) {
       token: api.crypto.encrypt(response.data.access_token),
       refreshToken: api.crypto.encrypt(response.data.refresh_token),
       scopes: response.data.scope,
+      obtained: Date.now(),
       expiration: response.data.expires_in,
     });
 
