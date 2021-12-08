@@ -4,7 +4,7 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
 /* In order to talk to twitch we need to be able to use the Twitch OAuth 2
- * authentication flows to get the tokes that we require.
+ * authentication flows to get the tokens that we require.
  *
  * This sets up the back end required for our authentication to work. This
  * consists of NodeCG messages that allow for us to share information with the
@@ -29,7 +29,7 @@ function setup_auth(api) {
   /* Given a code value that has been retreived by Twitch calling back to our
    * authorization endpoint, make the request of Twitch that exchanges the code
    * for an access token. */
-  async function getAccessToken(code) {
+  async function getAccessToken(name, code) {
     try {
       const response = await axios({
         url: 'https://id.twitch.tv/oauth2/token',
@@ -43,6 +43,15 @@ function setup_auth(api) {
         }
       });
 
+      await api.db.getModel('authorize').updateOrCreate({'name': name }, {
+        name: name,
+        type: response.data.token_type,
+        token: api.crypto.encrypt(response.data.access_token),
+        refreshToken: api.crypto.encrypt(response.data.refresh_token),
+        scopes: response.data.scope,
+        expiration: response.data.expires_in,
+      });
+
       // The response data contains our token and refresh information:
       // {
       //   access_token: 'hejlbz0uc3dlv6xczza2q636r12l26',
@@ -51,7 +60,6 @@ function setup_auth(api) {
       //   scope: [ 'user:read:email' ],
       //   token_type: 'bearer'
       // }
-      api.log.info(response.data);
     }
 
     catch (error) {
@@ -59,6 +67,7 @@ function setup_auth(api) {
       api.log.error(`${error}`);
     }
   }
+
 
   // One of the paramters in the URL that we pass to Twitch to start
   // authorization is a randomlized string of text called the "state". This
@@ -103,7 +112,7 @@ function setup_auth(api) {
         api.log.error(`auth callback got out of date authorization code; potential spoof?`);
       } else {
         // Fetch the token.
-        getAccessToken(code);
+        getAccessToken('user', code);
       }
     }
 
