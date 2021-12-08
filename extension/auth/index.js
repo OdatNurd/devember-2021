@@ -3,6 +3,55 @@
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
+const { RefreshingAuthProvider } = require('@twurple/auth');
+const { ApiClient } = require('@twurple/api');
+
+/* Create an authorization object that wraps the token with the given name,
+ * which will be queried from the database. This can be used in calls as an
+ * authorization source; it will ensure that the token is up to date.
+ *
+ * When new tokens are generated at runtime (via a refresh), the database will
+ * be updated to include the new token. */
+async function getAuthProvider(api, name) {
+  const clientId = api.config.get('twitch.core.clientId');
+  const clientSecret = api.config.get('twitch.core.clientSecret');
+  const model = api.db.getModel('authorize');
+
+  const record = await model.findOne({ name });
+  if (record === undefined) {
+    api.log.error(`Cannot get auth provider; no token named '${name}'`);
+    return null;
+  }
+
+  // Construct an object of type AccessToken (from Twurple AUTH) to pass to the
+  // provider for construction purposes.
+  const tokenData = {
+    accessToken: api.crypto.decrypt(record.token),
+    refreshToken: api.crypto.decrypt(record.refreshToken),
+    scope: record.scopes,
+    expiresIn: record.expiration,
+    obtainmentTimestamp: record.obtained
+  };
+
+  return new RefreshingAuthProvider(
+    {
+      clientId,
+      clientSecret,
+      onRefresh: async newData => {
+        api.log.info(`Refreshing the ${name} token`);
+        await model.update({ name }, {
+          token: api.crypto.encrypt(newData.accessToken),
+          refreshToken: api.crypto.encrypt(newData.refreshToken),
+          scopes: newData.scopes,
+          obtained: newData.obtainmentTimestamp,
+          expiration: newData.expiresIn
+        });
+      }
+    },
+    tokenData
+  );
+}
+
 /* Construct and return an authorization URL. This is the URL that the browser
  * needs to display in order for the authentication to start. */
 function getAuthURL(api, state) {
@@ -78,7 +127,35 @@ async function getAccessToken(api, name, code) {
  * consists of NodeCG messages that allow for us to share information with the
  * front end code as well as responding to requests made by Twitch during the
  * flow. */
-function setup_auth(api) {
+async function setup_auth(api) {
+
+  // As a test, get an auth provider and make a request.
+  const auth = await getAuthProvider(api, 'user');
+  if (auth !== null) {
+    // Make sure that the token is valid; it might not be, in which case it
+    // needs to be refreshed. The library doesn't seem to do this for an
+    // initial request made with this auth.
+    await auth.getAccessToken();
+
+    api.log.info(`Loaded user token, getting information`);
+    const twitchAPI = new ApiClient({ authProvider: auth });
+    const result = await twitchAPI.users.getMe(true);
+
+    console.log({
+      broadcasterType: result.broadcasterType,
+      creationDate: result.creationDate,
+      description: result.description,
+      displayName: result.displayName,
+      // email: result.email,
+      id: result.id,
+      name: result.name,
+      offlinePlaceholderUrl: result.offlinePlaceholderUrl,
+      profilePictureUrl: result.profilePictureUrl,
+      type: result.type,
+      views: result.views
+    });
+  }
+
   // One of the paramters in the URL that we pass to Twitch to start
   // authorization is a randomlized string of text called the "state". This
   // value can be anything we like. When Twitch calls back to our callback URL

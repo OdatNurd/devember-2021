@@ -46,5 +46,5 @@ module.exports = async function(nodecg) {
   // Initialize the authorization code; this allows the front end to ask us for
   // auth URL's so that it can authorize on demand, and also sets up the back
   // end service endpoint that Twitch will call back to.
-  setup_auth(api);
+  await setup_auth(api);
 };
