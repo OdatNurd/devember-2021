@@ -1,14 +1,19 @@
 'use strict';
 
+// Get a path that is at the root of the bundle, which for us is one level above
+// the extension index, which must always be in a specific location in the
+// bundle.
+const path = require('path')
+const baseDir = path.resolve(__dirname, '..');
+
 // Before doing anything else, load the .env file in the current directory to
 // backfill any missing environment variables; anything that is already defined
 // will be left untouched.
-const path = require('path')
-require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') })
+require('dotenv').config({ path: path.resolve(baseDir, '.env') })
 
 // Load up our configuration information up and obtain the configuration
 // object.
-const config = require('./config');
+const config = require('./config')(baseDir);
 const setup_db = require('./db/');
 const setup_crypto = require('./crypto/');
 const setup_auth = require('./auth/');
@@ -20,8 +25,7 @@ module.exports = function(nodecg) {
   // Create an API object that will carry the common data and code endpoints
   // that are needed throughout the bot. This makes call signatures smaller and
   // easier to read.
-  const api = { nodecg, config,
-
+  const api = { nodecg, config, baseDir,
     // Alias the log routines to make our lives better.
     log: nodecg.log
   };

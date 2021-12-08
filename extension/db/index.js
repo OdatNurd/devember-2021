@@ -5,10 +5,10 @@ const path = require('path');
  * passed in API.
  *
  * The database uses SQLite; if it does not exist, a new file will be created
- * automatically.
+ * automatically. */
 function setup_db(api) {
   // Connect to the database; we keep the file in the root of the bundle.
-  const db_file = path.resolve(__dirname, '..', '..', 'twitchbot.db');
+  const db_file = path.resolve(api.baseDir, 'twitchbot.db');
   const db = trilogy.connect(db_file);
 
   // Store the database handle in the API for anything that would like it.

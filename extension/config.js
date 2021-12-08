@@ -76,8 +76,12 @@ const config = convict({
   }
 });
 
-// Load and validate the configuration.
-config.loadFile(path.resolve(__dirname, '..', 'twitchbot.json'));
-config.validate();
+function loadConfig(baseDir) {
+  // Load and validate the configuration.
+  config.loadFile(path.resolve(baseDir, 'twitchbot.json'));
+  config.validate();
 
-module.exports = config;
+  return config;
+}
+
+module.exports = loadConfig;
