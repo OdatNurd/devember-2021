@@ -21,7 +21,7 @@ const setup_auth = require('./auth/');
 // TODO would-be-nice tasks
 //   - Wrap the logger so that anything that uses it will send their output to
 //     a log panel in the IO
-module.exports = function(nodecg) {
+module.exports = async function(nodecg) {
   // Create an API object that will carry the common data and code endpoints
   // that are needed throughout the bot. This makes call signatures smaller and
   // easier to read.
@@ -41,7 +41,7 @@ module.exports = function(nodecg) {
   //
   // Both of these items directly augment the passed in API structure.
   setup_crypto(api);
-  setup_db(api);
+  await setup_db(api);
 
   // Initialize the authorization code; this allows the front end to ask us for
   // auth URL's so that it can authorize on demand, and also sets up the back
