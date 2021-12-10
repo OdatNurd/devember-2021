@@ -19,7 +19,6 @@ async function getAuthProvider(api, name) {
 
   const record = await model.findOne({ name });
   if (record === undefined) {
-    api.log.error(`Cannot get auth provider; no token named '${name}'`);
     return null;
   }
 
@@ -120,6 +119,37 @@ async function getAccessToken(api, name, code) {
   }
 }
 
+/* Set up the Twitch API endpoints inside of the given api struct using the
+ * token with the given name.
+ *
+ * If there is an authorized and cached token by that name it will be refreshed
+ * and used to set up a Twitch Auth provider and a Twitch API endpoint.
+ *
+ * When there's no token, those items are actively removed from the given api
+ * struct.
+ *
+ * Thus, thus should be called any time the state of authorization changes. */
+async function setupTwitchAPI(api, name) {
+  api.auth = await getAuthProvider(api, name)
+  if (api.auth === null) {
+    api.auth = undefined;
+    api.twitch = undefined;
+    return api.log.warn(`No bot authorization token for '${name}' found`);
+  }
+
+  api.log.info(`Loaded bot user token '${name}'; refreshing the token`);
+
+  // Make sure that the token is valid; it might not be, in which case it
+  // needs to be refreshed. The library doesn't seem to do this for an
+  // initial request made with this auth.
+  await api.auth.getAccessToken();
+
+  // Create a Twitch API instance from which we can make requests. This will
+  // be tied to the bot authorization token.
+  api.twitch = new ApiClient({ authProvider: api.auth });
+}
+
+
 /* In order to talk to twitch we need to be able to use the Twitch OAuth 2
  * authentication flows to get the tokens that we require.
  *
@@ -128,33 +158,30 @@ async function getAccessToken(api, name, code) {
  * front end code as well as responding to requests made by Twitch during the
  * flow. */
 async function setup_auth(api) {
+  // When we set up the authorization system, try to set up an authorization
+  // provider and Twitch API client for the token that represents the bot. If
+  // if this fails, the items are not set up at all, which is a signal to other
+  // code that there is no token.
+  //
+  // Care must be taken to adjust this if the token is ever dropped or lost.
+  await setupTwitchAPI(api, 'user')
 
-  // As a test, get an auth provider and make a request.
-  const auth = await getAuthProvider(api, 'user');
-  if (auth !== null) {
-    // Make sure that the token is valid; it might not be, in which case it
-    // needs to be refreshed. The library doesn't seem to do this for an
-    // initial request made with this auth.
-    await auth.getAccessToken();
+  //   const result = await twitchAPI.users.getMe(true);
 
-    api.log.info(`Loaded user token, getting information`);
-    const twitchAPI = new ApiClient({ authProvider: auth });
-    const result = await twitchAPI.users.getMe(true);
-
-    console.log({
-      broadcasterType: result.broadcasterType,
-      creationDate: result.creationDate,
-      description: result.description,
-      displayName: result.displayName,
-      // email: result.email,
-      id: result.id,
-      name: result.name,
-      offlinePlaceholderUrl: result.offlinePlaceholderUrl,
-      profilePictureUrl: result.profilePictureUrl,
-      type: result.type,
-      views: result.views
-    });
-  }
+  //   console.log({
+  //     broadcasterType: result.broadcasterType,
+  //     creationDate: result.creationDate,
+  //     description: result.description,
+  //     displayName: result.displayName,
+  //     // email: result.email,
+  //     id: result.id,
+  //     name: result.name,
+  //     offlinePlaceholderUrl: result.offlinePlaceholderUrl,
+  //     profilePictureUrl: result.profilePictureUrl,
+  //     type: result.type,
+  //     views: result.views
+  //   });
+  // }
 
   // One of the paramters in the URL that we pass to Twitch to start
   // authorization is a randomlized string of text called the "state". This
