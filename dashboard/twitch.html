@@ -56,55 +56,28 @@
 </head>
 <body>
   <div class="pure-g">
-    <div class="pure-u-1-2">
-      <bot-card>
-        <h1>Bot Account</h1>
-        <user-info>
-          <img id="bot-avatar" src="https://static-cdn.jtvnw.net/jtv_user_pictures/c734d46c-712b-4ee7-af89-204cc97bc367-profile_image-300x300.png">
-          <user-details>
-            <text-line id="bot-user">OdatNurd (odatnurd)</text-line>
-            <text-line id="bot-type">Affiliate</text-line>
-            <text-line id="bot-date">2014-07-17</text-line>
-          </user-details>
-        </user-info>
-
-        <user-description id="bot-about">Software developer, YouTuber, self proclaimed Sublime Text fanatic, and all around semi-weird guy.  OdatNurd writes software professionally, creates tutorial videos, spends his free time helping people and for some reason refers to himself in the third person.</user-description>
-
-        <panel-buttons>
-          <a id="auth-link" href="#" target="_top"><button class="pure-button pure-button-disabled" id="twitch-authorize">Disconnect Account</button></a>
-        </panel-buttons>
-      </bot-card>
-    </div>
 
     <div class="pure-u-1-2">
       <bot-card>
         <h1>Bot Account</h1>
         <user-info>
-          <img src="res/images/avatar.png">
+          <img id="bot-avatar" src="res/images/avatar.png">
           <user-details>
-            <text-line>No bot account connected</text-line>
-            <text-line></text-line>
-            <text-line></text-line>
+            <text-line id="bot-user">No bot account connected</text-line>
+            <text-line id="bot-type"></text-line>
+            <text-line id="bot-date"></text-line>
           </user-details>
         </user-info>
 
-        <user-description>There is currently no bot account connected; use the button below to log in as the bot account.</user-description>
+        <user-description id="bot-about">There is currently no bot account connected; use the button below to log in as the bot account.</user-description>
 
         <panel-buttons>
-          <a id="auth-link" href="#" target="_top"><button class="pure-button" id="twitch-authorize">Connect Account</button></a>
+          <a id="auth-link" href="#" target="_top"><button class="pure-button" id="bot-authorize-btn">Authorize with Bot Account</button></a>
         </panel-buttons>
       </bot-card>
     </div>
 
-
-<!--
-    <div class="pure-u-1-2">
-      <bot-card>
-      </bot-card>
-    </div>
- -->
   </div>
-
 
   <script type="text/javascript" src="script.js"></script>
 </body>
