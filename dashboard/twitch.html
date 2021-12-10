@@ -13,7 +13,7 @@
       font-family: 'Roboto', sans-serif;
     }
 
-    bot-card, user-info, user-details, text-line {
+    bot-card, user-info, user-details, user-description, text-line, panel-buttons {
       display: block;
     }
 
@@ -31,14 +31,25 @@
     }
 
     user-info {
-      padding-top: 0.5em;
-      padding-bottom: 0.5em;
+      padding:  0.5em 0;
       display: flex;
     }
 
     user-info > img {
       width: 64px;
       height: 64px;
+    }
+
+    user-description {
+      border-top: 1px solid #525f78;
+      border-bottom: 1px solid #525f78;
+      text-align: justify;
+      padding:  0.5em 0;
+   }
+
+    panel-buttons {
+      padding-top: 1em;
+      text-align: right;
     }
 
   </style>
@@ -49,40 +60,49 @@
       <bot-card>
         <h1>Bot Account</h1>
         <user-info>
-          <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/c734d46c-712b-4ee7-af89-204cc97bc367-profile_image-300x300.png">
+          <img id="bot-avatar" src="https://static-cdn.jtvnw.net/jtv_user_pictures/c734d46c-712b-4ee7-af89-204cc97bc367-profile_image-300x300.png">
           <user-details>
-            <text-line>Username: odatnurd</text-line>
-            <text-line>Display:  OdatNurd</text-line>
-            <text-line>Creation: 2014-07-17 22:54:56.000Z</text-line>
+            <text-line id="bot-user">OdatNurd (odatnurd)</text-line>
+            <text-line id="bot-type">Affiliate</text-line>
+            <text-line id="bot-date">2014-07-17</text-line>
           </user-details>
         </user-info>
 
-        <em>Software developer, YouTuber, self proclaimed Sublime Text fanatic, and all around semi-weird guy.  OdatNurd writes software professionally, creates tutorial videos, spends his free time helping people and for some reason refers to himself in the third person.</em>
+        <user-description id="bot-about">Software developer, YouTuber, self proclaimed Sublime Text fanatic, and all around semi-weird guy.  OdatNurd writes software professionally, creates tutorial videos, spends his free time helping people and for some reason refers to himself in the third person.</user-description>
 
-        <a id="auth-link" href="#" target="_top"><button class="pure-button" id="twitch-authorize">Log In</button></a>
-        <a id="auth-link" href="#" target="_top"><button class="pure-button pure-button-disabled" id="twitch-authorize">Log Out</button></a>
+        <panel-buttons>
+          <a id="auth-link" href="#" target="_top"><button class="pure-button pure-button-disabled" id="twitch-authorize">Disconnect Account</button></a>
+        </panel-buttons>
       </bot-card>
+    </div>
+
+    <div class="pure-u-1-2">
+      <bot-card>
+        <h1>Bot Account</h1>
+        <user-info>
+          <img src="res/images/avatar.png">
+          <user-details>
+            <text-line>No bot account connected</text-line>
+            <text-line></text-line>
+            <text-line></text-line>
+          </user-details>
+        </user-info>
+
+        <user-description>There is currently no bot account connected; use the button below to log in as the bot account.</user-description>
+
+        <panel-buttons>
+          <a id="auth-link" href="#" target="_top"><button class="pure-button" id="twitch-authorize">Connect Account</button></a>
+        </panel-buttons>
+      </bot-card>
+    </div>
+
 
 <!--
-{
-  broadcasterType: 'affiliate',
-  creationDate: 2014-07-17T22:54:56.000Z,
-  description: 'Software developer, YouTuber, self proclaimed Sublime Text fanatic, and all around semi-weird guy.  OdatNurd writes software professionally, creates tutorial videos, spends his free time helping people and for some reason refers to himself in the third person.',
-  displayName: 'OdatNurd',
-  id: '66586458',
-  name: 'odatnurd',
-  offlinePlaceholderUrl: 'https://static-cdn.jtvnw.net/jtv_user_pictures/1ab071a0-c6d0-406e-b72d-93bb86bc9564-channel_offline_image-1920x1080.png',
-  profilePictureUrl: 'https://static-cdn.jtvnw.net/jtv_user_pictures/c734d46c-712b-4ee7-af89-204cc97bc367-profile_image-300x300.png',
-  type: '',
-  views: 13318
-}
- -->
-    </div>
     <div class="pure-u-1-2">
-      <div class="card">
-        This space intentionally blank.
-      </div>
+      <bot-card>
+      </bot-card>
     </div>
+ -->
   </div>
 
 
