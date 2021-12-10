@@ -166,23 +166,6 @@ async function setup_auth(api) {
   // Care must be taken to adjust this if the token is ever dropped or lost.
   await setupTwitchAPI(api, 'user')
 
-  //   const result = await twitchAPI.users.getMe(true);
-
-  //   console.log({
-  //     broadcasterType: result.broadcasterType,
-  //     creationDate: result.creationDate,
-  //     description: result.description,
-  //     displayName: result.displayName,
-  //     // email: result.email,
-  //     id: result.id,
-  //     name: result.name,
-  //     offlinePlaceholderUrl: result.offlinePlaceholderUrl,
-  //     profilePictureUrl: result.profilePictureUrl,
-  //     type: result.type,
-  //     views: result.views
-  //   });
-  // }
-
   // One of the paramters in the URL that we pass to Twitch to start
   // authorization is a randomlized string of text called the "state". This
   // value can be anything we like. When Twitch calls back to our callback URL
@@ -200,6 +183,42 @@ async function setup_auth(api) {
   api.nodecg.listenFor('get-twitch-auth-url', () => {
     state = uuidv4();
     api.nodecg.sendMessage('auth-redirect-url', getAuthURL(api, state));
+  });
+
+  // When requested bythe front end, return information that's needed for it
+  // to display who it is that's currently logged in. This will send a message
+  // back the other way to deliver the data back; the object sent back in
+  // response will be an empty object if there's no authorized bot user at the
+  // current time.
+  api.nodecg.listenFor('get-bot-user-info', async () => {
+    let botUserInfo = {};
+    if (api.twitch !== undefined) {
+      const result = await api.twitch.users.getMe(true);
+
+      botUserInfo.profilePictureUrl = result.profilePictureUrl;
+      botUserInfo.displayName = result.displayName;
+      botUserInfo.name = result.name;
+      botUserInfo.broadcasterType = result.broadcasterType;
+      botUserInfo.creationDate = result.creationDate;
+      botUserInfo.description = result.description;
+
+      //   {
+      //     broadcasterType: result.broadcasterType,
+      //     creationDate: result.creationDate,
+      //     description: result.description,
+      //     displayName: result.displayName,
+      //     email: result.email,
+      //     id: result.id,
+      //     name: result.name,
+      //     offlinePlaceholderUrl: result.offlinePlaceholderUrl,
+      //     profilePictureUrl: result.profilePictureUrl,
+      //     type: result.type,
+      //     views: result.views
+      //   });
+      // }
+    }
+
+    api.nodecg.sendMessage('bot-user-info', botUserInfo)
   });
 
   // Ask the express server in NodeCG to create a new router for us.
