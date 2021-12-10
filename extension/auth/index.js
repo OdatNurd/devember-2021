@@ -240,7 +240,7 @@ async function setup_auth(api) {
       // token.
       await api.db.getModel('authorize').remove({ name: 'user' });
 
-      api.log.error(`User did not confirm authorization`);
+      api.log.warn(`User did not confirm authorization`);
     } else {
       // There is a code; if the state is not the same as the one that we gave
       // to Twitch when the authorization started, don't trust anything in this
@@ -253,13 +253,25 @@ async function setup_auth(api) {
         api.log.error(`auth callback got out of date authorization code; potential spoof?`);
       } else {
         // Fetch the token.
-        getAccessToken(api, 'user', code);
+        await getAccessToken(api, 'user', code);
       }
     }
 
-    // No matter what happened, tell the browser to redirect back to the
-    // dashboard.
-    res.redirect('/dashboard/')
+    // No matter what happens, set up the Twitch API using this token; if there
+    // isn't one, the Twitch API will be removed, otherwise it's set up. We
+    // then redirect back to the dashboard, which will make the front end
+    // request data from us.
+    setupTwitchAPI(api, 'user');
+    res.redirect('/dashboard/#fullbleed/twitch');
+  });
+
+  // Listen for an incoming request to deauthorize the bot account. When we
+  // receive it we remove any token that we might have, remove the Twitch API
+  // from the main api, and make the panel reload.
+  app.get('/bot/deauth', async (req, res) => {
+    await api.db.getModel('authorize').remove({ name: 'user' });
+    setupTwitchAPI(api, 'user');
+    res.redirect('/dashboard/#fullbleed/twitch');
   });
 
   api.nodecg.mount(app);

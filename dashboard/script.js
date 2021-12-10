@@ -21,39 +21,54 @@ function refreshAuthURL() {
   window.setTimeout(refreshAuthURL, 60000);
 }
 
-/* Set up the bot panel to display information that tells the user that no
- * account is currently authorized for use as the bot account. This will clear
- * any fields that need clearing and make sure that the button displays the
- * appropriate message and goes to the right place when clicked. */
-function displayLoginInfo() {
-  botAvatar.src = 'res/images/avatar.png';
+/* Set up the bot panel to display information that tells the user about the
+ * account that is currently authorized to be the bot. If there is no account
+ * currently authorized, this will clear any fields that need clearing and make
+ * sure that the button displays the * appropriate message and goes to the right
+ * place when clicked. */
+function displayLoginInfo(botInfo) {
+  console.log(botInfo);
 
-  botUser.innerText = 'No bot account is currently authorized';
-  botType.innerText = '';
-  botDate.innerText = '';
-  botAbout.innerText = 'There is currently no Twitch account authorized for the bot; ' +
+  botAvatar.src = botInfo.profilePictureUrl ?? 'res/images/avatar.png';
+  botType.innerText = botInfo.broadcasterType ?? '';
+  botDate.innerText = (botInfo.creationDate != undefined)
+                        ? new Date(botInfo.creationDate).toLocaleDateString()
+                        : '';
+  botAbout.innerText = botInfo.description ??
+                       'There is currently no Twitch account authorized for the bot; ' +
                        'use the button below to authorize an account. The account chosen ' +
                        'will appear as the bot in the channel.'
 
-  // Set up the button to have the correct text and go to the correct place.
-  // The link change happens when the back end responds to our request for a
-  // twitch authorization URL.
-  botAuthBtn.innerText = 'Authorize with Bot Account'
-  nodecg.sendMessage('get-twitch-auth-url');
+  // What appears in the user name and what the button looks like and links to
+  // is different depending on whether the request we got indicates that a bot
+  // account is authorized or not.
+  if (botInfo.name !== undefined && botInfo.displayName !== undefined) {
+    botUser.innerText = `${botInfo.displayName} (${botInfo.name})`;
 
-  // For now, disable this; if the back end restarts, the front end will need to
-  // do a manual reload to make sure it has the appropriate state paramter or
-  // the auth will fail.
-  //refreshAuthURL();
+    // Make the auth button a deauth button.
+    botAuthBtn.innerText = 'Revoke Bot Account Authorization';
+    authLink.href = '/bot/deauth';
+  } else {
+    botUser.innerText = 'No bot account is currently authorized';
+
+    // Set the button text and then ask the back end for a new URL; when it
+    // arrives, the URL on the button will change.
+    botAuthBtn.innerText = 'Authorize with Bot Account'
+    nodecg.sendMessage('get-twitch-auth-url');
+  }
 }
 
 // When the back end gives us a message that contains a new authorization URL,
 // update the link on the authorize button to go there.
 nodecg.listenFor('auth-redirect-url', url => authLink.href = url);
+nodecg.listenFor('bot-user-info', botInfo => displayLoginInfo(botInfo))
 
-// When the script runs, refresh the authorization URL that we go to when the
-// authorize link is clicked so that it has new random state in it. The state is
-// passed to Twitch, which sends it back, and we can use that to make sure that
-// the incoming request is not fake.
-// nodecg.sendMessage('get-twitch-auth-url');
-displayLoginInfo();
+// When the page loads, ask the back end for the information on the currently
+// active bot account, if any. The result of this will be a call to the code
+// that sets up the panel as appropriate.
+//
+// NOTE: Currently if the back end restarts while the front end is already
+//       loaded, an authorization attempt will fail as a spoof because the
+//       front end only asks for the auth URL on load. That needs to be
+//       fixed.
+nodecg.sendMessage('get-bot-user-info');
