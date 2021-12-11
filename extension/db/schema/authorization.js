@@ -1,6 +1,15 @@
-/* The schema that represents the access tokens that we have, as well as the
- * information we have that relates to knowing when they are likely to expire
- * and the refresh token that's needed to refresh them (if applicable). */
+'use strict';
+
+// =============================================================================
+
+/* This schema represents the `authorization` table, which is used to persist
+ * session tokens after they're granted to us. Each record contains information
+ * about the token such as when it will expire, the scopes associated and of
+ * course the token itself.
+ *
+ * The extra field `name` is not a standard token field, and is used as the key
+ * to find the token you want; as each token is created it is associated with
+ * a given name as provided by the code. */
 const AuthorizationSchema = {
   // Unique ID for this particular token
   id: 'increments',
@@ -20,6 +29,8 @@ const AuthorizationSchema = {
   obtained: { type: Number, defaultsTo: 0 },
   expiration: { type: Number, defaultsTo: 0 },
 };
+
+// =============================================================================
 
 module.exports = {
   AuthorizationSchema

@@ -1,8 +1,12 @@
 'use strict';
 
+// =============================================================================
+
 const convict = require('convict');
 const json5 = require('json5');
 const path = require('path');
+
+// =============================================================================
 
 // Tell convict about json5 so that our configuation files can have comments
 // in them without the parser taking a dump on our heads.
@@ -32,10 +36,12 @@ const required_len_32 = value => {
 /* This sets the configuration schema to be used for the bot configuration. It's
  * split up into sections based on functionality.
  *
- * The overarching goal is that twitch.core.* are absolutely required since they
- * control the bot's ability to do anything at all, but apart from that all
- * other options are considered optional and missing configuration will disable
- * any functionality that requires those settings in order to operate. */
+ * The overarching goal is that twitch.core.* and crypto.* are absolutely
+ * required since they control the bot's ability to do anything at all, but
+ * apart from that all other options are considered optional and missing
+ * configuration will disable any functionality that requires those settings
+ * in order to operate, unless there's a sensible default that can be falled
+ * back upon. */
 const config = convict({
   // These configuration options relate to the interactions between the bot
   // and Twitch; some of them are specific to Twitch as a whole, some to the
@@ -76,12 +82,24 @@ const config = convict({
   }
 });
 
+// =============================================================================
+
+/* Load the configuration file into memory and verify that all of the fields are
+ * valid. If so, return back the config object that allows code to determine
+ * what it's configuration parameters are.
+ *
+ * This will raise an exception if the configuration file is missing, invalid
+ * or has keys set to nonsensical values. */
 function loadConfig(baseDir) {
-  // Load and validate the configuration.
+  // Load and validate the configuration file, and if all is successful, return
+  // the config object that loaded the config.  Otherwise we would instead
+  // raise an exeption.
   config.loadFile(path.resolve(baseDir, 'twitchbot.json'));
   config.validate();
 
   return config;
 }
+
+// =============================================================================
 
 module.exports = loadConfig;
