@@ -198,7 +198,7 @@ async function setup_auth(api) {
   // code that there is no token.
   //
   // Care must be taken to adjust this if the token is ever dropped or lost.
-  await setupTwitchAPI(api, 'user')
+  await setupTwitchAPI(api, 'bot-token')
 
   // One of the paramters in the URL that we pass to Twitch to start
   // authorization is a randomlized string of text called the "state". This
@@ -272,7 +272,7 @@ async function setup_auth(api) {
     if (code === undefined) {
       // If getting the token fails, make sure that we get rid of any existing
       // token.
-      await api.db.getModel('authorize').remove({ name: 'user' });
+      await api.db.getModel('authorize').remove({ name: 'bot-token' });
 
       api.log.warn(`User did not confirm authorization`);
     } else {
@@ -282,12 +282,12 @@ async function setup_auth(api) {
       if (inState !== state) {
         // If getting the token fails, make sure that we get rid of any existing
         // token.
-        await api.db.getModel('authorize').remove({ name: 'user' });
+        await api.db.getModel('authorize').remove({ name: 'bot-token' });
 
         api.log.error(`auth callback got out of date authorization code; potential spoof?`);
       } else {
         // Fetch the token.
-        await getAccessToken(api, 'user', code);
+        await getAccessToken(api, 'bot-token', code);
       }
     }
 
@@ -295,7 +295,7 @@ async function setup_auth(api) {
     // isn't one, the Twitch API will be removed, otherwise it's set up. We
     // then redirect back to the dashboard, which will make the front end
     // request data from us.
-    setupTwitchAPI(api, 'user');
+    setupTwitchAPI(api, 'bot-token');
     res.redirect('/dashboard/#fullbleed/twitch');
   });
 
@@ -303,8 +303,8 @@ async function setup_auth(api) {
   // receive it we remove any token that we might have, remove the Twitch API
   // from the main api, and make the panel reload.
   app.get('/bot/deauth', async (req, res) => {
-    await api.db.getModel('authorize').remove({ name: 'user' });
-    setupTwitchAPI(api, 'user');
+    await api.db.getModel('authorize').remove({ name: 'bot-token' });
+    setupTwitchAPI(api, 'bot-token');
     res.redirect('/dashboard/#fullbleed/twitch');
   });
 
