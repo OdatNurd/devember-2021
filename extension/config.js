@@ -63,11 +63,17 @@ const config = convict({
         env: 'TWITCHBOT_CLIENT_SECRET',
         sensitive: true
       },
-      callbackURL: {
-        doc: 'The configured OAuth callback URL used during authentication',
+      botCallbackURL: {
+        doc: 'The configured OAuth callback URL used during authentication of the bot account',
         format: required,
         default: null,
-        env: 'TWITCHBOT_AUTH_CALLBACK'
+        env: 'TWITCHBOT_BOT_AUTH_CALLBACK'
+      },
+      userCallbackURL: {
+        doc: 'The configured OAuth callback URL used during authentication of the user account',
+        format: required,
+        default: null,
+        env: 'TWITCHBOT_USER_AUTH_CALLBACK'
       }
     },
   },

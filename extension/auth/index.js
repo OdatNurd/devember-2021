@@ -18,10 +18,10 @@ const { ApiClient } = require('@twurple/api');
  * This code will construct and return a parameter based on the passed in state,
  * which is an opaque data item that we can use to verify that the response we
  * get back is from the place that we expect (and thus it always changes). */
-function getAuthURL(api, state) {
+function getAuthURL(api, type, state) {
   const params = {
     client_id: api.config.get('twitch.core.clientId'),
-    redirect_uri: api.config.get('twitch.core.callbackURL'),
+    redirect_uri: api.config.get(`twitch.core.${type}CallbackURL`),
     force_verify: true,
     response_type: 'code',
     scope: 'user:read:email',
@@ -42,7 +42,7 @@ function getAuthURL(api, state) {
  *
  * This function uses that code and makes the necessary requests to obtain the
  * token and store it in the database. */
-async function getAccessToken(api, name, code) {
+async function getAccessToken(api, type, name, code) {
   try {
     // Using the code that we got, request a token by hitting the appropriate
     // Twitch API endpoint. The result should be our token, and some information
@@ -55,7 +55,7 @@ async function getAccessToken(api, name, code) {
         client_secret: api.config.get('twitch.core.clientSecret'),
         code,
         grant_type: 'authorization_code',
-        redirect_uri: api.config.get('twitch.core.callbackURL')
+        redirect_uri: api.config.get(`twitch.core.${type}CallbackURL`)
       }
     });
 
@@ -216,7 +216,7 @@ async function setup_auth(api) {
   // Every time this happens a new authorization state value is generated.
   api.nodecg.listenFor('get-twitch-auth-url', type => {
     state = uuidv4();
-    api.nodecg.sendMessage('auth-redirect-url', { type, url: getAuthURL(api, state)});
+    api.nodecg.sendMessage('auth-redirect-url', { type, url: getAuthURL(api, type, state)});
   });
 
   // When requested bythe front end, return information that's needed for it
@@ -261,7 +261,7 @@ async function setup_auth(api) {
   // Listen for an incoming request from Twitch; this will happen in response to
   // the user clicking either Authorize or Cancel on the authorization page that
   // Twitch presents.
-  app.get(new URL(api.config.get('twitch.core.callbackURL')).pathname, async (req, res) => {
+  app.get(new URL(api.config.get('twitch.core.botCallbackURL')).pathname, async (req, res) => {
     // The query paramters that come back include a code value that we need to
     // use to obtain our actual access token.
     const code = req.query.code;
@@ -287,7 +287,7 @@ async function setup_auth(api) {
         api.log.error(`auth callback got out of date authorization code; potential spoof?`);
       } else {
         // Fetch the token.
-        await getAccessToken(api, 'bot-token', code);
+        await getAccessToken(api, 'bot', 'bot-token', code);
       }
     }
 

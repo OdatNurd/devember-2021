@@ -19,9 +19,10 @@
     // as it could be accidentally leaked if you view the code on stream (for
     // example); it's best set by a private environment variable.
     "core": {
-      "clientId": null,     // TWITCHBOT_CLIENT_ID
-      "clientSecret": null, // TWITCHBOT_CLIENT_SECRET
-      "callbackURL": null,  // TWITCHBOT_AUTH_CALLBACK
+      "clientId": null,         // TWITCHBOT_CLIENT_ID
+      "clientSecret": null,     // TWITCHBOT_CLIENT_SECRET
+      "botCallbackURL": null,   // TWITCHBOT_BOT_AUTH_CALLBACK
+      "userCallbackURL": null,  // TWITCHBOT_USER_AUTH_CALLBACK
     }
   },
 
