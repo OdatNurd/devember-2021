@@ -30,6 +30,26 @@ const botDefaults = {
   authBtnText: 'Authorize with Bot Account',
 };
 
+// This is used to fill out the channel account information in the channel
+// panel when there is not an authorized account for the bot to be run inside
+// of.
+//
+// This is used as the above, but in a different panel.
+const chanDefaults = {
+  avatar: 'res/images/user-avatar.png',
+  acctType: '',
+  joinDate: '',
+  about: 'The bot is currently not authorized to join any channels; ' +
+         'use the button below to authorize a channel. The bot will join ' +
+         'the authorized channel.',
+
+  emptyName: 'The bot is not currently authorized to join any channel',
+  deauthLink: '/user/deauth',
+
+  deauthBtnText: 'Revoke Channel Authorization',
+  authBtnText: 'Authorize Bot for your channel',
+};
+
 
 // =============================================================================
 
@@ -37,6 +57,7 @@ const botDefaults = {
 // running as, it responds by dispatching this message to tell us. We use the
 // information to set up the panel as appropriate.
 nodecg.listenFor('bot-user-info', botInfo => displayLoginInfo('bot', botInfo))
+nodecg.listenFor('user-user-info', userInfo => displayLoginInfo('user', userInfo))
 
 // The authorization mechanism allows us to include a randomized "state" value
 // that Twitch will return back to us when we authorize, allowing us to know
@@ -115,3 +136,4 @@ function displayLoginInfo(panel, acctInfo) {
 // active bot account, if any. The result of this will be a call to the code
 // that sets up the panel as appropriate.
 nodecg.sendMessage('get-bot-user-info');
+nodecg.sendMessage('get-user-user-info');

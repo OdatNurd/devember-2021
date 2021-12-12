@@ -5,7 +5,7 @@
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
-const { RefreshingAuthProvider } = require('@twurple/auth');
+const { RefreshingAuthProvider, getTokenInfo } = require('@twurple/auth');
 const { ApiClient } = require('@twurple/api');
 
 // =============================================================================
@@ -206,6 +206,18 @@ async function handleAuthCallback(api, state, name, req, res)  {
   res.redirect('/dashboard/#fullbleed/twitch');
 }
 
+/* This handles a request to deauthorize a specifically named token. The record
+ * for the token will be removed from the database and the page will be
+ * redirected back to the main Twitch full bleed panel. */
+async function performTokenDeauth(name, req, res) {
+  await api.db.getModel('authorize').remove({ name });
+  if (name === 'bot') {
+    setupTwitchAPI(api, name);
+  }
+
+  res.redirect('/dashboard/#fullbleed/twitch');
+}
+
 // =============================================================================
 
 /* Set up the Twitch API endpoints inside of the given api struct using the
@@ -245,11 +257,6 @@ async function setupTwitchAPI(api, name) {
  * is associated with that token. If there is no such token found, undefined
  * will be returned instead. */
 async function getUserIdFromToken(api, name) {
-  // Nothing can happen if there is no twtich API endpoint ready at the moment.
-  if (api.twitch === undefined) {
-    return;
-  }
-
   // Look up the token that we were asked about; leave if we didn't find it.
   const model = api.db.getModel('authorize');
   const record = await model.findOne({ name });
@@ -263,10 +270,49 @@ async function getUserIdFromToken(api, name) {
 
   // Request information on the token and if found we can return back the
   // userId.
-  const result = await api.twitch.getTokenInfo(accessToken, clientId);
+  const result = await getTokenInfo(accessToken, clientId);
   if (result !== null) {
     return result.userId;
   }
+}
+
+/* Given the name of a token, this will gather the information for the user that
+ * is associated with that token and send it to the front end using a message
+ * whose name is based on the token name itself.
+ *
+ * This will always send, but it will send an empty object if the token is not
+ * found or the twitch API is not currently set up. */
+async function sendUserInfo(api, name) {
+  let userInfo = {};
+  const userId = await getUserIdFromToken(api, name);
+
+  if (api.twitch !== undefined && userId != undefined) {
+    const result = await api.twitch.users.getUserById(userId);
+
+    userInfo.profilePictureUrl = result.profilePictureUrl;
+    userInfo.displayName = result.displayName;
+    userInfo.name = result.name;
+    userInfo.broadcasterType = result.broadcasterType;
+    userInfo.creationDate = result.creationDate;
+    userInfo.description = result.description;
+
+    //   {
+    //     broadcasterType: result.broadcasterType,
+    //     creationDate: result.creationDate,
+    //     description: result.description,
+    //     displayName: result.displayName,
+    //     email: result.email,
+    //     id: result.id,
+    //     name: result.name,
+    //     offlinePlaceholderUrl: result.offlinePlaceholderUrl,
+    //     profilePictureUrl: result.profilePictureUrl,
+    //     type: result.type,
+    //     views: result.views
+    //   });
+    // }
+  }
+
+  api.nodecg.sendMessage(`${name}-user-info`, userInfo)
 }
 
 // =============================================================================
@@ -306,41 +352,14 @@ async function setup_auth(api) {
     api.nodecg.sendMessage('auth-redirect-url', { type, url: getAuthURL(api, type, state)});
   });
 
-  // When requested bythe front end, return information that's needed for it
-  // to display who it is that's currently logged in. This will send a message
-  // back the other way to deliver the data back; the object sent back in
-  // response will be an empty object if there's no authorized bot user at the
-  // current time.
-  api.nodecg.listenFor('get-bot-user-info', async () => {
-    let botUserInfo = {};
-    if (api.twitch !== undefined) {
-      const result = await api.twitch.users.getMe(true);
-
-      botUserInfo.profilePictureUrl = result.profilePictureUrl;
-      botUserInfo.displayName = result.displayName;
-      botUserInfo.name = result.name;
-      botUserInfo.broadcasterType = result.broadcasterType;
-      botUserInfo.creationDate = result.creationDate;
-      botUserInfo.description = result.description;
-
-      //   {
-      //     broadcasterType: result.broadcasterType,
-      //     creationDate: result.creationDate,
-      //     description: result.description,
-      //     displayName: result.displayName,
-      //     email: result.email,
-      //     id: result.id,
-      //     name: result.name,
-      //     offlinePlaceholderUrl: result.offlinePlaceholderUrl,
-      //     profilePictureUrl: result.profilePictureUrl,
-      //     type: result.type,
-      //     views: result.views
-      //   });
-      // }
-    }
-
-    api.nodecg.sendMessage('bot-user-info', botUserInfo)
-  });
+  // When requests by the front end, return information that's needed for it to
+  // display who's currently authenticated as the bot account or the channel
+  // that the bot should run inside of.
+  //
+  // This will send a message back the other way to deliver the data, which
+  // could be an empty object if there is no data available yet.
+  api.nodecg.listenFor('get-bot-user-info', async () => sendUserInfo(api, 'bot'));
+  api.nodecg.listenFor('get-user-user-info', async () => sendUserInfo(api, 'user'));
 
   // Ask the express server in NodeCG to create a new router for us.
   const app = api.nodecg.Router();
@@ -358,14 +377,8 @@ async function setup_auth(api) {
   // Listen for an incoming request to deauthorize the bot account. When we
   // receive it we remove any token that we might have, remove the Twitch API
   // from the main api, and make the panel reload.
-  app.get('/bot/deauth', async (req, res) => {
-    const name = 'bot';
-    await api.db.getModel('authorize').remove({ name });
-    if (name === 'bot') {
-      setupTwitchAPI(api, name);
-    }
-    res.redirect('/dashboard/#fullbleed/twitch');
-  });
+  app.get('/bot/deauth', async (req, res) => performTokenDeauth('bot', req, res));
+  app.get('/user/deauth', async (req, res) => performTokenDeauth('user', req, res));
 
   api.nodecg.mount(app);
 }
