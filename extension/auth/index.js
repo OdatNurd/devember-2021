@@ -209,7 +209,7 @@ async function handleAuthCallback(api, state, name, req, res)  {
 /* This handles a request to deauthorize a specifically named token. The record
  * for the token will be removed from the database and the page will be
  * redirected back to the main Twitch full bleed panel. */
-async function performTokenDeauth(name, req, res) {
+async function performTokenDeauth(api, name, req, res) {
   await api.db.getModel('authorize').remove({ name });
   if (name === 'bot') {
     setupTwitchAPI(api, name);
@@ -342,16 +342,6 @@ async function setup_auth(api) {
   // triggered, that it is in response to a request that we initiated.
   let state = uuidv4();
 
-  // The front end can ask us at any time to generate and send it a URL for
-  // authorizing with Twitch; we respond by generating a new URL and sending
-  // it back in another message.
-  //
-  // Every time this happens a new authorization state value is generated.
-  api.nodecg.listenFor('get-twitch-auth-url', type => {
-    state = uuidv4();
-    api.nodecg.sendMessage('auth-redirect-url', { type, url: getAuthURL(api, type, state)});
-  });
-
   // When requests by the front end, return information that's needed for it to
   // display who's currently authenticated as the bot account or the channel
   // that the bot should run inside of.
@@ -374,11 +364,21 @@ async function setup_auth(api) {
   app.get(new URL(api.config.get('twitch.core.userCallbackURL')).pathname,
     (req, res) => handleAuthCallback(api, state, 'user', req, res));
 
+  app.get('/bot/auth', async (req, res) => {
+    state = uuidv4();
+    res.redirect(getAuthURL(api, 'bot', state));
+  });
+
+  app.get('/user/auth', async (req, res) => {
+    state = uuidv4();
+    res.redirect(getAuthURL(api, 'user', state));
+  });
+
   // Listen for an incoming request to deauthorize the bot account. When we
   // receive it we remove any token that we might have, remove the Twitch API
   // from the main api, and make the panel reload.
-  app.get('/bot/deauth', async (req, res) => performTokenDeauth('bot', req, res));
-  app.get('/user/deauth', async (req, res) => performTokenDeauth('user', req, res));
+  app.get('/bot/deauth', async (req, res) => performTokenDeauth(api, 'bot', req, res));
+  app.get('/user/deauth', async (req, res) => performTokenDeauth(api, 'user', req, res));
 
   api.nodecg.mount(app);
 }

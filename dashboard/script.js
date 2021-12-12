@@ -24,6 +24,7 @@ const botDefaults = {
          'will appear as the bot in the authorized channel.',
 
   emptyName: 'No bot account is current authorized',
+  authLink:   '/bot/auth',
   deauthLink: '/bot/deauth',
 
   deauthBtnText: 'Revoke Bot Account Authorization',
@@ -44,6 +45,7 @@ const chanDefaults = {
          'the authorized channel.',
 
   emptyName: 'The bot is not currently authorized to join any channel',
+  authLink:   '/user/auth',
   deauthLink: '/user/deauth',
 
   deauthBtnText: 'Revoke Channel Authorization',
@@ -127,8 +129,7 @@ function displayLoginInfo(panel, acctInfo) {
     // is currently on the button is redacted so that clicking it won't do
     // anything until the response comes back.
     authBtn.innerText = defaults.authBtnText;
-    authLink.href = '#';
-    nodecg.sendMessage('get-twitch-auth-url', panel);
+    authLink.href = defaults.authLink;;
   }
 }
 
