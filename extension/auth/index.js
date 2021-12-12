@@ -167,44 +167,45 @@ async function getAuthProvider(api, name) {
  * not have a code (which indicates the user did not authorize) the existing
  * token (if any) and anything using it is removed. */
 async function handleAuthCallback(api, state, name, req, res)  {
-    // The query paramters that come back include a code value that we need to
-    // use to obtain our actual access token.
-    const code = req.query.code;
-    const inState = req.query.state;
+  // The query paramters that come back include a code value that we need to
+  // use to obtain our actual access token.
+  const code = req.query.code;
+  const inState = req.query.state;
 
-    // If no code comes back, it's because the user decided not to authorize.
-    // We should respond to this by removing any tokens that we currently have.
-    if (code === undefined) {
+  // If no code comes back, it's because the user decided not to authorize.
+  // We should respond to this by removing any tokens that we currently have.
+  if (code === undefined) {
+    // If getting the token fails, make sure that we get rid of any existing
+    // token.
+    await api.db.getModel('authorize').remove({ name });
+
+    api.log.warn(`User did not confirm authorization`);
+  } else {
+    // There is a code; if the state is not the same as the one that we gave
+    // to Twitch when the authorization started, don't trust anything in this
+    // resonse.
+    if (inState !== state) {
       // If getting the token fails, make sure that we get rid of any existing
       // token.
       await api.db.getModel('authorize').remove({ name });
 
-      api.log.warn(`User did not confirm authorization`);
+      api.log.error(`auth callback got out of date authorization code; potential spoof?`);
     } else {
-      // There is a code; if the state is not the same as the one that we gave
-      // to Twitch when the authorization started, don't trust anything in this
-      // resonse.
-      if (inState !== state) {
-        // If getting the token fails, make sure that we get rid of any existing
-        // token.
-        await api.db.getModel('authorize').remove({ name });
-
-        api.log.error(`auth callback got out of date authorization code; potential spoof?`);
-      } else {
-        // Fetch the token.
-        await getAccessToken(api, name, code);
-      }
+      // Fetch the token.
+      await getAccessToken(api, name, code);
     }
-
-    // No matter what happens, set up the Twitch API using this token; if there
-    // isn't one, the Twitch API will be removed, otherwise it's set up. We
-    // then redirect back to the dashboard, which will make the front end
-    // request data from us.
-    if (name === 'bot') {
-      setupTwitchAPI(api, name);
-    }
-    res.redirect('/dashboard/#fullbleed/twitch');
   }
+
+  // No matter what happens, set up the Twitch API using this token; if there
+  // isn't one, the Twitch API will be removed, otherwise it's set up. We
+  // then redirect back to the dashboard, which will make the front end
+  // request data from us.
+  if (name === 'bot') {
+    setupTwitchAPI(api, name);
+  }
+  res.redirect('/dashboard/#fullbleed/twitch');
+}
+
 // =============================================================================
 
 /* Set up the Twitch API endpoints inside of the given api struct using the
