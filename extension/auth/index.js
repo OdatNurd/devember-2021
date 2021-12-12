@@ -214,9 +214,9 @@ async function setup_auth(api) {
   // it back in another message.
   //
   // Every time this happens a new authorization state value is generated.
-  api.nodecg.listenFor('get-twitch-auth-url', () => {
+  api.nodecg.listenFor('get-twitch-auth-url', type => {
     state = uuidv4();
-    api.nodecg.sendMessage('auth-redirect-url', getAuthURL(api, state));
+    api.nodecg.sendMessage('auth-redirect-url', { type, url: getAuthURL(api, state)});
   });
 
   // When requested bythe front end, return information that's needed for it
