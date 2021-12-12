@@ -241,6 +241,34 @@ async function setupTwitchAPI(api, name) {
   api.twitch = new ApiClient({ authProvider: api.auth });
 }
 
+/* This will find the token with the given name and return back the userId that
+ * is associated with that token. If there is no such token found, undefined
+ * will be returned instead. */
+async function getUserIdFromToken(api, name) {
+  // Nothing can happen if there is no twtich API endpoint ready at the moment.
+  if (api.twitch === undefined) {
+    return;
+  }
+
+  // Look up the token that we were asked about; leave if we didn't find it.
+  const model = api.db.getModel('authorize');
+  const record = await model.findOne({ name });
+  if (record === undefined) {
+    return;
+  }
+
+  // Get our clientID and decrypt the access token in the record we found.
+  const clientId = api.config.get('twitch.core.clientId');
+  const accessToken = api.crypto.decrypt(record.token);
+
+  // Request information on the token and if found we can return back the
+  // userId.
+  const result = await api.twitch.getTokenInfo(accessToken, clientId);
+  if (result !== null) {
+    return result.userId;
+  }
+}
+
 // =============================================================================
 
 /* In order to talk to twitch we need to be able to use the Twitch OAuth 2
