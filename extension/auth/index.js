@@ -5,7 +5,7 @@
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
-const { RefreshingAuthProvider, getTokenInfo } = require('@twurple/auth');
+const { ClientCredentialsAuthProvider, RefreshingAuthProvider, getAppToken, getTokenInfo } = require('@twurple/auth');
 const { ApiClient } = require('@twurple/api');
 
 // =============================================================================
@@ -107,19 +107,31 @@ async function getAuthProvider(api, name) {
   // for clarity later.
   const clientId = api.config.get('twitch.core.clientId');
   const clientSecret = api.config.get('twitch.core.clientSecret');
+
+  api.log.info(`Fetching ${name} access token`);
+
+  // App tokens are special; they can't be refreshed directly because you can
+  // just ask for a new one at any time. So for these tokens we use a different
+  // Auth provider that knows about that and can fetch tokens as needed.
+  if (name === 'app') {
+    return new ClientCredentialsAuthProvider(clientId, clientSecret);
+  }
+
+  // This is not an app token, so we need to get the token data from the token
+  // with the given name; for that we will need to pull the record from the
+  // database.
   const model = api.db.getModel('authorize');
 
-  // Look up the record for the token that has the name that we expect; we can
-  // leave if it's not found.
+  // If there is no record found for this token, we can't set up an auth
+  // provider for it.
   const record = await model.findOne({ name });
   if (record === undefined) {
     return null;
   }
 
   // The Twurple library has an authorization object that can ensure that the
-  // token is valid and up to date, and pass it along in all API queries. To use
-  // that, we need an object in the shape of a specific AuthToken interface
-  // in the Twurple library. */
+  // token is valid and up to date. For a token we created ourselves we need
+  // to synthetize such an object based on information we have.
   const tokenData = {
     accessToken: api.crypto.decrypt(record.token),
     refreshToken: api.crypto.decrypt(record.refreshToken),
@@ -146,6 +158,8 @@ async function getAuthProvider(api, name) {
     tokenData
   );
 }
+
+// =============================================================================
 
 /* Handle the callback that occurs when someone hits one of our Twitch Auth
  * callbacks. The incoming request needs to be passed in, as does the response
@@ -196,24 +210,16 @@ async function handleAuthCallback(api, state, name, req, res)  {
     }
   }
 
-  // No matter what happens, set up the Twitch API using this token; if there
-  // isn't one, the Twitch API will be removed, otherwise it's set up. We
-  // then redirect back to the dashboard, which will make the front end
-  // request data from us.
-  if (name === 'bot') {
-    setupTwitchAPI(api, name);
-  }
   res.redirect('/dashboard/#fullbleed/twitch');
 }
+
+// =============================================================================
 
 /* This handles a request to deauthorize a specifically named token. The record
  * for the token will be removed from the database and the page will be
  * redirected back to the main Twitch full bleed panel. */
 async function performTokenDeauth(api, name, req, res) {
   await api.db.getModel('authorize').remove({ name });
-  if (name === 'bot') {
-    setupTwitchAPI(api, name);
-  }
 
   res.redirect('/dashboard/#fullbleed/twitch');
 }
@@ -230,28 +236,29 @@ async function performTokenDeauth(api, name, req, res) {
  * struct.
  *
  * Thus, thus should be called any time the state of authorization changes. */
-async function setupTwitchAPI(api, name) {
+async function setupTwitchAPI(api) {
   // Get an auth provider based on the name of the token we're supposed to be
   // using.
-  api.auth = await getAuthProvider(api, name)
-  if (api.auth === null) {
-    api.auth = undefined;
+  const appAuth = await getAuthProvider(api, 'app')
+  if (appAuth === null) {
     api.twitch = undefined;
-    return api.log.warn(`No bot authorization token for '${name}' found`);
+    return api.log.warn('Unable to obtain app token; unable to set up Twitch API');
   }
 
-  api.log.info(`Loaded bot user token '${name}'; refreshing the token`);
+  api.log.info('Obtained app token; setting up the Twitch API');
 
   // Make sure that the token is valid; it might not be, in which case it
   // needs to be refreshed. The library doesn't seem to do this for an
   // initial request made with this auth.
-  await api.auth.getAccessToken();
+  await appAuth.getAccessToken();
 
   // Create a Twitch API instance from which we can make requests. This will
   // be tied to the bot authorization token, although it does it for other
   // subsequent reqeusts from the same user.
-  api.twitch = new ApiClient({ authProvider: api.auth });
+  api.twitch = new ApiClient({ authProvider: appAuth });
 }
+
+// =============================================================================
 
 /* This will find the token with the given name and return back the userId that
  * is associated with that token. If there is no such token found, undefined
@@ -275,6 +282,8 @@ async function getUserIdFromToken(api, name) {
     return result.userId;
   }
 }
+
+// =============================================================================
 
 /* Given the name of a token, this will gather the information for the user that
  * is associated with that token and send it to the front end using a message
@@ -325,13 +334,9 @@ async function sendUserInfo(api, name) {
  * front end code as well as responding to requests made by Twitch during the
  * flow. */
 async function setup_auth(api) {
-  // When we set up the authorization system, try to set up an authorization
-  // provider and Twitch API client for the token that represents the bot. If
-  // if this fails, the items are not set up at all, which is a signal to other
-  // code that there is no token.
-  //
-  // Care must be taken to adjust this if the token is ever dropped or lost.
-  await setupTwitchAPI(api, 'bot')
+  // As a first step, obtain an Application token and set up the twitch API
+  // endpoint so that we can make requests from it.
+  await setupTwitchAPI(api);
 
   // One of the paramters in the URL that we pass to Twitch to start
   // authorization is a randomlized string of text called the "state". This
@@ -382,5 +387,7 @@ async function setup_auth(api) {
 
   api.nodecg.mount(app);
 }
+
+// =============================================================================
 
 module.exports = setup_auth;

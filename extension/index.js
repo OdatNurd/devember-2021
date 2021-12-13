@@ -63,5 +63,5 @@ module.exports = async function(nodecg) {
   // This includes setting up a variable and also removing it, based on events.
   setup_crypto(api);      // api.crypto.encrypt and api.crypto.decrypt
   await setup_db(api);    // api.db
-  await setup_auth(api);  // api.auth and api.twitch
+  await setup_auth(api);  // api.twitch
 };
