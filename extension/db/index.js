@@ -6,7 +6,7 @@
 const trilogy = require('trilogy');
 const path = require('path');
 
-const { AuthorizationSchema, UserSchema } = require('./schema/');
+const { TokenSchema, UserSchema } = require('./schema/');
 
 
 // =============================================================================
@@ -39,7 +39,7 @@ async function setup_db(api) {
   // such models/tables are configured and ready to go at runtime, since this
   // is an async operation.
   const modelList = [
-    db.model('authorize', AuthorizationSchema),
+    db.model('tokens', TokenSchema),
     db.model('users', UserSchema),
   ];
   await Promise.all(modelList);

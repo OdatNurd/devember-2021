@@ -2,12 +2,12 @@
 
 // =============================================================================
 
-const { AuthorizationSchema } = require('./authorization');
+const { TokenSchema } = require('./authorization');
 const { UserSchema } = require('./user');
 
 // =============================================================================
 
 module.exports = {
-  AuthorizationSchema,
+  TokenSchema,
   UserSchema
 };

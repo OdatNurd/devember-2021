@@ -87,7 +87,7 @@ async function getAccessToken(api, name, code) {
       //
       // The token and refresh token are encrypted when we put them into the
       // database to keep them safe from casual inspection.
-      await api.db.getModel('authorize').updateOrCreate({ name }, {
+      await api.db.getModel('tokens').updateOrCreate({ name }, {
         name: name,
         type: response.data.token_type,
         token: api.crypto.encrypt(response.data.access_token),
@@ -104,7 +104,7 @@ async function getAccessToken(api, name, code) {
     // token by this name that we might have. This could have been an attempt to
     // change the scopes, and if the user said no, make them explicitly try it
     // again if they want it.
-    await api.db.getModel('authorize').remove({ name });
+    await api.db.getModel('tokens').remove({ name });
 
     api.log.error(`${error.response.status} : ${JSON.stringify(error.response.data)}`);
     api.log.error(`${error}`);
@@ -133,7 +133,7 @@ async function getAuthProvider(api, name) {
   // This is not an app token, so we need to get the token data from the token
   // with the given name; for that we will need to pull the record from the
   // database.
-  const model = api.db.getModel('authorize');
+  const model = api.db.getModel('tokens');
 
   // If there is no record found for this token, we can't set up an Auth
   // provider for it.
@@ -206,7 +206,7 @@ async function handleAuthCallback(api, state, name, req, res)  {
   if (code === undefined) {
     // If getting the token fails, make sure that we get rid of any existing
     // token.
-    await api.db.getModel('authorize').remove({ name });
+    await api.db.getModel('tokens').remove({ name });
 
     api.log.warn(`User did not confirm authorization`);
   } else {
@@ -216,7 +216,7 @@ async function handleAuthCallback(api, state, name, req, res)  {
     if (inState !== state) {
       // If getting the token fails, make sure that we get rid of any existing
       // token.
-      await api.db.getModel('authorize').remove({ name });
+      await api.db.getModel('tokens').remove({ name });
 
       api.log.error(`auth callback got out of date authorization code; potential spoof?`);
     } else {
@@ -262,7 +262,7 @@ function performTokenAuth(api, name, req, res) {
 async function performTokenDeauth(api, name, req, res) {
   switch (name) {
     case 'bot':
-      await api.db.getModel('authorize').remove({ name });
+      await api.db.getModel('tokens').remove({ name });
       break;
 
     case 'user':
@@ -287,7 +287,7 @@ async function performTokenDeauth(api, name, req, res) {
  * will be returned instead. */
 async function getUserIdFromToken(api, name) {
   // Look up the token that we were asked about; leave if we didn't find it.
-  const model = api.db.getModel('authorize');
+  const model = api.db.getModel('tokens');
   const record = await model.findOne({ name });
   if (record === undefined) {
     return;
