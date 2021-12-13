@@ -6,54 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-
-  <style>
-    html, button, input, select, textarea,
-    .pure-g [class *= "pure-u"] {
-      font-family: 'Roboto', sans-serif;
-    }
-
-    bot-card, user-info, user-details, user-description, text-line, panel-buttons {
-      display: block;
-    }
-
-    bot-card {
-      padding: 0 1em 1em;
-      margin:  1em;
-      border: 1px solid #525F78;
-      border-radius: 5px;
-    }
-
-    bot-card > h1 {
-      text-align: center;
-      border-bottom: 1px solid #525f78;
-      margin: 4px;
-    }
-
-    user-info {
-      padding:  0.5em 0;
-      display: flex;
-    }
-
-    user-info > img {
-      padding-right: 0.5em;
-      width: 64px;
-      height: 64px;
-    }
-
-    user-description {
-      border-top: 1px solid #525f78;
-      border-bottom: 1px solid #525f78;
-      text-align: justify;
-      padding:  0.5em 0;
-   }
-
-    panel-buttons {
-      padding-top: 1em;
-      text-align: right;
-    }
-
-  </style>
+  <link rel="stylesheet" type="text/css" href="css/twitch.css">
 </head>
 <body>
   <div class="pure-g">
@@ -62,7 +15,7 @@
       <bot-card>
         <h1>Bot Account</h1>
         <user-info>
-          <img id="bot-avatar" src="res/images/bot-avatar.png">
+          <img id="bot-avatar" src="res/img/twitch/bot-avatar.png">
           <user-details>
             <text-line id="bot-user"></text-line>
             <text-line id="bot-type"></text-line>
@@ -82,7 +35,7 @@
       <bot-card>
         <h1>Twitch Channel</h1>
         <user-info>
-          <img id="user-avatar" src="res/images/user-avatar.png">
+          <img id="user-avatar" src="res/img/twitch/user-avatar.png">
           <user-details>
             <text-line id="user-user"></text-line>
             <text-line id="user-type"></text-line>
@@ -100,6 +53,6 @@
 
   </div>
 
-  <script type="text/javascript" src="script.js"></script>
+  <script type="text/javascript" src="js/twitch.js"></script>
 </body>
 </html>

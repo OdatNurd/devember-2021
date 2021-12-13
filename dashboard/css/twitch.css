@@ -1,0 +1,44 @@
+html, button, input, select, textarea,
+.pure-g [class *= "pure-u"] {
+  font-family: 'Roboto', sans-serif;
+}
+
+bot-card, user-info, user-details, user-description, text-line, panel-buttons {
+  display: block;
+}
+
+bot-card {
+  padding: 0 1em 1em;
+  margin:  1em;
+  border: 1px solid #525F78;
+  border-radius: 5px;
+}
+
+bot-card > h1 {
+  text-align: center;
+  border-bottom: 1px solid #525f78;
+  margin: 4px;
+}
+
+user-info {
+  padding:  0.5em 0;
+  display: flex;
+}
+
+user-info > img {
+  padding-right: 0.5em;
+  width: 64px;
+  height: 64px;
+}
+
+user-description {
+  border-top: 1px solid #525f78;
+  border-bottom: 1px solid #525f78;
+  text-align: justify;
+  padding:  0.5em 0;
+}
+
+panel-buttons {
+  padding-top: 1em;
+  text-align: right;
+}
