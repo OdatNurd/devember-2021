@@ -1,5 +1,6 @@
 'use strict';
 
+
 // =============================================================================
 
 const trilogy = require('trilogy');
@@ -7,36 +8,48 @@ const path = require('path');
 
 const { AuthorizationSchema, ChannelConfigSchema } = require('./schema/');
 
+
 // =============================================================================
 
-/* This will initialize the Trilogy database, which will store the handle and
- * create the DB if it doesn't already exist. In addition, this loads all of
- * the defined models into the database so that they can be easily retreived.
+
+/* The back end code uses an SQLite database that is accessed via Trilogy to
+ * make it appear to be more like MongoDB and other DB solutions.  This setup
+ * routine sets up the database and makes sure that the appropriate tables are
+ * present.
  *
- * SQLite is used, which is very user friendly and has zero setup that you
- * need to do to get it working.
+ * SQLite is used here because it is user friendly and zero setup is required on
+ * the user's end.
  *
- * T
-/* Initialize the Trilogy database system, storing a handle to the db in the
- * passed in API.
+ * Data stored in the DB is meant to be dynamic in nature and the sort of data
+ * that might change at runtime. This includes some configuration data, which
+ * is not covered by the main config code since that is meant to be a static
+ * configuration not changed once things start up.
  *
- * The database uses SQLite; if it does not exist, a new file will be created
- * automatically. */
+ * This includes elements in the API structure that is passed in to include the
+ * database endpoints that we need:
+ *    - api.db */
 async function setup_db(api) {
-  // Connect to the database; we keep the file in the root of the bundle.
+  // Connect to the database; this will create the database file automagically
+  // if it doesn't already exist.
   const db_file = path.resolve(api.baseDir, 'twitchbot.db');
   const db = trilogy.connect(db_file);
 
+  // Trilogy works on the basis of "models" that map an expected JSON data
+  // structure into tables on the back end of the code. This ensures that all
+  // such models/tables are configured and ready to go at runtime, since this
+  // is an async operation.
   const modelList = [
     db.model('authorize', AuthorizationSchema),
     db.model('channelconfig', ChannelConfigSchema),
   ];
   await Promise.all(modelList);
 
-  // Store the database handle in the API for anything that would like it.
+  // Store the database handle in the API.
   api.db = db;
 }
 
+
 // =============================================================================
+
 
 module.exports = setup_db;
