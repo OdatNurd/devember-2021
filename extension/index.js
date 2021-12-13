@@ -27,7 +27,7 @@ const config = require('./config')(baseDir);
 const setup_twitch_api = require('./twitch_api');
 const setup_crypto = require('./crypto');
 const setup_db = require('./db/');
-const setup_auth = require('./auth/');
+const setup_auth = require('./auth');
 
 
 // =============================================================================
@@ -77,7 +77,7 @@ module.exports = async function(nodecg) {
   setup_twitch_api(api);  // api.twitch
   setup_crypto(api);      // api.crypto.encrypt and api.crypto.decrypt
   await setup_db(api);    // api.db
-  await setup_auth(api);
+  setup_auth(api);
 };
 
 

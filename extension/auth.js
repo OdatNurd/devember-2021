@@ -7,9 +7,6 @@
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
-const { RefreshingAuthProvider, getTokenInfo } = require('@twurple/auth');
-
-
 // =============================================================================
 
 
@@ -86,67 +83,6 @@ async function getAccessToken(api, name, code) {
     api.log.error(`${error.response.status} : ${JSON.stringify(error.response.data)}`);
     api.log.error(`${error}`);
   }
-}
-
-
-// =============================================================================
-
-
-/* Create a Twurple authorization object that wraps the token with the local
- * name given. Details required to refresh the token will be queried from the
- * database.
- *
- * The Twurple Auth provider is for using the Twurple libraries to do operations
- * on Twitch and it's API's, and they ensure that there is a token and that it
- * will refresh itself as needed if the app is long running. */
-async function getAuthProvider(api, name) {
-  // Pull the core information we need out of the configuration and alias it
-  // for clarity later.
-  const clientId = api.config.get('twitch.core.clientId');
-  const clientSecret = api.config.get('twitch.core.clientSecret');
-
-  api.log.info(`Fetching ${name} access token`);
-
-  // This is not an app token, so we need to get the token data from the token
-  // with the given name; for that we will need to pull the record from the
-  // database.
-  const model = api.db.getModel('tokens');
-
-  // If there is no record found for this token, we can't set up an Auth
-  // provider for it.
-  const record = await model.findOne({ name });
-  if (record === undefined) {
-    return null;
-  }
-
-  // The Twurple library has an authorization object that can ensure that the
-  // token is valid and up to date. For a token we created ourselves we need
-  // to synthesize such an object based on information we have.
-  const tokenData = {
-    accessToken: api.crypto.decrypt(record.token),
-    refreshToken: api.crypto.decrypt(record.refreshToken),
-    scope: record.scopes,
-    expiresIn: record.expiration,
-    obtainmentTimestamp: record.obtained
-  };
-
-  return new RefreshingAuthProvider(
-    {
-      clientId,
-      clientSecret,
-      onRefresh: async newData => {
-        api.log.info(`Refreshing the ${name} token`);
-        await model.update({ name }, {
-          token: api.crypto.encrypt(newData.accessToken),
-          refreshToken: api.crypto.encrypt(newData.refreshToken),
-          scopes: newData.scopes,
-          obtained: newData.obtainmentTimestamp,
-          expiration: newData.expiresIn
-        });
-      }
-    },
-    tokenData
-  );
 }
 
 
@@ -250,7 +186,16 @@ function performTokenAuth(api, name, req, res) {
 
 /* This handles a request to de-authorize a specifically named token. The record
  * for the token will be removed from the database and the page will be
- * redirected back to the main Twitch full bleed panel. */
+ * redirected back to the main Twitch full bleed panel.
+ *
+ * This can be invoked from anywhere; the redirect will only happen if a res
+ * paramter is provided. Thus this can also be used to take actions on our
+ * end that clean up our records of who is authorized and who is not.
+ *
+ * As an important note, despite the name this only makes us forget that the
+ * user authorized a particular account. Twitch will keep a record that the
+ * authorization was actually made and this needs to be cleaned up there, if
+ * desired. */
 async function performTokenDeauth(api, name, req, res) {
   // Remove the token and user record for this name, if any; these operations
   // may not do anything, such as for the user, who doesn't have a token in the
@@ -262,33 +207,6 @@ async function performTokenDeauth(api, name, req, res) {
   // done as part of a click in the user interface, so go back there.
   if (res !== undefined) {
     res.redirect('/dashboard/#fullbleed/twitch');
-  }
-}
-
-
-// =============================================================================
-
-
-/* This will find the token with the given name and return back the userId that
- * is associated with that token. If there is no such token found, undefined
- * will be returned instead. */
-async function getUserIdFromToken(api, name) {
-  // Look up the token that we were asked about; leave if we didn't find it.
-  const model = api.db.getModel('tokens');
-  const record = await model.findOne({ name });
-  if (record === undefined) {
-    return;
-  }
-
-  // Get our clientID and decrypt the access token in the record we found.
-  const clientId = api.config.get('twitch.core.clientId');
-  const accessToken = api.crypto.decrypt(record.token);
-
-  // Request information on the token and, if found, we can return back the
-  // userId.
-  const result = await getTokenInfo(accessToken, clientId);
-  if (result !== null) {
-    return result.userId;
   }
 }
 
@@ -329,7 +247,7 @@ async function sendUserChannelInfo(api, type) {
  *
  * This requires some web endpoints on our end to negotiate the transfers as
  * well as some support code. */
-async function setup_auth(api) {
+function setup_auth(api) {
   // One of the parameters in the URL that we pass to Twitch to start
   // authorization is a randomized string of text called the "state". This
   // value can be anything we like. When Twitch calls back to our callback URL
@@ -351,29 +269,47 @@ async function setup_auth(api) {
   // Ask the express server in NodeCG to create a new router for us.
   const app = api.nodecg.Router();
 
-  // In order to start a bot or user authentication, the front end should hit
-  // these endpoints, which will redirect the browser to an appropriate page  on
-  // Twitch for authorization.
+  // In order to start an account authentication, the front end will hit these
+  // endpoints, which will cause the browser to redirect to an appropriate
+  // Twitch page to start the authorization.
   //
-  // These also grab and store the state values that will be used when the
-  // callback returns so that we can verify that they're up to date.
+  // Part of this process is providing a unique state item to Twitch which will
+  // be given back to us when the authorization is complete so that we can
+  // verify that the request we're getting is one that we expected to see.
+  //
+  // That state is saved here so that it can be used in the verification process
+  // at the end.
   app.get('/bot/auth', async (req, res) => botState = performTokenAuth(api, 'bot', req, res));
   app.get('/user/auth', async (req, res) => userState = performTokenAuth(api, 'user', req, res));
 
-  // During an ongoing authorization request, we redirect to Twitch and wait for
-  // the user to either authorize or cancel the request, which will cause Twitch
-  // to redirect back to a URL that we give it. This is our opportunity to
-  // either finish the Auth or know that the user cancelled it.
+  // The user needs to be able to control removing authorization from the bot
+  // for any authorized accounts. These endpoints do the cleanup on our end that
+  // makes this possible.
+  //
+  // It's importqnt to note that this ONLY affects local state; Twitch stores
+  // the list of applications you have authorized (and the access types you
+  // confirmed during authorization) and keeps track of that information itself
+  // unless you manually unlink it in your settings.
+  //
+  // The name here is primarily to provide the obverse of the auth endpoints.
+  app.get('/bot/deauth', async (req, res) => performTokenDeauth(api, 'bot', req, res));
+  app.get('/user/deauth', async (req, res) => performTokenDeauth(api, 'user', req, res));
+
+  // During an ongoing authorization request, the browser displays a Twitch page
+  // that allows you to specify what account you want to authorize and to verify
+  // that the requested permissions are OK with you.
+  //
+  // Once you either confirm or reject the authorization, Twitch will respond
+  // by redirecting the browser back to a specific page that it was given during
+  // the initial auth.
+  //
+  // These handlers are used to handle that request, allowing our code to know
+  // if the user authorized or not and to act accordingly.
   app.get(new URL(api.config.get('twitch.core.botCallbackURL')).pathname,
     (req, res) => handleAuthCallback(api, botState, 'bot', req, res));
   app.get(new URL(api.config.get('twitch.core.userCallbackURL')).pathname,
     (req, res) => handleAuthCallback(api, userState, 'user', req, res));
 
-  // Listen for an incoming request to disconnect a twitch account. When we
-  // receive it we make sure that the back end data is removed and states are
-  // changed accordingly.
-  app.get('/bot/deauth', async (req, res) => performTokenDeauth(api, 'bot', req, res));
-  app.get('/user/deauth', async (req, res) => performTokenDeauth(api, 'user', req, res));
 
   api.nodecg.mount(app);
 }
