@@ -26,6 +26,12 @@ const setup_db = require('./db/');
 const setup_crypto = require('./crypto/');
 const setup_auth = require('./auth/');
 
+//////// DEBUG CRAP /////////
+const { ChatClient } = require('@twurple/chat');
+const { ClientCredentialsAuthProvider, RefreshingAuthProvider, getAppToken, getTokenInfo } = require('@twurple/auth');
+//////// DEBUG CRAP /////////
+
+
 // =============================================================================
 
 /* The extension needs to export a single function that takes the nodecg API
@@ -64,4 +70,84 @@ module.exports = async function(nodecg) {
   setup_crypto(api);      // api.crypto.encrypt and api.crypto.decrypt
   await setup_db(api);    // api.db
   await setup_auth(api);  // api.twitch
+
+  return;
+
+
+  //--------------------------------------------------------------------------
+  // SUPER AWESOME HACK TIME. Everything below these lines is not meant to live
+  // and should be killed with extreme predjudice.
+  //--------------------------------------------------------------------------
+
+
+
+  // Pull the core information we need out of the configuration and alias it
+  // for clarity later.
+  const clientId = api.config.get('twitch.core.clientId');
+  const clientSecret = api.config.get('twitch.core.clientSecret');
+
+  // This is not an app token, so we need to get the token data from the token
+  // with the given name; for that we will need to pull the record from the
+  // database.
+  const model = api.db.getModel('authorize');
+
+  // If there is no record found for this token, we can't set up an auth
+  // provider for it.
+  const record = await model.findOne({ name: 'bot' });
+  if (record === undefined) return;
+
+  // The Twurple library has an authorization object that can ensure that the
+  // token is valid and up to date. For a token we created ourselves we need
+  // to synthetize such an object based on information we have.
+  const tokenData = {
+    accessToken: api.crypto.decrypt(record.token),
+    refreshToken: api.crypto.decrypt(record.refreshToken),
+    scope: record.scopes,
+    expiresIn: record.expiration,
+    obtainmentTimestamp: record.obtained
+  };
+
+  const auth = new RefreshingAuthProvider(
+    {
+      clientId,
+      clientSecret,
+      onRefresh: async newData => {
+        api.log.info('Refreshing the bot token');
+        await model.update({ name: 'bot' }, {
+          token: api.crypto.encrypt(newData.accessToken),
+          refreshToken: api.crypto.encrypt(newData.refreshToken),
+          scopes: newData.scopes,
+          obtained: newData.obtainmentTimestamp,
+          expiration: newData.expiresIn
+        });
+      }
+    },
+    tokenData
+  );
+
+  const channelInfo = await api.db.getModel('channelconfig').findOne({ id: 1});
+  const channelName = '#' + channelInfo.name;
+
+  const chatClient = new ChatClient({
+    authProvider: auth,
+    channels: [channelName],
+    botLevel: "none",   // "none", known" or "verified"
+    isAlwaysMod: false,
+  });
+
+  chatClient.onMessage(async (channel, user, message, rawMsg) => {
+    api.log.info(`${channel}:<${user}> ${message}`);
+  });
+
+  chatClient.onConnect(() => {
+    api.log.info('** Twitch chat connection established');
+    setTimeout(() => {
+      chatClient.say(channelName, 'If we see this in the chat, it *MIGHT* be the end of the world as we know it.');
+    }, 1000);
+  });
+
+
+  api.log.info(`** Connecting to Twitch chat in channel ${channelName}`);
+  chatClient.connect();
+
 };
