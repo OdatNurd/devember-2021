@@ -13,34 +13,6 @@ const { RefreshingAuthProvider, getTokenInfo } = require('@twurple/auth');
 // =============================================================================
 
 
-/* When we authorize with Twitch to get a token that allows us to take actions,
- * we need to go to a specific Twitch URL; that URL will prompt the user and
- * then direct the browser back to us to tell us the result and allow uas to
- * continue.
- *
- * This code will construct and return a parameter based on the passed in state,
- * which is an opaque data item that we can use to verify that the response we
- * get back is from the place that we expect (and thus it always changes). */
-function getAuthURL(api, type, state) {
-  const bot_scopes = 'chat:read chat:edit';
-  const user_scopes = 'user:read:email'
-
-  const params = {
-    client_id: api.config.get('twitch.core.clientId'),
-    redirect_uri: api.config.get(`twitch.core.${type}CallbackURL`),
-    force_verify: true,
-    response_type: 'code',
-    scope: (type == 'bot') ? bot_scopes : user_scopes,
-    state
-  };
-
-  return `https://id.twitch.tv/oauth2/authorize?${new URLSearchParams(params)}`;
-}
-
-
-// =============================================================================
-
-
 /* The flow of Twitch authentication is that we direct the browser to a specific
  * page, which will prompt the user to accept or reject the authorization.
  * Either way Twitch redirects back to a URL of our choosing.
@@ -238,23 +210,38 @@ async function handleAuthCallback(api, state, name, req, res)  {
 // =============================================================================
 
 
-/* In order to set up the account that the bot will run as and the channel that
- * the bot will run inside of, we need to authorize accounts with Twitch. To
- * do that we need to craft a specific URL that we send the browser to, which
- * Twitch will handle before redirecting back to us.
+/* As a Twitch bot, we need to access information about users on Twitch and be
+ * able to take actions as them or read their data (or both). This is done via
+ * an authorization token wherein we ask the user to authorize us to gain access
+ * to that which we need.
  *
- * This function is used to kick off the authentication step by responding to a
- * web request with a redirect to an appropriate location.
+ * This function kicks off such an authentication by responding to a web request
+ * with a redirect to the appropriate page on Twitch that will ask the user to
+ * do the authentication.
  *
- * Part of this request is a unique state value that Twitch will pass back that
- * we can use to verify that the callback is valid. This will include such a
- * value in the URL and return it back so that the other handler can grab it
- * and use it to verify things. */
+ * Part of this request is a unique state value that Twitch will give back to us
+ * when it tells us if the user authorized or not that we can use to verify that
+ * the callback is valid.
+ *
+ * The value of that state is returned back from this call so that when the
+ * request comes back we can verify that it's valid and not a potential spoof
+ * attempt. */
 function performTokenAuth(api, name, req, res) {
-    const state = uuidv4();
-    res.redirect(getAuthURL(api, name, state));
+  const bot_scopes = 'chat:read chat:edit';
+  const user_scopes = 'user:read:email'
 
-    return state;
+  const params = {
+    client_id: api.config.get('twitch.core.clientId'),
+    redirect_uri: api.config.get(`twitch.core.${name}CallbackURL`),
+    force_verify: true,
+    response_type: 'code',
+    scope: (name == 'bot') ? bot_scopes : user_scopes,
+    state: uuidv4()
+  };
+
+  res.redirect(`https://id.twitch.tv/oauth2/authorize?${new URLSearchParams(params)}`);
+
+  return params.state;
 }
 
 
