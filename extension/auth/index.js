@@ -52,6 +52,11 @@ function getAuthURL(api, type, state) {
  * token and store it in the database. */
 async function getAccessToken(api, name, code) {
   try {
+    // Pull the core information we need out of the configuration and alias it
+    // for clarity later.
+    const clientId = api.config.get('twitch.core.clientId');
+    const clientSecret = api.config.get('twitch.core.clientSecret');
+
     // Using the code that we got, request a token by hitting the appropriate
     // Twitch API endpoint. The result should be our token, and some information
     // about it, such as when it expires and how to get a new one.
@@ -59,33 +64,32 @@ async function getAccessToken(api, name, code) {
       url: 'https://id.twitch.tv/oauth2/token',
       method: 'POST',
       data: {
-        client_id: api.config.get('twitch.core.clientId'),
-        client_secret: api.config.get('twitch.core.clientSecret'),
+        client_id: clientId,
+        client_secret: clientSecret,
         code,
         grant_type: 'authorization_code',
         redirect_uri: api.config.get(`twitch.core.${name}CallbackURL`)
       }
     });
 
-    // For any token we obtain, we want to keep a record of the user that's
-    // associated with it so that the code that gets user information doesn't
-    // need to try to get it from the token itself.
-    const tokenInfo = await getTokenInfo(response.data.access_token, api.config.get('twitch.core.clientId'));
+    // Get the userID that is associated with the token that we just finished
+    // authorizing.
+    const tokenInfo = await getTokenInfo(response.data.access_token, clientId);
     const result = await api.twitch.users.getUserById(tokenInfo.userId);
 
+    // Make a record in the table for this token, so that at any given point we
+    // can easily fetch the ID back without the token. This happens regardless
+    // of what the token is for.
     await api.db.getModel('users').updateOrCreate({ type: name }, {
       type: name,
       userId: result.id
     });
 
-    // If the token we grabbed was for the user of the bot, then we want to look
-    // up the information for that user and store that user's information into
-    // the configuration section of the database.
+    // If the token is for the bot, then we want to store it in the tokens table
+    // since it will be used later to connect the bot to chat. All of the token
+    // information is persisted so that it can be pulled out and used in a
+    // future run without having to authorize again.
     if (name != 'user') {
-      // This is not the user token, so persist the information about it into
-      // the database. This can be later pulled out in order to re-create the
-      // token and refresh it as needed.
-      //
       // The token and refresh token are encrypted when we put them into the
       // database to keep them safe from casual inspection.
       await api.db.getModel('tokens').updateOrCreate({ name }, {
@@ -105,7 +109,7 @@ async function getAccessToken(api, name, code) {
     // token by this name that we might have. This could have been an attempt to
     // change the scopes, and if the user said no, make them explicitly try it
     // again if they want it.
-    await api.db.getModel('tokens').remove({ name });
+    await performTokenDeauth(api, name);
 
     api.log.error(`${error.response.status} : ${JSON.stringify(error.response.data)}`);
     api.log.error(`${error}`);
@@ -207,7 +211,7 @@ async function handleAuthCallback(api, state, name, req, res)  {
   if (code === undefined) {
     // If getting the token fails, make sure that we get rid of any existing
     // token.
-    await api.db.getModel('tokens').remove({ name });
+    await performTokenDeauth(api, name);
 
     api.log.warn(`User did not confirm authorization`);
   } else {
@@ -217,7 +221,7 @@ async function handleAuthCallback(api, state, name, req, res)  {
     if (inState !== state) {
       // If getting the token fails, make sure that we get rid of any existing
       // token.
-      await api.db.getModel('tokens').remove({ name });
+      await performTokenDeauth(api, name);
 
       api.log.error(`auth callback got out of date authorization code; potential spoof?`);
     } else {
@@ -267,7 +271,11 @@ async function performTokenDeauth(api, name, req, res) {
   await api.db.getModel('tokens').remove({ name });
   await api.db.getModel('users').remove({ type: name });
 
-  res.redirect('/dashboard/#fullbleed/twitch');
+  // If we were called as a part of an express route handler, this operation was
+  // done as part of a click in the user interface, so go back there.
+  if (res !== undefined) {
+    res.redirect('/dashboard/#fullbleed/twitch');
+  }
 }
 
 
