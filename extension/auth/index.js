@@ -213,6 +213,25 @@ async function handleAuthCallback(api, state, name, req, res)  {
   res.redirect('/dashboard/#fullbleed/twitch');
 }
 
+/* In order to set up the account that the bot will run as and the channel that
+ * the bot will run inside of, we need to authorize accounts with Twitch. To
+ * do that we need to craft a specific URL that we send the browser to, which
+ * Twitch will handle before redirecting back to us.
+ *
+ * This function is used to kick off the authentication step by responding to a
+ * web request by redirecting to an appropriate location.
+ *
+ * Part of this request is a unique state value that Twitch will pass back that
+ * we can use to verify that the callback is valid. This will include such a
+ * value in the URL and return it back so that the other handler can grab it
+ * and use it to verify things. */
+function performTokenAuth(api, name, req, res) {
+    const state = uuidv4();
+    res.redirect(getAuthURL(api, name, state));
+
+    return state;
+}
+
 // =============================================================================
 
 /* This handles a request to deauthorize a specifically named token. The record
@@ -344,8 +363,11 @@ async function setup_auth(api) {
   // it passes the state string it was given back.
   //
   // Our end can use this to ensure that whenever the authorization endpoint is
-  // triggered, that it is in response to a request that we initiated.
-  let state = uuidv4();
+  // triggered, that it is in response to a request that we initiated. There's
+  // one for each of the authorization URL's that might be going at any one
+  // time.
+  let botState = uuidv4();
+  let userState = uuidv4();
 
   // When requests by the front end, return information that's needed for it to
   // display who's currently authenticated as the bot account or the channel
@@ -359,25 +381,21 @@ async function setup_auth(api) {
   // Ask the express server in NodeCG to create a new router for us.
   const app = api.nodecg.Router();
 
-  // Listen for an incoming request from Twitch for the bot account; this will
-  // happen in response to the user clicking either Authorize or Cancel on the
-  // authorization page that Twitch presents.
+  // In order to start a bot or user authentication, the front end should hit
+  // these endpoints, which will redirect the browser to an appropriate page for
+  // authorization. These also grab and store the state values that will be used
+  // when the callback returns.
+  app.get('/bot/auth', async (req, res) => botState = performTokenAuth(api, 'bot', req, res));
+  app.get('/user/auth', async (req, res) => userState = performTokenAuth(api, 'user', req, res));
+
+  // During an ongoing authorization request, we redirect to Twitch and wait for
+  // the user to either authorize or cancel the request, which will cause Twitch
+  // to redirect back to a URL that we give it. This is our opportunity to
+  // either finish the auth or know that they user cancelled.
   app.get(new URL(api.config.get('twitch.core.botCallbackURL')).pathname,
-    (req, res) => handleAuthCallback(api, state, 'bot', req, res));
-
-  // Do the same thing for the user account.
+    (req, res) => handleAuthCallback(api, botState, 'bot', req, res));
   app.get(new URL(api.config.get('twitch.core.userCallbackURL')).pathname,
-    (req, res) => handleAuthCallback(api, state, 'user', req, res));
-
-  app.get('/bot/auth', async (req, res) => {
-    state = uuidv4();
-    res.redirect(getAuthURL(api, 'bot', state));
-  });
-
-  app.get('/user/auth', async (req, res) => {
-    state = uuidv4();
-    res.redirect(getAuthURL(api, 'user', state));
-  });
+    (req, res) => handleAuthCallback(api, userState, 'user', req, res));
 
   // Listen for an incoming request to deauthorize the bot account. When we
   // receive it we remove any token that we might have, remove the Twitch API
