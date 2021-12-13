@@ -24,8 +24,9 @@ require('dotenv').config({ path: path.resolve(baseDir, '.env') })
 // Load up our configuration information up and obtain the configuration
 // object.
 const config = require('./config')(baseDir);
-const setup_db = require('./db/');
+const setup_twitch_api = require('./twitch_api');
 const setup_crypto = require('./crypto');
+const setup_db = require('./db/');
 const setup_auth = require('./auth/');
 
 
@@ -73,9 +74,10 @@ module.exports = async function(nodecg) {
   //
   // This includes setting up a variable or removing it, depending on the
   // status of things.
+  setup_twitch_api(api);  // api.twitch
   setup_crypto(api);      // api.crypto.encrypt and api.crypto.decrypt
   await setup_db(api);    // api.db
-  await setup_auth(api);  // api.twitch
+  await setup_auth(api);
 };
 
 

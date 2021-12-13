@@ -7,8 +7,7 @@
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
-const { ClientCredentialsAuthProvider, RefreshingAuthProvider, getAppToken, getTokenInfo } = require('@twurple/auth');
-const { ApiClient } = require('@twurple/api');
+const { RefreshingAuthProvider, getTokenInfo } = require('@twurple/auth');
 
 
 // =============================================================================
@@ -139,19 +138,12 @@ async function getAuthProvider(api, name) {
 
   api.log.info(`Fetching ${name} access token`);
 
-  // App tokens are special; they can't be refreshed directly because you can
-  // just ask for a new one at any time. So for these tokens we use a different
-  // Auth provider that knows about that and can fetch tokens as needed.
-  if (name === 'app') {
-    return new ClientCredentialsAuthProvider(clientId, clientSecret);
-  }
-
   // This is not an app token, so we need to get the token data from the token
   // with the given name; for that we will need to pull the record from the
   // database.
   const model = api.db.getModel('authorize');
 
-  // If there is no record found for this token, we can't set up an auth
+  // If there is no record found for this token, we can't set up an Auth
   // provider for it.
   const record = await model.findOne({ name });
   if (record === undefined) {
@@ -294,42 +286,6 @@ async function performTokenDeauth(api, name, req, res) {
 }
 
 
-// =============================================================================
-
-
-/* Set up the Twitch API endpoints inside of the given api struct using the
- * token with the given name.
- *
- * If there is an authorized and cached token by that name it will be refreshed
- * and used to set up a Twitch Auth provider and a Twitch API endpoint.
- *
- * When there's no token, those items are actively removed from the given api
- * struct.
- *
- * Thus, thus should be called any time the state of authorization changes. */
-async function setupTwitchAPI(api) {
-  // Get an Auth provider based on the name of the token we're supposed to be
-  // using.
-  const appAuth = await getAuthProvider(api, 'app')
-  if (appAuth === null) {
-    api.twitch = undefined;
-    return api.log.warn('Unable to obtain app token; unable to set up Twitch API');
-  }
-
-  api.log.info('Obtained app token; setting up the Twitch API');
-
-  // Make sure that the token is valid; it might not be, in which case it
-  // needs to be refreshed. The library doesn't seem to do this for an
-  // initial request made with this provider, although it will at runtime, which
-  // is mildly curious.
-  await appAuth.getAccessToken();
-
-  // Create a Twitch API instance from which we can make requests. This will
-  // be tied to the bot authorization token, although it does it for other
-  // subsequent requests from the same user.
-  api.twitch = new ApiClient({ authProvider: appAuth });
-}
-
 
 // =============================================================================
 
@@ -420,16 +376,8 @@ async function sendUserChannelInfo(api) {
  * specific page on Twitch, where the user can choose to authorize.
  *
  * This requires some web endpoints on our end to negotiate the transfers as
- * well as some support code.
- *
- * This includes elements in the API structure that is passed in to include the
- * Twitch API endpoint that we need:
- *    - api.twitch */
+ * well as some support code. */
 async function setup_auth(api) {
-  // As a first step, obtain an Application token and set up the twitch API
-  // endpoint so that we can make requests from it.
-  await setupTwitchAPI(api);
-
   // One of the parameters in the URL that we pass to Twitch to start
   // authorization is a randomized string of text called the "state". This
   // value can be anything we like. When Twitch calls back to our callback URL
