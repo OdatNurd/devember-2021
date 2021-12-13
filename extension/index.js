@@ -25,7 +25,7 @@ require('dotenv').config({ path: path.resolve(baseDir, '.env') })
 // object.
 const config = require('./config')(baseDir);
 const setup_db = require('./db/');
-const setup_crypto = require('./crypto/');
+const setup_crypto = require('./crypto');
 const setup_auth = require('./auth/');
 
 
