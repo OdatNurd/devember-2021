@@ -59,23 +59,44 @@ async function getAccessToken(api, name, code) {
       }
     });
 
-    // We want to store the token data into the database in a record that is
-    // based on the "name" of the token. This is something that we use locally
-    // to be able to distinguish between several tokens we might have at any
-    // given time.
+    // If the token we grabbed was for the user of the bot, then we want to look
+    // up the information for that user and store that user's information into
+    // the configuration section of the database.
+    if (name == 'user') {
+      // Get the token information from the token that we just gathered; this
+      // will give us the userID of the user that the token is associated with.
+      const tokenInfo = await getTokenInfo(response.data.access_token, api.config.get('twitch.core.clientId'));
+      const result = await api.twitch.users.getUserById(tokenInfo.userId);
 
-    // The token and refresh token are encrypted when we put them into the
-    // database to keep them safe from casual inspection.
-    await api.db.getModel('authorize').updateOrCreate({ name }, {
-      name: name,
-      type: response.data.token_type,
-      token: api.crypto.encrypt(response.data.access_token),
-      refreshToken: api.crypto.encrypt(response.data.refresh_token),
-      scopes: response.data.scope,
-      obtained: Date.now(),
-      expiration: response.data.expires_in,
-    });
-
+      await api.db.getModel('channelconfig').updateOrCreate({ id: 1 }, {
+        broadcasterType: result.broadcasterType,
+        creationDate: result.creationDate,
+        description: result.description,
+        userid: result.id,
+        name: result.name,
+        displayName: result.displayName,
+        type: result.type,
+        views: result.views,
+        offlinePlaceholderUrl: result.offlinePlaceholderUrl,
+        profilePictureUrl: result.profilePictureUrl,
+      });
+    } else {
+      // This is not the user token, so persist the information about it into
+      // the database. This can be later pulled out in order to re-create the
+      // token and refresh it as needed.
+      //
+      // The token and refresh token are encrypted when we put them into the
+      // database to keep them safe from casual inspection.
+      await api.db.getModel('authorize').updateOrCreate({ name }, {
+        name: name,
+        type: response.data.token_type,
+        token: api.crypto.encrypt(response.data.access_token),
+        refreshToken: api.crypto.encrypt(response.data.refresh_token),
+        scopes: response.data.scope,
+        obtained: Date.now(),
+        expiration: response.data.expires_in,
+      });
+    }
   }
 
   catch (error) {
@@ -205,7 +226,8 @@ async function handleAuthCallback(api, state, name, req, res)  {
 
       api.log.error(`auth callback got out of date authorization code; potential spoof?`);
     } else {
-      // Fetch the token.
+      // The code is non-empty and matches what we expect, so we can fetch the
+      // access token now.
       await getAccessToken(api, name, code);
     }
   }
@@ -238,7 +260,19 @@ function performTokenAuth(api, name, req, res) {
  * for the token will be removed from the database and the page will be
  * redirected back to the main Twitch full bleed panel. */
 async function performTokenDeauth(api, name, req, res) {
-  await api.db.getModel('authorize').remove({ name });
+  switch (name) {
+    case 'bot':
+      await api.db.getModel('authorize').remove({ name });
+      break;
+
+    case 'user':
+      await api.db.getModel('channelconfig').remove({ id: 1 });
+      break;
+
+    default:
+      api.log.error(`Cannot deauth unknown token ${name}`);
+      break;
+  }
 
   res.redirect('/dashboard/#fullbleed/twitch');
 }
@@ -304,17 +338,17 @@ async function getUserIdFromToken(api, name) {
 
 // =============================================================================
 
-/* Given the name of a token, this will gather the information for the user that
- * is associated with that token and send it to the front end using a message
- * whose name is based on the token name itself.
+/* This will look up the information on the user associated with the bot token
+ * and send the information back to the front end for display in its user
+ * interface.
  *
- * This will always send, but it will send an empty object if the token is not
- * found or the twitch API is not currently set up. */
-async function sendUserInfo(api, name) {
+ * If there's not an authorized bot user, then this will send an empty object
+ * instead, so that the front end knows that there's no bot user. */
+async function sendBotInfo(api) {
   let userInfo = {};
-  const userId = await getUserIdFromToken(api, name);
+  const userId = await getUserIdFromToken(api, 'bot');
 
-  if (api.twitch !== undefined && userId != undefined) {
+  if (userId != undefined) {
     const result = await api.twitch.users.getUserById(userId);
 
     userInfo.profilePictureUrl = result.profilePictureUrl;
@@ -323,24 +357,34 @@ async function sendUserInfo(api, name) {
     userInfo.broadcasterType = result.broadcasterType;
     userInfo.creationDate = result.creationDate;
     userInfo.description = result.description;
-
-    //   {
-    //     broadcasterType: result.broadcasterType,
-    //     creationDate: result.creationDate,
-    //     description: result.description,
-    //     displayName: result.displayName,
-    //     email: result.email,
-    //     id: result.id,
-    //     name: result.name,
-    //     offlinePlaceholderUrl: result.offlinePlaceholderUrl,
-    //     profilePictureUrl: result.profilePictureUrl,
-    //     type: result.type,
-    //     views: result.views
-    //   });
-    // }
   }
 
-  api.nodecg.sendMessage(`${name}-user-info`, userInfo)
+  api.nodecg.sendMessage('bot-user-info', userInfo);
+}
+
+
+// =============================================================================
+
+/* This will look up the information on the user that has authorized the bot to
+ * run in their channel and send the information back to the front end for
+ * display in its user interface.
+ *
+ * If there's not an authorized channel, then this will send an empty object
+ * instead, so that the front end knows that there's no place for it to run. */
+async function sendUserChannelInfo(api) {
+  let userInfo = {};
+  const result = await api.db.getModel('channelconfig').findOne({ id: 1});
+
+  if (result != null) {
+    userInfo.profilePictureUrl = result.profilePictureUrl;
+    userInfo.displayName = result.displayName;
+    userInfo.name = result.name;
+    userInfo.broadcasterType = result.broadcasterType;
+    userInfo.creationDate = result.creationDate;
+    userInfo.description = result.description;
+  }
+
+  api.nodecg.sendMessage('user-user-info', userInfo);
 }
 
 // =============================================================================
@@ -375,8 +419,8 @@ async function setup_auth(api) {
   //
   // This will send a message back the other way to deliver the data, which
   // could be an empty object if there is no data available yet.
-  api.nodecg.listenFor('get-bot-user-info', async () => sendUserInfo(api, 'bot'));
-  api.nodecg.listenFor('get-user-user-info', async () => sendUserInfo(api, 'user'));
+  api.nodecg.listenFor('get-bot-user-info', async () => sendBotInfo(api));
+  api.nodecg.listenFor('get-user-user-info', async () => sendUserChannelInfo(api));
 
   // Ask the express server in NodeCG to create a new router for us.
   const app = api.nodecg.Router();
