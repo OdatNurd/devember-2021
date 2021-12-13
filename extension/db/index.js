@@ -6,7 +6,7 @@
 const trilogy = require('trilogy');
 const path = require('path');
 
-const { AuthorizationSchema, ChannelConfigSchema } = require('./schema/');
+const { AuthorizationSchema, UserSchema } = require('./schema/');
 
 
 // =============================================================================
@@ -40,7 +40,7 @@ async function setup_db(api) {
   // is an async operation.
   const modelList = [
     db.model('authorize', AuthorizationSchema),
-    db.model('channelconfig', ChannelConfigSchema),
+    db.model('users', UserSchema),
   ];
   await Promise.all(modelList);
 

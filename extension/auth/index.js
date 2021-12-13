@@ -76,17 +76,9 @@ async function getAccessToken(api, name, code) {
       const tokenInfo = await getTokenInfo(response.data.access_token, api.config.get('twitch.core.clientId'));
       const result = await api.twitch.users.getUserById(tokenInfo.userId);
 
-      await api.db.getModel('channelconfig').updateOrCreate({ id: 1 }, {
-        broadcasterType: result.broadcasterType,
-        creationDate: result.creationDate,
-        description: result.description,
-        userid: result.id,
-        name: result.name,
-        displayName: result.displayName,
-        type: result.type,
-        views: result.views,
-        offlinePlaceholderUrl: result.offlinePlaceholderUrl,
-        profilePictureUrl: result.profilePictureUrl,
+      await api.db.getModel('users').updateOrCreate({ type: 'user' }, {
+        type: 'user',
+        userId: result.id
       });
     } else {
       // This is not the user token, so persist the information about it into
@@ -274,7 +266,7 @@ async function performTokenDeauth(api, name, req, res) {
       break;
 
     case 'user':
-      await api.db.getModel('channelconfig').remove({ id: 1 });
+      await api.db.getModel('users').remove({ type: 'user' });
       break;
 
     default:
@@ -353,9 +345,11 @@ async function sendBotInfo(api) {
  * instead, so that the front end knows that there's no place for it to run. */
 async function sendUserChannelInfo(api) {
   let userInfo = {};
-  const result = await api.db.getModel('channelconfig').findOne({ id: 1});
+  const record = await api.db.getModel('users').findOne({ type: 'user' });
 
-  if (result != null) {
+  if (record != null) {
+    const result = await api.twitch.users.getUserById(record.userId);
+
     userInfo.profilePictureUrl = result.profilePictureUrl;
     userInfo.displayName = result.displayName;
     userInfo.name = result.name;

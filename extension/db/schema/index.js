@@ -3,11 +3,11 @@
 // =============================================================================
 
 const { AuthorizationSchema } = require('./authorization');
-const { ChannelConfigSchema } = require('./channel_config');
+const { UserSchema } = require('./user');
 
 // =============================================================================
 
 module.exports = {
   AuthorizationSchema,
-  ChannelConfigSchema
+  UserSchema
 };
