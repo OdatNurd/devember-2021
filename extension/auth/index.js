@@ -19,12 +19,15 @@ const { ApiClient } = require('@twurple/api');
  * which is an opaque data item that we can use to verify that the response we
  * get back is from the place that we expect (and thus it always changes). */
 function getAuthURL(api, type, state) {
+  const bot_scopes = 'chat:read chat:edit';
+  const user_scopes = 'user:read:email'
+
   const params = {
     client_id: api.config.get('twitch.core.clientId'),
     redirect_uri: api.config.get(`twitch.core.${type}CallbackURL`),
     force_verify: true,
     response_type: 'code',
-    scope: 'user:read:email',
+    scope: (type == 'bot') ? bot_scopes : user_scopes,
     state
   };
 
