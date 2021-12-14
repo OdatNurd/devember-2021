@@ -1,5 +1,8 @@
 'use strict';
 
+// TODO:
+//  getUserInfo() could probably be factored; I bet there are several places
+//  where something similar is happening.
 
 // =============================================================================
 
@@ -64,6 +67,116 @@ async function getAuthProvider(api, name) {
 // =============================================================================
 
 
+/* Given a user type of a logged in account (either 'user' or 'bot'), gather the
+ * information about that user based on their userId and return it. The return
+ * value will be null if there's no such authorized user or we can't get their
+ * user information. */
+async function getUserInfo(api, type) {
+  // Get the userId record from the database for this user type.
+  const record = await api.db.getModel('users').findOne({ type });
+  if (record === undefined) {
+    return null;
+  }
+
+  // Using the userId, query Twitch to determine the user information.
+  const userInfo = await api.twitch.users.getUserById(record.userId);
+  if (userInfo === null) {
+    return null;
+  }
+
+  return userInfo;
+}
+
+
+// =============================================================================
+
+
+/* This handler gets called whenever the authorization state of one of the bot
+ * accounts changes to be authorized. We use this to determine if it's time to
+ * enter the chat with the bot or not, such as if we now have all of the
+ * required authorizations. */
+async function handleAuthEvent(api, type) {
+  // Get information about the account that was just authorized; we need to know
+  // this to know how to get into the channel for either of these users.
+  const userInfo = await getUserInfo(api, type);
+  if (userInfo === null) {
+    api.log.warn(`unable to find ${type} information; cannot join chat`);
+    return;
+  }
+
+  // If the account that just authorized is the user account, then we need to
+  // look up the information for that user in order to know what channel the
+  // bot is supposed to join.
+  switch (type) {
+    case 'user':
+      // The name of the channel to join is based on the username of the user
+      // whose channel it is.
+      api.channel = `#${userInfo.name}`;
+      api.log.info(`Chat bot is authorized to join ${api.channel}`)
+      break;
+
+    case 'bot':
+      // Get an authorization object for the bot user; if this doesn't work then
+      // we can't join the chat because we won't be able to authenticate
+      // ourselves.
+      api.botauth = await getAuthProvider(api, 'bot');
+      if (api.botauth === null) {
+        api.log.warn('unable to find authorized bot token; cannot join chat');
+        api.botauth = undefined;
+      } else {
+        api.log.info(`Chat bot is running as ${userInfo.displayName}`);
+      }
+      break;
+
+    default:
+      api.log.error(`unhandled authorization event type ${type}`)
+      break;
+  }
+
+  // Here check to see if we should join chat or not.
+  // If we have all of the required items, we can now join the chat.
+  if (api.channel !== undefined && api.botauth !== undefined) {
+    api.log.info('Joining the chat')
+  }
+}
+
+
+// =============================================================================
+
+
+/* This handler gets called whenever the authorization state of one of the bot
+ * accounts changes to be deauthorized. We use this to determine if it's time to
+ * leave the chat with the bot or not, which we would do as soon as an auth
+ * drops, since all are required for the chat to function. */
+function handleDeauthEvent(api, type) {
+  // If we are currently in the chat, we need to leave it because the authorized
+  // accounts are changing.
+  if (api.chat !== undefined) {
+    api.log.warn('Leaving the chat; authorizations are now required')
+    // TODO: Leave the chat here
+    api.chat = undefined;
+  }
+
+  switch (type) {
+    case 'user':
+      api.log.warn(`Bot has been asked to leave ${api.channel}`)
+      api.channel = undefined;
+      break;
+
+    case 'bot':
+      api.log.warn(`Bot account has had its authorization revoked by the user`);
+      api.botauth = undefined;
+      break;
+
+    default:
+      api.log.error(`unhandled deauthorization event type ${type}`)
+      break;
+  }
+}
+
+
+// =============================================================================
+
 /* This section sets up the core of the code used to authorize accounts with
  * Twitch using the OAuth2 flows, which require us to direct the browser to a
  * specific page on Twitch, where the user can choose to authorize.
@@ -72,36 +185,18 @@ async function getAuthProvider(api, name) {
  * well as some support code.
  *
  * This includes elements in the API structure that is passed in to include the
- * crypto endpoints that we need; these endpoints may at any point be undefined
- * if the appropriate authorizations have not been made or have been redacted;
- * thus anything that wants to use them needs to verify first:
- *    - api.chat */
+ * endpoints needed to support chat; these endpoints may at any point be
+ * undefined if the appropriate authorizations have not been made or have been
+ * redacted; thus anything that wants to use them needs to verify first:
+ *    - api.botauth : the auth provider for the bot account
+ *    - api.channel : the channel the bot should be in
+ *    - api.chat    : the chat client instance */
 async function setup_chat(api) {
-  // Determine what channel the bot should join. This comes from the authorized
-  // user channel record. If there isn't one, there's nothing that we can do.
-  const channelInfo = await api.db.getModel('users').findOne({ type: 'user' });
-  if (channelInfo === undefined) {
-    api.log.warn('Cannot join chat; there is no authorized channel');
-    api.chat = undefined;
-    return;
-  }
+  // Listen for events that tell us when the authorization state of the various
+  // accounts has completed, which is our signal to join or leave the chat.
+  api.nodecg.listenFor('auth-complete',   type => handleAuthEvent(api, type));
+  api.nodecg.listenFor('deauth-complete', type => handleDeauthEvent(api, type));
 
-  // To join the channel, there needs to be a token associated with the bot so
-  // that we can connect as them. If there is no such token, then we can't
-  // continue. To determine that, we will get the authorization object that we
-  // need later; this will return null if there is no such item.
-  // Get an auth provider for the bot.
-  const authProvider = await getAuthProvider(api, 'bot');
-  if (authProvider === null) {
-    api.log.warn('Cannot join chat; there is no authorized bot user');
-    api.chat = undefined;
-    return;
-  }
-
-  // We are now good to start up, so determine the username of the channel user
-  // so that we can get a channel name out of it.
-  const userInfo = await api.twitch.users.getUserById(channelInfo.userId);
-  const channelName = '#' + userInfo.name;
 
   // Create a chat client using our authorized bot user, and store it into the
   // api.
