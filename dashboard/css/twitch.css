@@ -20,6 +20,11 @@ bot-card > h1 {
   margin: 4px;
 }
 
+bot-card > legend {
+  border-bottom: 1px solid #525f78;
+  margin: 1em 4px 4px 4px;
+}
+
 user-info {
   padding:  0.5em 0;
   display: flex;

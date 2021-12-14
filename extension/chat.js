@@ -306,6 +306,15 @@ async function setup_chat(api) {
   // accounts has completed, which is our signal to join or leave the chat.
   api.nodecg.listenFor('auth-complete',   type => handleAuthEvent(api, type));
   api.nodecg.listenFor('deauth-complete', type => handleDeauthEvent(api, type));
+
+  // Other systems in the bot can ask us to say text in chat, so long as we
+  // are connected. We do that by listening for a message that tells us to say
+  // some text.
+  api.nodecg.listenFor('say-in-chat', text => {
+    if (text !== '' && api.chat !== undefined) {
+      api.chat.say(api.channel, text);
+    }
+  });
 }
 
 

@@ -135,3 +135,18 @@ function displayLoginInfo(panel, acctInfo) {
 // that sets up the panel as appropriate.
 nodecg.sendMessage('get-bot-user-info');
 nodecg.sendMessage('get-user-user-info');
+
+// The panel as an input and a button that can be used to trigger sending text
+// to the chat from the dashboard. Listen for clicks and send chat messages if
+// possible.
+const form = document.getElementById('bot-speak');
+const text = document.getElementById('text-to-say');
+
+// Respond to submitting the form by sending text to the chat via a message.
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  nodecg.sendMessage('say-in-chat', text.value);
+});
+
+
+// =============================================================================
