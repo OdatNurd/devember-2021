@@ -46,7 +46,9 @@
     "axios": "^0.24.0",
     "convict": "^6.2.1",
     "dotenv": "^10.0.0",
+    "import-fresh": "^3.3.0",
     "json5": "^2.2.0",
+    "micromatch": "^4.0.4",
     "sqlite3": "^5.0.2",
     "trilogy": "^2.0.5",
     "uuid": "^8.3.2"
