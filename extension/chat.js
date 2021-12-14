@@ -111,18 +111,18 @@ async function handleAuthEvent(api, type) {
     case 'user':
       // The name of the channel to join is based on the username of the user
       // whose channel it is.
-      api.channel = `#${userInfo.name}`;
-      api.log.info(`Chat bot is authorized to join ${api.channel}`)
+      api.chat.channel = `#${userInfo.name}`;
+      api.log.info(`Chat bot is authorized to join ${api.chat.channel}`)
       break;
 
     case 'bot':
       // Get an authorization object for the bot user; if this doesn't work then
       // we can't join the chat because we won't be able to authenticate
       // ourselves.
-      api.botauth = await getAuthProvider(api, 'bot');
-      if (api.botauth === null) {
+      api.chat.auth = await getAuthProvider(api, 'bot');
+      if (api.chat.auth === null) {
         api.log.warn('unable to find authorized bot token; cannot join chat');
-        api.botauth = undefined;
+        api.chat.auth = undefined;
       } else {
         api.log.info(`Chat bot is running as ${userInfo.displayName}`);
       }
@@ -137,7 +137,7 @@ async function handleAuthEvent(api, type) {
   // do this, we need to make sure that we capture the return of the function,
   // which gives us all of the event handles we will need to use to cancel if
   // we want to leave the chat.
-  if (api.channel !== undefined && api.botauth !== undefined) {
+  if (api.chat.channel !== undefined && api.chat.auth !== undefined) {
     joinTwitchChat(api);
   }
 }
@@ -153,20 +153,20 @@ async function handleAuthEvent(api, type) {
 function handleDeauthEvent(api, type) {
   // If we are currently in the chat, we need to leave it because the authorized
   // accounts are changing.
-  if (api.chat !== undefined) {
-    api.log.warn(`${api.chat.currentNick} is leaving ${api.channel}`);
+  if (api.chat.client !== undefined) {
+    api.log.warn(`${api.chat.client.currentNick} is leaving ${api.chat.channel}`);
     leaveTwitchChat(api);
   }
 
   switch (type) {
     case 'user':
-      api.log.warn(`Bot has been asked to leave ${api.channel}`)
-      api.channel = undefined;
+      api.log.warn(`Bot has been asked to leave ${api.chat.channel}`)
+      api.chat.channel = undefined;
       break;
 
     case 'bot':
       api.log.warn(`Bot account has had its authorization revoked`);
-      api.botauth = undefined;
+      api.chat.auth = undefined;
       break;
 
     default:
@@ -187,18 +187,24 @@ function handleDeauthEvent(api, type) {
  * actually present. */
 async function joinTwitchChat(api) {
   // If we're already connected or don't have the info to do so, leave now.
-  if (api.chat !== undefined || api.channel === undefined || api.botauth === undefined) {
+  if (api.chat.client !== undefined ||
+      api.chat.channel === undefined || api.chat.auth === undefined) {
     return;
   }
 
   // Create a chat client using our authorized bot user, and store it into the
   // api.
-  api.chat = new ChatClient({
-    authProvider: api.botauth,
-    channels: [api.channel],
+  const chat = new ChatClient({
+    authProvider: api.chat.auth,
+    channels: [api.chat.channel],
     botLevel: "none",   // "none", known" or "verified"
     isAlwaysMod: false,
   });
+
+  // Store the chat client in our top level API, and make an alias for the
+  // "say" to make life a little bit easier.
+  api.chat.client = chat;
+  api.chat.say = text => api.chat.client.say(api.chat.channel, text);
 
   // Set up all of the events that will tell us when things happen in the chat.
   // In order to be able to leave the chat, we need to be able to cancel all of
@@ -207,50 +213,49 @@ async function joinTwitchChat(api) {
   // To do that we need to remove the listeners based on the return values of
   // the event creation code, so we store them all in an array so that we can
   // do that easier later.
-  api.chatlisteners = [
+  api.chat.listeners = [
     // Whenever a message appears in the chat, display it to the console.
-    api.chat.onMessage(async (channel, user, message, rawMsg) => {
+    chat.onMessage(async (channel, user, message, rawMsg) => {
       api.log.info(`${channel}:<${user}> ${message}`);
     }),
 
     // Whenever an action appears in the chat, display it to the console.
-    api.chat.onAction((channel, user, message) => {
+    chat.onAction((channel, user, message) => {
       api.log.info(`${channel}:* ${user} ${message}`);
     }),
 
     // Display a notification when the chat connects,.
-    api.chat.onConnect(() => {
+    chat.onConnect(() => {
       api.log.info('Twitch chat connection established');
     }),
 
     // Display a notification when the chat disconnects.
-    api.chat.onDisconnect((_manually, _reason) => {
+    chat.onDisconnect((_manually, _reason) => {
       api.log.info('Twitch chat has been disconnected');
     }),
 
     // Handle a situation in which authentication of the bot failed; this would
     // happen if the bot user redacts our ability to talk to chat from within
     // Twitch without disconnecting in the app, for example.
-    api.chat.onAuthenticationFailure(message => {
+    chat.onAuthenticationFailure(message => {
       api.log.error(`Twitch chat Authentication failed: ${message}`);
     }),
 
     // As a part of the connection mechanism, we also need to tell the server what
     // name we're known by. Once that happens, this event triggers.
-    api.chat.onRegister(() => {
-      api.log.info(`Registered with Twitch chat as ${api.chat.currentNick}`);
-      api.chat.say(api.channel, 'I\'m here!');
+    chat.onRegister(() => {
+      api.log.info(`Registered with Twitch chat as ${api.chat.client.currentNick}`);
     }),
 
     // Handle cases where sending messages fails due to being rate limited or
     // other reasons.
-    api.chat.onMessageFailed((channel, reason) => api.log.error(`${channel}: message send failed: ${reason}`)),
-    api.chat.onMessageRatelimit((channel, message) => api.log.warn(`${channel}: rate limit hit; did not send: ${message}`)),
+    chat.onMessageFailed((channel, reason) => api.log.error(`${channel}: message send failed: ${reason}`)),
+    chat.onMessageRatelimit((channel, message) => api.log.warn(`${channel}: rate limit hit; did not send: ${message}`)),
   ];
 
   // We're done, so indicate that we're connecting to twitch.
-  api.log.info(`Connecting to Twitch chat and joining channel ${api.channel}`);
-  await api.chat.connect();
+  api.log.info(`Connecting to Twitch chat and joining channel ${api.chat.channel}`);
+  await chat.connect();
 }
 
 
@@ -265,21 +270,22 @@ async function joinTwitchChat(api) {
  * is not actually connected. */
 async function leaveTwitchChat(api) {
   // If we're not in the chat right now, we can leave without doing anything/
-  if (api.chat === undefined || api.chatlisteners === undefined) {
+  if (api.chat.client === undefined || api.chat.listeners === undefined) {
     return;
   }
 
   // Actively leave the chat, and then remove all of of the listeners that are
   // associated with it so that we can remove the instance; otherwise they will
   // hold onto it's reference.
-  api.chat.quit();
-  for (const listener in api.chatlisteners) {
-    api.chat.removeListener(listener);
+  api.chat.client.quit();
+  for (const listener in api.chat.listeners) {
+    api.chat.client.removeListener(listener);
   }
 
   // Clobber away the values that tell us that we're connected to the chat.
-  api.chat.chatlisteners = undefined;
-  api.chat = undefined;
+  api.chat.listeners = undefined;
+  api.chat.client = undefined;
+  api.chat.say = text => api.log.warn('cannot send text to chat; not currently connected');
 }
 
 
@@ -297,11 +303,20 @@ async function leaveTwitchChat(api) {
  * endpoints needed to support chat; these endpoints may at any point be
  * undefined if the appropriate authorizations have not been made or have been
  * redacted; thus anything that wants to use them needs to verify first:
- *    - api.botauth       : the auth provider for the bot account
- *    - api.channel       : the channel the bot should be in
- *    - api.chat          : the chat client instance
- *    - api.chatlisteners : the event listener handles for child events. */
+ *    - api.chat.auth      : the auth provider for the bot account
+ *    - api.chat.channel   : the channel the bot should be in
+ *    - api.chat.client    : the chat client instance
+ *    - api.chat.listeners : the event listener handles for child events.
+ *    - api.chat.say       : alias for easily sending chat messages */
 async function setup_chat(api) {
+  // Set up the top level namespace that we will store our chat API in. By
+  // default the alias for sending text to chat is a log message that says that
+  // there's no connection, so that external code can always try to send without
+  // checking if desired.
+  api.chat = {
+    say: text => api.log.warn('cannot send text to chat; not currently connected')
+  };
+
   // Listen for events that tell us when the authorization state of the various
   // accounts has completed, which is our signal to join or leave the chat.
   api.nodecg.listenFor('auth-complete',   type => handleAuthEvent(api, type));
@@ -311,8 +326,8 @@ async function setup_chat(api) {
   // are connected. We do that by listening for a message that tells us to say
   // some text.
   api.nodecg.listenFor('say-in-chat', text => {
-    if (text !== '' && api.chat !== undefined) {
-      api.chat.say(api.channel, text);
+    if (text !== '') {
+      api.chat.say(text);
     }
   });
 }

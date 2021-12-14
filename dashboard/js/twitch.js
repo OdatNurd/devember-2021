@@ -145,6 +145,7 @@ const text = document.getElementById('text-to-say');
 // Respond to submitting the form by sending text to the chat via a message.
 form.addEventListener('submit', e => {
   e.preventDefault();
+  text.select();
   nodecg.sendMessage('say-in-chat', text.value);
 });
 
