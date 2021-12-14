@@ -92,6 +92,9 @@ const config = convict({
       }
     },
   },
+
+  // These items relate to the encryption that we use when we store tokens in
+  // the database so that they're safe from casual inspection.
   crypto: {
     secret: {
       doc: 'The encryption secret; this must be exactly 32 characters long',
@@ -99,6 +102,17 @@ const config = convict({
       default: null,
       env: 'TWITCHBOT_CRYPTO_SECRET',
       sensitive: true
+    }
+  },
+
+  // These items relate to the configuration of the underlying bot code and how
+  // it runs and interacts with Twitch.
+  bot: {
+    role: {
+      doc: 'The role of this installation of the bot; can be used to direct commands',
+      format: '*',
+      env: 'TWITCHBOT_ROLE',
+      default: 'dev'
     }
   }
 });

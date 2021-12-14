@@ -31,6 +31,14 @@
     // loaded. This value is used to set up the encryption. Much like
     // twitch.clientSecret this should be kept a secret from everyone, because
     // loose lips make it easy to decrypt.
-    "secret": null,         // TWITCHBOT_CRYPTO_SECRET
+    "secret": null,             // TWITCHBOT_CRYPTO_SECRET
+  },
+
+  "bot": {
+    // Running instances of the bot can be assigned one of an arbitrary list of
+    // roles, so that multiple instances can be running and in the same channel
+    // at the same time. Roles allow commands to be directed to specific
+    // instances of the bot.
+    "role": null,               // TWITCHBOT_ROLE
   }
 }

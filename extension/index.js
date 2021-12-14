@@ -64,6 +64,20 @@ module.exports = async function(nodecg) {
     // Alias the log routines to make our lives better.
     log: nodecg.log,
 
+    // The role that this bot has; this can be things like dev, prod, test
+    // and so on. This groups installations of the bot that might all be
+    // running in the same channel at the same time.
+    role: config.get('bot.role'),
+
+    // If an incoming bot command doesn't include a role=rolename argument,
+    // the value of this key (if any) is used instead. This allows a single
+    // command to "switch" which bot the commands are addressed to without
+    // having to specify the parameter each time.
+    //
+    // Undefined means there is no default role (and thus the command will
+    // be executed).
+    defaultCmdRole: undefined,
+
     // The command parser that we use to handle incoming commands,
     cmdParser: new CommandParser()
   };
