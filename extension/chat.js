@@ -209,8 +209,6 @@ async function joinTwitchChat(api) {
         details.rawMsg = rawMsg;
         cmd.execute(api, details, rawMsg.userInfo);
       }
-
-      console.log(details);
     }),
 
     // Whenever an action appears in the chat, display it to the console.
