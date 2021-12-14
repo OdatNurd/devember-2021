@@ -4,7 +4,9 @@
 // =============================================================================
 
 
-const { CommandParser, CommandDetails } = require('./command/');
+const { CommandParser, CommandDetails, BotCommand } = require('./command/');
+const { CodeHandler } = require('./handler');
+const { CodeHandlerMap } = require('./handler_map');
 
 
 // =============================================================================
@@ -12,5 +14,7 @@ const { CommandParser, CommandDetails } = require('./command/');
 
 module.exports = {
   CommandParser,
-  CommandDetails
+  CommandDetails,
+  CodeHandlerMap,
+  CodeHandler
 };
