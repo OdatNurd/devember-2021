@@ -80,7 +80,7 @@ async function setup_chat(api) {
   // Determine what channel the bot should join. This comes from the authorized
   // user channel record. If there isn't one, there's nothing that we can do.
   const channelInfo = await api.db.getModel('users').findOne({ type: 'user' });
-  if (channelInfo === null) {
+  if (channelInfo === undefined) {
     api.log.warn('Cannot join chat; there is no authorized channel');
     api.chat = undefined;
     return;
@@ -98,12 +98,10 @@ async function setup_chat(api) {
     return;
   }
 
-
   // We are now good to start up, so determine the username of the channel user
   // so that we can get a channel name out of it.
   const userInfo = await api.twitch.users.getUserById(channelInfo.userId);
   const channelName = '#' + userInfo.name;
-
 
   // Create a chat client using our authorized bot user, and store it into the
   // api.
