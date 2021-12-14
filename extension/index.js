@@ -33,7 +33,7 @@ const setup_db = require('./db/');
 const { setup_auth } = require('./auth');
 const setup_chat = require('./chat');
 
-const { CommandParser } = require('./core/');
+const { CommandParser, CodeHandlerMap, BotCommand } = require('./core/');
 
 
 // =============================================================================
@@ -130,6 +130,24 @@ module.exports = async function(nodecg) {
   // this method finishes and broadcasts that the appropriate accounts have been
   // authorized (if they were pre-authorized from a prior run).
   await setup_auth(api);
+
+  // Create a code handler that associates the commands in the database with
+  // the classes that know how to execute them as appropriate based on the
+  // command metadata.
+  //
+  // The arguments to the handler tell it what database it needs to pull data
+  // from and how to wrap each entry in an appropriate class.
+  //
+  // This is in the API so that all code in the bot can access it as needed. */
+  api.commands = new CodeHandlerMap(api, 'commands', data => new BotCommand(data));
+
+  // The above code creates the handler maps that are required, but in order to
+  // make the code available we need to tell them to initialize themselves, which
+  // will get them to pull from the database and load the appropriate files.
+  const lists = [api.commands];
+  for (const list of lists) {
+    await list.initialize();
+  }
 };
 
 

@@ -199,10 +199,16 @@ async function joinTwitchChat(api) {
         return;
       }
 
-      // Since this is a command, fill in the details with extra Twurple data.
-      details.isAlias = false;    // TODO: This is wrong and you know it
-      details.channel = channel;
-      details.rawMsg = rawMsg;
+      // Try to execute the command, if we can.
+      const cmd = api.commands.find(details.command);
+      if (cmd === null) {
+        api.log.error(`Unknown command: ${details.command}`);
+      } else {
+        details.isAlias = (details.command !== cmd.name);
+        details.channel = channel;
+        details.rawMsg = rawMsg;
+        cmd.execute(api, details, rawMsg.userInfo);
+      }
 
       console.log(details);
     }),
