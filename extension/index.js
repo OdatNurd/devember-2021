@@ -78,7 +78,7 @@ module.exports = async function(nodecg) {
   setup_twitch_api(api);  // api.twitch
   setup_crypto(api);      // api.crypto.encrypt and api.crypto.decrypt
   await setup_db(api);    // api.db
-  await setup_chat(api);  // api.botauth, api.channel, api.chat
+  await setup_chat(api);  // api.botauth, api.channel, api.chat and api.chatlisteners
 
   // Set up the web endpoints that allow us to authorize and deauthorize
   // accounts for use in the bot.
