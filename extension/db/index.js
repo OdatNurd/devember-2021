@@ -7,7 +7,7 @@
 const trilogy = require('trilogy');
 const path = require('path');
 
-const { TokenSchema, UserSchema } = require('./schema/');
+const { TokenSchema, UserSchema, CommandSchema } = require('./schema/');
 
 
 // =============================================================================
@@ -42,6 +42,7 @@ async function setup_db(api) {
   const modelList = [
     db.model('tokens', TokenSchema),
     db.model('users', UserSchema),
+    db.model('commands', CommandSchema),
   ];
   await Promise.all(modelList);
 
