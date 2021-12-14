@@ -27,7 +27,7 @@ const config = require('./config')(baseDir);
 const setup_twitch_api = require('./twitch_api');
 const setup_crypto = require('./crypto');
 const setup_db = require('./db/');
-const setup_auth = require('./auth');
+const { setup_auth } = require('./auth');
 const setup_chat = require('./chat');
 
 

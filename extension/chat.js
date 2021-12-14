@@ -1,14 +1,13 @@
 'use strict';
 
-// TODO:
-//  getUserInfo() could probably be factored; I bet there are several places
-//  where something similar is happening.
 
 // =============================================================================
 
 
 const { ChatClient } = require('@twurple/chat');
 const { RefreshingAuthProvider } = require('@twurple/auth');
+
+const { getUserInfo } = require('./auth');
 
 
 // =============================================================================
@@ -61,30 +60,6 @@ async function getAuthProvider(api, name) {
     },
     tokenData
   );
-}
-
-
-// =============================================================================
-
-
-/* Given a user type of a logged in account (either 'user' or 'bot'), gather the
- * information about that user based on their userId and return it. The return
- * value will be null if there's no such authorized user or we can't get their
- * user information. */
-async function getUserInfo(api, type) {
-  // Get the userId record from the database for this user type.
-  const record = await api.db.getModel('users').findOne({ type });
-  if (record === undefined) {
-    return null;
-  }
-
-  // Using the userId, query Twitch to determine the user information.
-  const userInfo = await api.twitch.users.getUserById(record.userId);
-  if (userInfo === null) {
-    return null;
-  }
-
-  return userInfo;
 }
 
 

@@ -27,6 +27,30 @@ function sendAuthStateEvent(api, event, type) {
 // =============================================================================
 
 
+/* Given a user type of a logged in account (either 'user' or 'bot'), gather the
+ * information about that user based on their userId and return it. The return
+ * value will be null if there's no such authorized user or we can't get their
+ * user information. */
+async function getUserInfo(api, type) {
+  // Get the userId record from the database for this user type.
+  const record = await api.db.getModel('users').findOne({ type });
+  if (record === undefined) {
+    return null;
+  }
+
+  // Using the userId, query Twitch to determine the user information.
+  const userInfo = await api.twitch.users.getUserById(record.userId);
+  if (userInfo === null) {
+    return null;
+  }
+
+  return userInfo;
+}
+
+
+// =============================================================================
+
+
 /* The flow of Twitch authentication is that we direct the browser to a specific
  * page, which will prompt the user to accept or reject the authorization.
  * Either way Twitch redirects back to a URL of our choosing.
@@ -246,17 +270,15 @@ async function performTokenDeauth(api, name, req, res) {
  * instead, so that the front end knows that there's no user assigned. */
 async function sendUserChannelInfo(api, type) {
   let userInfo = {};
-  const record = await api.db.getModel('users').findOne({ type });
+  const record = await getUserInfo(api, type);
 
   if (record != null) {
-    const result = await api.twitch.users.getUserById(record.userId);
-
-    userInfo.profilePictureUrl = result.profilePictureUrl;
-    userInfo.displayName = result.displayName;
-    userInfo.name = result.name;
-    userInfo.broadcasterType = result.broadcasterType;
-    userInfo.creationDate = result.creationDate;
-    userInfo.description = result.description;
+    userInfo.profilePictureUrl = record.profilePictureUrl;
+    userInfo.displayName = record.displayName;
+    userInfo.name = record.name;
+    userInfo.broadcasterType = record.broadcasterType;
+    userInfo.creationDate = record.creationDate;
+    userInfo.description = record.description;
   }
 
   api.nodecg.sendMessage(`${type}-user-info`, userInfo);
@@ -353,4 +375,4 @@ async function setup_auth(api) {
 // =============================================================================
 
 
-module.exports = setup_auth;
+module.exports = { setup_auth, getUserInfo };
