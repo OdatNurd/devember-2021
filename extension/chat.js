@@ -192,6 +192,19 @@ async function joinTwitchChat(api) {
     // Whenever a message appears in the chat, display it to the console.
     chat.onMessage(async (channel, user, message, rawMsg) => {
       api.log.info(`${channel}:<${user}> ${message}`);
+
+      // Parse out the command provided; if there isn't one, we can leave.
+      const details = api.cmdParser.parse(message);
+      if (details.command === '') {
+        return;
+      }
+
+      // Since this is a command, fill in the details with extra Twurple data.
+      details.isAlias = false;    // TODO: This is wrong and you know it
+      details.channel = channel;
+      details.rawMsg = rawMsg;
+
+      console.log(details);
     }),
 
     // Whenever an action appears in the chat, display it to the console.

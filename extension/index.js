@@ -24,11 +24,16 @@ require('dotenv').config({ path: path.resolve(baseDir, '.env') })
 // Load up our configuration information up and obtain the configuration
 // object.
 const config = require('./config')(baseDir);
+
+// These represent the setup mechanisms for the different aspects of the bot
+// runtime; these are all called when the extension is first loaded.
 const setup_twitch_api = require('./twitch_api');
 const setup_crypto = require('./crypto');
 const setup_db = require('./db/');
 const { setup_auth } = require('./auth');
 const setup_chat = require('./chat');
+
+const { CommandParser } = require('./core/');
 
 
 // =============================================================================
@@ -57,7 +62,10 @@ module.exports = async function(nodecg) {
   // are coming up or going down.
  const api = { nodecg, config, baseDir,
     // Alias the log routines to make our lives better.
-    log: nodecg.log
+    log: nodecg.log,
+
+    // The command parser that we use to handle incoming commands,
+    cmdParser: new CommandParser()
   };
 
   // Display our current configuration; this will mask out all of the sensitive
