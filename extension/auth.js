@@ -4,8 +4,10 @@
 // =============================================================================
 
 
+const { getTokenInfo } = require('@twurple/auth');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+
 
 // =============================================================================
 
@@ -80,7 +82,6 @@ async function getAccessToken(api, name, code) {
     // again if they want it.
     await performTokenDeauth(api, name);
 
-    api.log.error(`${error.response.status} : ${JSON.stringify(error.response.data)}`);
     api.log.error(`${error}`);
   }
 }
