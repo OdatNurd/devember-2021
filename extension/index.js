@@ -82,7 +82,12 @@ module.exports = async function(nodecg) {
 
   // Set up the web endpoints that allow us to authorize and deauthorize
   // accounts for use in the bot.
-  setup_auth(api);
+  //
+  // We wait for this to be complete before we proceed because the chat setup
+  // function exits above but will not join the bot into the chat until after
+  // this method finishes and broadcasts that the appropriate accounts have been
+  // authorized (if they were pre-authorized from a prior run).
+  await setup_auth(api);
 };
 
 

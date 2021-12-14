@@ -12,6 +12,21 @@ const { v4: uuidv4 } = require('uuid');
 // =============================================================================
 
 
+/* This sends an authorization state change event to any interested listeners to
+ * let them know that the authorization state of one of the bot accounts has
+ * changed, allowing them to take appropriate actions.
+ *
+ * event is one of 'auth' or 'deauth' to indicate if the event being raised is
+ * an authorization or deauthorization event, and type should be the type of
+ * the authorization being altered (e.g. 'bot' or 'user') */
+function sendAuthStateEvent(api, event, type) {
+    api.nodecg.sendMessage(`${event}-complete`, type);
+}
+
+
+// =============================================================================
+
+
 /* The flow of Twitch authentication is that we direct the browser to a specific
  * page, which will prompt the user to accept or reject the authorization.
  * Either way Twitch redirects back to a URL of our choosing.
@@ -73,6 +88,11 @@ async function getAccessToken(api, name, code) {
         expiration: response.data.expires_in,
       });
     }
+
+    // An authorization is now complete; send off a message to anyone that
+    // is listening and wants to know; the type of the authorization will be
+    // transmitted as a part of the message.
+    sendAuthStateEvent(api, 'auth', name);
   }
 
   catch (error) {
@@ -204,6 +224,10 @@ async function performTokenDeauth(api, name, req, res) {
   await api.db.getModel('tokens').remove({ name });
   await api.db.getModel('users').remove({ type: name });
 
+  // An authorization was removed; so send a message that tells people who care
+  // that this authorization is now no longer valid.
+  sendAuthStateEvent(api, 'deauth', name);
+
   // If we were called as a part of an express route handler, this operation was
   // done as part of a click in the user interface, so go back there.
   if (res !== undefined) {
@@ -248,7 +272,7 @@ async function sendUserChannelInfo(api, type) {
  *
  * This requires some web endpoints on our end to negotiate the transfers as
  * well as some support code. */
-function setup_auth(api) {
+async function setup_auth(api) {
   // One of the parameters in the URL that we pass to Twitch to start
   // authorization is a randomized string of text called the "state". This
   // value can be anything we like. When Twitch calls back to our callback URL
@@ -311,8 +335,18 @@ function setup_auth(api) {
   app.get(new URL(api.config.get('twitch.core.userCallbackURL')).pathname,
     (req, res) => handleAuthCallback(api, userState, 'user', req, res));
 
-
+  // Activate our endpoints.
   api.nodecg.mount(app);
+
+  // Before we leave, synthesize authorization events for any accounts that
+  // started out already authorized due to a previous run. Anything that wants
+  // to take action when it knows that there's an authorized account probably
+  // wants to do so right away on startup and not just if someone happens to
+  // drop and re-initiate their auth.
+  const users = await api.db.getModel('users').find({});
+  for (const user of users) {
+    sendAuthStateEvent(api, 'auth', user.type);
+  }
 }
 
 
