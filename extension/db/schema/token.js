@@ -1,6 +1,8 @@
 'use strict';
 
+
 // =============================================================================
+
 
 /* This schema represents the token table, which is used to persist access
  * tokens after they're granted to us for any tokens that we want to keep around
@@ -31,7 +33,9 @@ const TokenSchema = {
   expiration: { type: Number, defaultsTo: 0 },
 };
 
+
 // =============================================================================
+
 
 module.exports = {
   TokenSchema

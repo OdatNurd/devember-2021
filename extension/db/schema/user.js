@@ -1,6 +1,8 @@
 'use strict';
 
+
 // =============================================================================
+
 
 /* This schema represents the user table, which is used to store the userID's
  * of the Twitch users that the bot deals with.
@@ -25,7 +27,9 @@ const UserSchema = {
   userId: { type: String, nullable: false },
 };
 
+
 // =============================================================================
+
 
 module.exports = {
   UserSchema

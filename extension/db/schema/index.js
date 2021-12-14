@@ -2,7 +2,7 @@
 
 // =============================================================================
 
-const { TokenSchema } = require('./authorization');
+const { TokenSchema } = require('./token');
 const { UserSchema } = require('./user');
 
 // =============================================================================
