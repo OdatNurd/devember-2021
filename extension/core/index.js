@@ -16,5 +16,6 @@ module.exports = {
   CommandParser,
   CommandDetails,
   CodeHandlerMap,
-  CodeHandler
+  CodeHandler,
+  BotCommand
 };
