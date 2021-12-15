@@ -4,9 +4,10 @@
 // =============================================================================
 
 
-const { TokenSchema } = require('./token');
-const { UserSchema } = require('./user');
-const { CommandSchema } = require('./command');
+const { TokenSchema } = require('./tokens');
+const { UserSchema } = require('./users');
+const { CommandSchema } = require('./commands');
+const { RegularUserSchema } = require('./regulars');
 
 
 // =============================================================================
@@ -15,5 +16,6 @@ const { CommandSchema } = require('./command');
 module.exports = {
   TokenSchema,
   UserSchema,
-  CommandSchema
+  CommandSchema,
+  RegularUserSchema
 };
