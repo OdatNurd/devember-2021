@@ -20,6 +20,16 @@ const commands = [
       cooldown: 0
   },
   {
+      name: "$reload",
+      aliases: ["$rehash"],
+      enabled: 1,
+      sourceFile: "command/reload.js",
+      core: 1,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },
+  {
       name: "$regulars",
       aliases: [],
       enabled: 1,
