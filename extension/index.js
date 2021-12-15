@@ -32,7 +32,7 @@ const setup_crypto = require('./crypto');
 const setup_db = require('./db/');
 const { setup_auth } = require('./auth');
 const setup_chat = require('./chat');
-
+const bootstrap_core_data = require('./bootstrap');
 const { CommandParser, CodeHandlerMap, BotCommand } = require('./core/');
 
 
@@ -131,6 +131,14 @@ module.exports = async function(nodecg) {
   setup_twitch_api(api);  // api.twitch
   setup_crypto(api);      // api.crypto.encrypt and api.crypto.decrypt
   await setup_db(api);    // api.db
+
+  // Now that the base core is set up, bootstrap any data in the database that
+  // needs to be present.
+  await bootstrap_core_data(api);
+
+  // We can now set up chat, which will take care of joining the bot to the chat
+  // if it has the correct authorizations already, or the events that will cause
+  // it to join when it does.
   await setup_chat(api);  // under api.chat: auth, channel, client, say and listeners
 
   // Set up the web endpoints that allow us to authorize and deauthorize

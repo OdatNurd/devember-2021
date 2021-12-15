@@ -36,12 +36,6 @@ function setup_twitch_api(api) {
     api.config.get('twitch.core.clientSecret')
   );
 
-  // // Make sure that the token is valid; it might not be, in which case it
-  // // needs to be refreshed. The library doesn't seem to do this for an
-  // // initial request made with this provider, although it will at runtime, which
-  // // is mildly curious.
-  // await authProvider.getAccessToken();
-
   // Create a Twitch API instance from which we can make requests. This will
   // be tied to the app token. The app tokens are good for 60 days, so the
   // client provider may fetch a new one as needed.
