@@ -88,15 +88,26 @@ module.exports = async function(nodecg) {
       if (userInfo.isBroadcaster) return 0;
       if (userInfo.isMod) return 1;
       if (userInfo.isVip) return 2;
-
-      // TODO: It would be nice if this was a thing that worked.
-      // if (api.shared.regulars !== undefined && api.shared.regulars.has(userInfo.userId)) return 3;
+      if (api.shared.regulars !== undefined && api.shared.regulars.has(userInfo.userId)) return 3;
       if (userInfo.isSubscriber) return 4;
       /* eslint-enable curly */
 
       // The fallback is an access level that associated with everyone
       return 5;
     },
+
+    // This shared storage area can be used by any part of the bot internals to
+    // store information that might need to be persisted between command
+    // invocations, events, channel redemptions or even shared betwen them.
+    //
+    // Generally speaking, any such storage should be initialized on load and
+    // cleaned up on unload, but this is not enforced and so it's possible to
+    // use this to perist information across file reloads as well.
+    //
+    // This data is not persisted between bot invocations. It's also up to the
+    // code using this shared area to use a responsible namespace and not
+    // clobber things.
+    shared: {},
 
     // The command parser that we use to handle incoming commands,
     cmdParser: new CommandParser()
