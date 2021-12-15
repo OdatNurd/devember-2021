@@ -150,7 +150,7 @@ class CodeHandlerMap {
       this.api.log.info(`* Reloading ${name ? 'named items' : 'file globs'}: ${JSON.stringify(reloadSpec)}`);
       if (reloadSpec.length === 0) {
         this.api.log.info('* Nothing to reload');
-        return;
+        return false;
       }
 
       // From the existing list of items, gather the unique list of all source
@@ -179,7 +179,7 @@ class CodeHandlerMap {
       // If nothing was selected, we can't reload
       if (selected.size === 0) {
         this.api.log.info('* Nothing found to reload');
-        return;
+        return false;
       }
 
       // Perform the reload; this call takes care the entirety of the
@@ -188,7 +188,10 @@ class CodeHandlerMap {
         await this.#innerReload(selected);
       } catch (error) {
         this.api.log.error(`Error reloading ${this.modelName}: ${error.toString()}`);
+        return null;
       }
+
+      return true;
     }
 
     /* This takes a list of database records that represent new or changed items
