@@ -176,10 +176,11 @@ async function joinTwitchChat(api) {
     isAlwaysMod: false,
   });
 
-  // Store the chat client in our top level API, and make an alias for the
-  // "say" to make life a little bit easier.
+  // Store the chat client in our top level API, and then turn on the chat
+  // helper which will make an alias for the "say" to make life a little bit
+  // easier.
   api.chat.client = chat;
-  api.chat.say = text => api.chat.client.say(api.chat.channel, text);
+  setChatHelper(api, true);
 
   // Set up all of the events that will tell us when things happen in the chat.
   // In order to be able to leave the chat, we need to be able to cancel all of
@@ -277,7 +278,32 @@ async function leaveTwitchChat(api) {
   // Clobber away the values that tell us that we're connected to the chat.
   api.chat.listeners = undefined;
   api.chat.client = undefined;
-  api.chat.say = text => api.log.warn('cannot send text to chat; not currently connected');
+  setChatHelper(api, false);
+}
+
+
+// =============================================================================
+
+
+/* This sets up an alias in api.chat named api.chat.say which is a short and
+ * easy way to transmit text to the chat without having to access the chat
+ * client's say() method and specify a channel, which is well known.
+ *
+ * In all cases this sets up an alias, but the alias changes depending on the
+ * value of enabled. When true, the alias will send data to chat and also log
+ * it into the console. When false, a message indicating that the chat is not
+ * connected is logged instead.
+ *
+ * Thus anything in the bot can send to chat without having to do any checks. */
+function setChatHelper(api, enabled) {
+  if (enabled === true) {
+    api.chat.say = text => {
+      api.log.info(`${api.chat.channel}:<${api.chat.client.currentNick}> ${text}`);
+      api.chat.client.say(api.chat.channel, text);
+    }
+  } else {
+    api.chat.say = text => api.log.warn('cannot send text to chat; not currently connected')
+  }
 }
 
 
@@ -301,13 +327,11 @@ async function leaveTwitchChat(api) {
  *    - api.chat.listeners : the event listener handles for child events.
  *    - api.chat.say       : alias for easily sending chat messages */
 async function setup_chat(api) {
-  // Set up the top level namespace that we will store our chat API in. By
-  // default the alias for sending text to chat is a log message that says that
-  // there's no connection, so that external code can always try to send without
-  // checking if desired.
-  api.chat = {
-    say: text => api.log.warn('cannot send text to chat; not currently connected')
-  };
+  // Set up the top level namespace that we will store our chat API in. We can
+  // then set the chat helper to disabled, which causes it to log that it can't
+  // send to chat because it's disabled.
+  api.chat = {};
+  setChatHelper(api, false);
 
   // Listen for events that tell us when the authorization state of the various
   // accounts has completed, which is our signal to join or leave the chat.
