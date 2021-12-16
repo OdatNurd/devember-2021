@@ -64,6 +64,18 @@ module.exports = async function(nodecg) {
     // Alias the log routines to make our lives better.
     log: nodecg.log,
 
+    // This value controls wether or not the bot's chat connection will generate
+    // debug information in the logs for messages as they arrive. A value of 0
+    // indicates that nothing will be logged, while a non-zero value is an
+    // indication that logging should be done.
+    debugMsgs: 0,
+
+    // When message debugging is turned on above, this list controls the users
+    // whose incoming messages should be logged. If the list is empty, then
+    // every user's messages will be debug logged; otherwise, only those that
+    // appear in this list will be logged.
+    debugMsgsFrom: [],
+
     // The role that this bot has; this can be things like dev, prod, test
     // and so on. This groups installations of the bot that might all be
     // running in the same channel at the same time.

@@ -4,77 +4,76 @@
 // =============================================================================
 
 
+/* This command can be used to toggle debug handling on and off as well as
+ * adjust the list of people for whom debugging is enabled.
+ *
+ * This ultimately sets up flags in the API that the internal chat handler uses
+ * to know if it should log or not. */
 function debug_command(api, details, userInfo) {
-  // Alias the raw message, which comes in the details. This makes the following
-  // code more concise.
-  const { rawMsg } = details;
+  // Shallow clone the list of words so we can manipulate it.
+  const args = [...details.words];
 
-  const chatUser = rawMsg.userInfo;
-  const rawParts = rawMsg.parseEmotes();
+  // If the first argument is a single word, then it can be either an
+  // instruction on changing the setup, OR a single user to modify.
+  if (args.length === 1) {
+    switch (args[0]) {
+      // Enable or disable the debug logging.
+      case 'on':
+      case 'off':
+        api.debugMsgs = (args[0] === 'on') ? 1 : 0;
 
-  // Display the details about the incoming message and how we parsed it.
-  api.log.info(details);
+        // Get rid of this so the command appears to have no args and then
+        // break so the code below will display the new state.
+        args.pop();
+        break;
 
-  // Display standard message fields from Twitch.
-  api.log.info(`bits: ${rawMsg.bits}`);
-  api.log.info(`channelId: ${rawMsg.channelId}`);
-  api.log.info(`id: ${rawMsg.id}`);
-  api.log.info(`isCheer: ${rawMsg.isCheer}`);
-  api.log.info(`emoteOffsets: ${rawMsg.emoteOffsets.size}`);
+      // Show the list of users that have debug logging turned on
+      case 'users':
+        api.chat.say(`chat message debug logging will be done for ` +
+                     `${api.debugMsgsFrom.length === 0
+                        ? 'all users'
+                        : api.debugMsgsFrom.join(', ')}`);
+        return;
 
-  // For any message that contains emotes, the chat library parses them out for
-  // us. This gives us the positions and ID's of each emote used.
-  //
-  // For example:
-  //    -> 306898603: ["0-9","22-31"]
-  //    -> 307723742: ["11-20"]
-  for (const [key, value] of rawMsg.emoteOffsets) {
-    api.log.info(` -> ${key}: ${JSON.stringify(value)}`);
+      // Anything else is a user, but in that case leave the argument alone and
+      // do nothing. It will be picked up by the handler below that modifies
+      // users.
+      default:
+        break;
+    }
   }
 
-  // This splits the text out into emotes and text, splitting into
-  // objects that have a type of "text" or "emote" and other fields.
-  // This does not capture bits, though there is an API endpoint for that
-  // which is similar and requires an extra argument.
-  //
-  // Text in here is not stripped, so "!drop " would appear for the first
-  // item if there is an emote in the second position.
-  api.log.info(`${JSON.stringify(rawParts, null, 2)}`);
-
-  // Information on the user that invoked the command.
-  api.log.info('==================');
-  api.log.info(`userId: ${chatUser.userId}`);
-  api.log.info(`userName: ${chatUser.userName}`);
-  api.log.info(`displayName: ${chatUser.displayName}`);
-  api.log.info(`userType: ${chatUser.userType}`);
-  api.log.info(`color: ${chatUser.color}`);
-
-  api.log.info(`isBroadcaster: ${chatUser.isBroadcaster}`);
-  api.log.info(`isMod: ${chatUser.isMod}`);
-  api.log.info(`isSubscriber: ${chatUser.isSubscriber}`);
-  api.log.info(`isFounder: ${chatUser.isFounder}`);
-  api.log.info(`isVip: ${chatUser.isVip}`);
-
-  // Display the badge information for the user that sent the
-  // This is a map where the key is a type of badge (like subscriber)
-  // and the value is information on that badge:
-  //     -> subscriber: "4"
-  api.log.info(`badgeInfo: ${chatUser.badgeInfo.size}`);
-  for (const [key, value] of chatUser.badgeInfo) {
-    api.log.info(` -> ${key}: ${JSON.stringify(value)}`);
+  // If we're executed with no arguments, indicate if debugging is turned on or
+  // not and how to adjust the list of debugged users.
+  if (args.length === 0) {
+    const state = (api.debugMsgs === 0) ? 'disabled' : 'enabled';
+    api.chat.say(`chat message debug logging is currently ${state}; ` +
+                 `use ${details.command} [on|off|users] to change the state or view users, ` +
+                 `or give a list of users to add or remove from the list`);
+    return;
   }
 
-  // This is a map where the key is a type of badge and the value is
-  // whether or not it exists; this seems to perhaps be what the helper
-  // methods above get us easier:
-  //     -> moderator: "1"
-  //     -> partner: "1"
-  api.log.info(`badges: ${chatUser.badges.size}`);
-  for (const [key, value] of chatUser.badges) {
-    api.log.info(` -> ${key}: ${JSON.stringify(value)}`);
+  let added = 0;
+  let removed = 0;
+
+  // If we get here there are arguments, and they're users that need to be
+  // either added or removed. Adjust the list by adding or removing depending
+  // on the current state, keeping track of the adjustments.
+  for (let i = 0 ; i < args.length ; i++) {
+    const user = (args[i][0] === '@' ? args[i].substr(1) : args[i]);
+    const idx = api.debugMsgsFrom.indexOf(user);
+
+    if (idx === -1) {
+      added++;
+      api.debugMsgsFrom.push(user);
+    } else {
+      removed++;
+      api.debugMsgsFrom.splice(idx, 1);
+    }
   }
 
-  api.log.info('==================');
+  api.chat.say(`chat message debug users adjusted; +${added}/-${removed}, ` +
+               `list is ${api.debugMsgsFrom.join(',')}`)
 }
 
 
