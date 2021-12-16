@@ -404,12 +404,12 @@ async function leaveTwitchChat(api) {
  * Thus anything in the bot can send to chat without having to do any checks. */
 function setChatHelper(api, enabled) {
   if (enabled === true) {
-    api.chat.say = text => {
+    api.chat.say = (text, replyTo) => {
       api.log.info(`${api.chat.channel}:<${api.chat.client.currentNick}> ${text}`);
-      api.chat.client.say(api.chat.channel, text);
+      api.chat.client.say(api.chat.channel, text, {replyTo: replyTo});
     }
   } else {
-    api.chat.say = text => api.log.warn('cannot send text to chat; not currently connected')
+    api.chat.say = (text, replyTo) => api.log.warn('cannot send text to chat; not currently connected')
   }
 }
 
