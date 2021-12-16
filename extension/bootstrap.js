@@ -30,8 +30,18 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$regulars",
+      name: "$role",
       aliases: [],
+      enabled: 1,
+      sourceFile: "command/role.js",
+      core: 1,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },
+  {
+      name: "$regulars",
+      aliases: ["$regular"],
       enabled: 1,
       sourceFile: "command/regulars.js",
       core: 1,
