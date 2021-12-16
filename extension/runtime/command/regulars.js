@@ -67,7 +67,7 @@ async function modify_regulars(api, details, userinfo) {
 
   // If any lookups failed, let the user know
   if (unknown.length !== 0) {
-    api.chat.say(`check spelling? unable to ${details.words[0]}: ${unknown.join(', ')}`)
+    api.chat.say(`check spelling? unable to look up: ${unknown.join(', ')}`)
   }
 }
 
