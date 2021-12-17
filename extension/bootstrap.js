@@ -30,6 +30,16 @@ const commands = [
       cooldown: 0
   },
   {
+      name: "$edit",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/edit.js",
+      core: 1,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },
+  {
       name: "$role",
       aliases: [],
       enabled: 1,
