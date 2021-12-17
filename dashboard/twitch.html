@@ -58,10 +58,14 @@
     <div class="pure-u-1-2">
       <bot-card>
         <legend>Send text to the chat</legend>
-        <form class="pure-form" id="bot-speak">
-          <fieldset>
-            <input class="pure-input-2-3" id="text-to-say" placeholder="Send text to chat as the bot" />
-            <button type="submit" class="pure-button pure-button-primary pure-input-1-4">Send</button>
+        <form id="bot-speak" class="pure-form">
+          <fieldset style>
+              <input id="text-to-say" placeholder="Send text to chat as the bot" />
+              <select id="text-send-method">
+                <option value="say">text</option>
+                <option value="do">action</option>
+              </select>
+              <button type="submit" class="pure-button pure-button-primary ">Send</button>
           </fieldset>
         </form>
       </bot-card>

@@ -266,7 +266,7 @@ async function joinTwitchChat(api) {
   // helper which will make an alias for the "say" to make life a little bit
   // easier.
   api.chat.client = chat;
-  setChatHelper(api, true);
+  setChatHelpers(api, true);
 
   // Set up all of the events that will tell us when things happen in the chat.
   // In order to be able to leave the chat, we need to be able to cancel all of
@@ -385,7 +385,7 @@ async function leaveTwitchChat(api) {
   // Clobber away the values that tell us that we're connected to the chat.
   api.chat.listeners = undefined;
   api.chat.client = undefined;
-  setChatHelper(api, false);
+  setChatHelpers(api, false);
 }
 
 
@@ -402,14 +402,23 @@ async function leaveTwitchChat(api) {
  * connected is logged instead.
  *
  * Thus anything in the bot can send to chat without having to do any checks. */
-function setChatHelper(api, enabled) {
+function setChatHelpers(api, enabled) {
   if (enabled === true) {
+    // This will send a normal message to the chat, optionally as a reply to
+    // something else.
     api.chat.say = (text, replyTo) => {
       api.log.info(`${api.chat.channel}:<${api.chat.client.currentNick}> ${text}`);
       api.chat.client.say(api.chat.channel, text, {replyTo: replyTo});
     }
+
+    // Send an action to the chat.
+    api.chat.do = (text) => {
+      api.log.info(`${api.chat.channel}:*${api.chat.client.currentNick} ${text}`);
+      api.chat.client.action(api.chat.channel, text);
+    }
   } else {
     api.chat.say = (text, replyTo) => api.log.warn('cannot send text to chat; not currently connected')
+    api.chat.do = api.chat.say;
   }
 }
 
@@ -432,13 +441,14 @@ function setChatHelper(api, enabled) {
  *    - api.chat.channel   : the channel the bot should be in
  *    - api.chat.client    : the chat client instance
  *    - api.chat.listeners : the event listener handles for child events.
- *    - api.chat.say       : alias for easily sending chat messages */
+ *    - api.chat.say       : alias for easily sending chat messages
+ *    - api.chat.do        : alias for easily sending chat actions */
 async function setup_chat(api) {
   // Set up the top level namespace that we will store our chat API in. We can
   // then set the chat helper to disabled, which causes it to log that it can't
   // send to chat because it's disabled.
   api.chat = {};
-  setChatHelper(api, false);
+  setChatHelpers(api, false);
 
   // Listen for events that tell us when the authorization state of the various
   // accounts has completed, which is our signal to join or leave the chat.
@@ -448,9 +458,35 @@ async function setup_chat(api) {
   // Other systems in the bot can ask us to say text in chat, so long as we
   // are connected. We do that by listening for a message that tells us to say
   // some text.
-  api.nodecg.listenFor('say-in-chat', text => {
+  //
+  // The incoming message can either be a string or an object with a field named
+  // 'text' to indicate the text to send. When the incoming data is an object,
+  // a field named 'replyToID' can be present which specifies a message ID that
+  // this message should be in reply to.
+  api.nodecg.listenFor('say-in-chat', msg => {
+    let text = '';
+    let replyTo = undefined;
+
+    // The incoming argument can be a simple message or a composed object,
+    // depending on if we're doing a reply or not.
+    if (typeof msg === 'string') {
+      text = msg;
+    } else {
+      text = msg.text;
+      replyTo = msg.replyToID;
+    }
+
+    // If we got any text, say it.
     if (text !== '') {
-      api.chat.say(text);
+      api.chat.say(text, replyTo);
+    }
+  });
+
+  // Since Twitch chat is based on IRC, you can also do an action instead of
+  // just a regular message.
+  api.nodecg.listenFor('do-in-chat', text => {
+    if (text !== '') {
+      api.chat.do(text);
     }
   });
 }
