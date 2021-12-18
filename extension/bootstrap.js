@@ -16,7 +16,7 @@ const commands = [
       sourceFile: "command/debug.js",
       core: 1,
       hidden: 0,
-      userLevel: 5,
+      userLevel: 0,
       cooldown: 0
   },
   {
@@ -46,7 +46,7 @@ const commands = [
       sourceFile: "command/edit.js",
       core: 1,
       hidden: 0,
-      userLevel: 0,
+      userLevel: 1,
       cooldown: 0
   },  {
       name: "$cooldown",
@@ -55,7 +55,7 @@ const commands = [
       sourceFile: "command/edit.js",
       core: 1,
       hidden: 0,
-      userLevel: 0,
+      userLevel: 1,
       cooldown: 0
   },  {
       name: "$alias",
@@ -64,7 +64,7 @@ const commands = [
       sourceFile: "command/edit.js",
       core: 1,
       hidden: 0,
-      userLevel: 0,
+      userLevel: 1,
       cooldown: 0
   },  {
       name: "$cmdinfo",
@@ -73,7 +73,7 @@ const commands = [
       sourceFile: "command/edit.js",
       core: 1,
       hidden: 0,
-      userLevel: 0,
+      userLevel: 1,
       cooldown: 0
   },
   {
