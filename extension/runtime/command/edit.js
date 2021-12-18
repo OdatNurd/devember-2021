@@ -119,6 +119,45 @@ function displayableCooldown(cooldown) {
 // =============================================================================
 
 
+/* This takes an input string in a format that is a number followed by one of
+ * the characters 's', 'm' or 'h' and converts it into an appropriate number of
+ * milliseconds to represent that number of seconds, minutes or hours.
+ *
+ * If the incoming string is not in a recognized format, undefined will be
+ * returned; otherwise the time in milliseconds is returned. */
+function parseCooldownSpec(spec) {
+  // The last character is the time specifier, and the remainder of the string
+  // is the time in that unit; grab them both out.
+  const value = spec.substr(0, spec.length - 1);
+  const unit = spec[spec.length - 1];
+
+  // The incoming value needs to be a valid number, or we're unhappy
+  const cooldown = parseFloat(value);
+  if (isNaN(cooldown) === true) {
+    return;
+  }
+
+  // Based on the time unit, multiple the value on the way out.
+  switch (unit) {
+    case 's':
+      return cooldown * 1000;
+
+    case 'm':
+      return cooldown * (1000 * 60);
+
+    case 'h':
+      return cooldown * (1000 * 60 * 60);
+
+    default:
+      api.log.error(`parseCooldownSpec is not properly handling the time unit '${unit}'`);
+      return;
+  }
+}
+
+
+// =============================================================================
+
+
 function stub_command(api, details, userInfo) {
   api.chat.say('I\'m a little teapot');
 }
@@ -240,21 +279,59 @@ async function change_access_level(api, details, userInfo) {
 
 // =============================================================================
 
-// All commands here are going to have to update the database, so make a single
-// helper method which can update the database given a patch record.
-//
-// With the exception of the info command, none of these commands should opeate
-// on an alias, requiring you to specify the core command instead (the error
-// should tell you what that is).
-//
-//
-//
+
+/* This command allows you to view or change the cooldown timer associated with
+ * a specific command. Every command can have a cooldown period that limits how
+ * frequently it can be executed.
+ *
+ * The broadcaster and mods are always exempt from the cooldown timer and can
+ * execute the command at any time. */
+async function change_cmd_cooldown(api, details, userInfo) {
+  // The possible formats for times that we use in our display here; the actual
+  // values are parsed from user input in this style.
+  const specs = ['##.#s', '##.#m', '##.#h'];
+
+  // We need to be given a command name.
+  if (details.words.length < 1) {
+    api.chat.say(`Usage: ${details.command} command [${specs.join('|')}]`);
+    return;
+  }
+
+  // Get the target command or leave; on error, this displays an error for us.
+  const cmd = getCommand(api, details, details.words[0], false, false);
+  if (cmd === null) {
+    return;
+  }
+
+  // If we only got a command name, then display the current cooldown and leave.
+  if (details.words.length === 1) {
+    const curCool = (cmd.cooldown === 0) ? 'no cool down' :
+                     `a cool down of ${displayableCooldown(cmd.cooldown)}`;
+
+    api.chat.say(`the cool down timer for ${cmd.name} is currently set to ${curCool}`);
+    return;
+  }
+
+  // Look up the appropriate user level based on the argument provided.
+  const cooldown = parseCooldownSpec(details.words[1]);
+  if (cooldown === undefined) {
+    api.chat.say(`${details.words[1]} is not a valid cool down specification; valid formats are: ${specs.join(',')}`)
+    return;
+  }
+
+  const newCool = (cooldown === 0) ? 'no cool down' :
+                   `a cool down of ${displayableCooldown(cooldown)}`;
+
+  // Update the command with the changes, then report them.
+  await storeCmdChanges(api, cmd, { cooldown })
+  api.chat.say(`the cool down time for ${cmd.name} has been set to ${newCool}`);
+}
+
+
+// =============================================================================
+
+
 // Commands that we want:
-//   $cooldown [command] <time>
-//   - View or edit the access level of the command; if no time is given it will
-//     display it instead. The time can be specified with a suffix of s, m or h
-//     to specify seconds, minutes or hours with a default of seconds.
-//
 //   $alias add command alias
 //   $alias delete alias
 //   $alias command
@@ -267,7 +344,6 @@ async function change_access_level(api, details, userInfo) {
 //     the name they're invoked with to know what to do.
 
 
-
 // =============================================================================
 
 
@@ -276,7 +352,7 @@ module.exports = {
     return {
       '$enable': change_enabled_state,
       '$accesslevel': change_access_level,
-      '$cooldown': stub_command,
+      '$cooldown': change_cmd_cooldown,
       '$alias': stub_command,
       '$cmdinfo': get_command_info
     };
