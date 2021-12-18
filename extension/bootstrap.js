@@ -40,8 +40,8 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$access",
-      aliases: [],
+      name: "$accesslevel",
+      aliases: ["$access"],
       enabled: 1,
       sourceFile: "command/edit.js",
       core: 1,

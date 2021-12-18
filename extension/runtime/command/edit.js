@@ -10,9 +10,11 @@ const access_options = {
   broadcaster: 0,
   broadcast: 0,
   channel:0,
+  streamer:0,
 
   moderator: 1,
   mod: 1,
+  mods: 1,
 
   vip: 2,
   vips: 2,
@@ -195,6 +197,49 @@ async function change_enabled_state(api, details, userInfo) {
 
 // =============================================================================
 
+
+/* This command allows you to easily view or change the access level required to
+ * run a particular command. The list of access levels that can be specified is
+ * an enhanced list that includes various aliased names for levels to make the
+ * command more natural to run. */
+async function change_access_level(api, details, userInfo) {
+  // The levels we use in our display here; the actual values supported is a
+  // much larger list, to make commands more natural.
+  const levels = ['streamer', 'mods', 'vips', 'regs', 'subs', 'all'];
+
+  // We need to be given a command name.
+  if (details.words.length < 1) {
+    api.chat.say(`Usage: ${details.command} command [${levels.join('|')}]`);
+    return;
+  }
+
+  // Get the target command or leave; on error, this displays an error for us.
+  const cmd = getCommand(api, details, details.words[0], false, false);
+  if (cmd === null) {
+    return;
+  }
+
+  // If we only got a command name, then display the current level and leave.
+  if (details.words.length === 1) {
+    api.chat.say(`the access level for ${cmd.name} is currently set to ${access_display[cmd.userLevel]}`);
+    return;
+  }
+
+  // Look up the appropriate user level based on the argument provided.
+  const userLevel = access_options[details.words[1]];
+  if (userLevel === undefined) {
+    api.chat.say(`${details.words[1]} is not a valid access level; valid levels are: ${levels.join(',')}`)
+    return;
+  }
+
+  // Update the command with the changes, then report them.
+  await storeCmdChanges(api, cmd, { userLevel })
+  api.chat.say(`the access level for ${cmd.name} has been set to ${access_display[userLevel]}`);
+}
+
+
+// =============================================================================
+
 // All commands here are going to have to update the database, so make a single
 // helper method which can update the database given a patch record.
 //
@@ -205,12 +250,6 @@ async function change_enabled_state(api, details, userInfo) {
 //
 //
 // Commands that we want:
-//   $access [command] <level>
-//   - View or edit the access level of the commad; if no level is given this
-//     will display it instead. For security purposes this could not allow
-//     editing the access level either of itself or of any core command. A
-//     setting maybe?
-//
 //   $cooldown [command] <time>
 //   - View or edit the access level of the command; if no time is given it will
 //     display it instead. The time can be specified with a suffix of s, m or h
@@ -236,7 +275,7 @@ module.exports = {
   load: async api => {
     return {
       '$enable': change_enabled_state,
-      '$access': stub_command,
+      '$accesslevel': change_access_level,
       '$cooldown': stub_command,
       '$alias': stub_command,
       '$cmdinfo': get_command_info
