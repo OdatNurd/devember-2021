@@ -329,6 +329,7 @@ class CodeHandlerMap {
           }
         } catch (error) {
           this.api.log.error(`Error: ${error}`);
+          this.api.log.error(`Stack: ${error.stack}`);
         }
       }
 
