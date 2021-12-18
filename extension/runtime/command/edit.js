@@ -4,6 +4,12 @@
 // =============================================================================
 
 
+const { CommandParser } = require('../../core/command');
+
+
+// =============================================================================
+
+
 /* When changing the access level of a command, this specifies what values the
  * argument can take and what the resulting edited value should be. */
 const access_options = {
@@ -103,7 +109,7 @@ async function storeCmdChanges(api, cmd, changes) {
 // =============================================================================
 
 
-/* Given a command cooldown time in milliseconds, return back a more human
+/* Given a command cool down time in milliseconds, return back a more human
  * readable interpretation of it. */
 function displayableCooldown(cooldown) {
   // On a level of 1 to 10, where 1 is gross and 10 is awesome, this rates a
@@ -152,14 +158,6 @@ function parseCooldownSpec(spec) {
       api.log.error(`parseCooldownSpec is not properly handling the time unit '${unit}'`);
       return;
   }
-}
-
-
-// =============================================================================
-
-
-function stub_command(api, details, userInfo) {
-  api.chat.say('I\'m a little teapot');
 }
 
 
@@ -331,10 +329,114 @@ async function change_cmd_cooldown(api, details, userInfo) {
 // =============================================================================
 
 
-// Commands that we want:
 //   $alias add command alias
+function handle_alias_add(api, details, userInfo) {
+  console.log(details);
+  const errReturn = [null, {}];
+
+  // For an add, we need to have at least 3 arguments; the add operation, the
+  // command to add the alias to, and the new alias itself.
+  if (details.words.length < 3) {
+    api.chat.say(`Usage: ${details.command} add command [alias]`);
+    return errReturn;
+  }
+
+  // We already know this is an add, so fetch the command that we want to set
+  // the alias on.
+  const cmd = getCommand(api, details, details.words[1], false, true);
+  if (cmd === null) {
+    return errReturn;
+  }
+
+  // The last argument is the new alias text; this needs to be something that
+  // doesn't already exist in the commands list at all.
+  const alias = details.words[2];
+  const checkCmd = api.commands.find(alias);
+  if (checkCmd !== null) {
+    api.chat.say(`${alias} cannot be used as an alias; it already resolves to ${checkCmd.name}`);
+    return errReturn;
+  }
+
+  // The first character of the proposed new alias needs to be a valid prefix
+  // character, or the alias will never be able to execute.
+  if (CommandParser.VALID_PREFIX_LIST.indexOf(alias[0]) === -1) {
+    api.chat.say(`${details.words[2]} cannot be used as an alias; it does not have a command prefix. ` +
+                 `Did you mean to include one of '${CommandParser.VALID_PREFIX_LIST}'`);
+    return errReturn;
+  }
+
+  return [cmd, { aliases: [alias, ...cmd.aliases]}]
+}
+
+
+// =============================================================================
+
+
 //   $alias delete alias
+function handle_alias_remove(api, details, userInfo) {
+  return [null, {}];
+}
+
+
+// =============================================================================
+
+
 //   $alias command
+async function modify_cmd_aliases(api, details, userInfo) {
+  // At a minimum, we need to receive at least one argument, which will tell us
+  // what we;re trying to do.
+  if (details.words.length < 1) {
+    api.chat.say(`Usage: ${details.command} [add|remove] command [alias] ; ` +
+                 `specify only a command to view aliases for that command`);
+    return;
+  }
+
+  let cmd = undefined;
+  let update = undefined;
+
+  switch(details.words[0]) {
+    case 'add':
+      [cmd, update] = handle_alias_add(api, details, userInfo);
+      break;
+
+    case 'break':
+      [cmd, update] = handle_alias_remove(api, details, userInfo);
+      break;
+
+    // If we get here, we got what should be a command, so display the list of
+    // aliases for it. The command itself might be an alias, but this always
+    // displays based on the native command.
+    default:
+      // Get the target command or leave; on error, this displays an error for us.
+      cmd = getCommand(api, details, details.words[0], true, true);
+      if (cmd === null) {
+        return;
+      }
+
+      const aliases = (cmd.aliases.length === 0) ? 'none': cmd.aliases.join(',');
+
+      // Send out the display
+      api.chat.say(`aliases for the ${cmd.name} command : ${aliases}`);
+      return;
+  }
+
+
+  // If we get to this point and cmd is null, then the add or remove operation
+  // was not valid for some reason, so just leave.
+  if (cmd === null) {
+    return;
+  }
+
+  // Update the command with the changes, then report them.
+  await storeCmdChanges(api, cmd, update);
+  api.chat.say(`aliases for the ${cmd.name} command are now: ${cmd.aliases}`);
+}
+
+
+// =============================================================================
+
+
+// Commands that we want:
 //   - Add a new alias for a command, delete a specific alias for an existing
 //     command, or see the list of aliases for a command. In this one instance
 //     this can be invoked on an alias. It will display information on the
@@ -353,7 +455,7 @@ module.exports = {
       '$enable': change_enabled_state,
       '$accesslevel': change_access_level,
       '$cooldown': change_cmd_cooldown,
-      '$alias': stub_command,
+      '$alias': modify_cmd_aliases,
       '$cmdinfo': get_command_info
     };
   },
