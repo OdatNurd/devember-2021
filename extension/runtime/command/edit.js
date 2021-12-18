@@ -123,6 +123,46 @@ function edit_command(api, details, userInfo) {
 
 }
 
+// =============================================================================
+
+// All commands here are going to have to update the database, so make a single
+// helper method which can update the database given a patch record.
+//
+// With the exception of the info command, none of these commands should opeate
+// on an alias, requiring you to specify the core command instead (the error
+// should tell you what that is).
+//
+//
+//
+// Commands that we want:
+//   $enable [command]
+//   $disable [command]
+//   - Enable or disable a particular command; make sure that it can't disable
+//     itself to avoid future comedic effect. Implement this as a single command
+//     that knows what to do based on the name it's invoked with.
+//
+//   $access [command] <level>
+//   - View or edit the access level of the commad; if no level is given this
+//     will display it instead. For security purposes this could not allow
+//     editing the access level either of itself or of any core command. A
+//     setting maybe?
+//
+//   $cooldown [command] <time>
+//   - View or edit the access level of the command; if no time is given it will
+//     display it instead. The time can be specified with a suffix of s, m or h
+//     to specify seconds, minutes or hours with a default of seconds.
+//
+//   $alias add command alias
+//   $alias delete alias
+//   $alias command
+//   - Add a new alias for a command, delete a specific alias for an existing
+//     command, or see the list of aliases for a command. In this one instance
+//     this can be invoked on an alias. It will display information on the
+//     aliases available for whatever the command is.
+//
+//   $cmdinfo [command]
+//   - Display all information about a command that is available from the db
+//     all in one place. For an alias, this would display that.
 
 // =============================================================================
 
