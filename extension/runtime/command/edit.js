@@ -135,6 +135,44 @@ function stub_command(api, details, userInfo) {
 // =============================================================================
 
 
+/* This command allows you to see a visualization of all of the information that
+ * is currently known about a specific command, including its aliases and the
+ * implementation file it's stored in. */
+function get_command_info(api, details, userInfo) {
+  // We need to be given a command name.
+  if (details.words.length === 0) {
+    api.chat.say(`Usage: ${details.command} command`);
+    return;
+  }
+
+  // Get the target command or leave; on error, this displays an error for us.
+  const cmd = getCommand(api, details, details.words[0], true, true);
+  if (cmd === null) {
+    return;
+  }
+
+  // Create aliased values for all of the information that we're about to
+  // display so that the final message is easier to understand.
+  const name = cmd.name;
+  const visible = (cmd.hidden === true ? 'hidden ' : '');
+  const type = (cmd.core === true ? 'core' : 'regular');
+  const src = cmd.sourceFile;
+  const access = access_display[cmd.userLevel];
+  const status = (cmd.enabled === true) ? 'enabled' : 'disabled';
+  const aliases = (cmd.aliases.length === 0) ? 'none': cmd.aliases.join(',');
+  const cooldown = (cmd.cooldown === 0) ? 'no cool down' :
+                    `a cool down of ${displayableCooldown(cmd.cooldown)}`;
+
+  // Send out the display
+  api.chat.say(`${name} is a ${visible}${type} command implemented in ${src} ` +
+               `requiring access level ${access} with ${cooldown}` +
+               `, and is ${status}; aliases: ${aliases}`);
+}
+
+
+// =============================================================================
+
+
 /* This command provides support for changing the state of commands on the fly,
  * allowing you to adjust their access levels, cooldowns and whether or not
  * they're enabled.
@@ -239,10 +277,8 @@ function edit_command(api, details, userInfo) {
 //     command, or see the list of aliases for a command. In this one instance
 //     this can be invoked on an alias. It will display information on the
 //     aliases available for whatever the command is.
-//
-//   $cmdinfo [command]
-//   - Display all information about a command that is available from the db
-//     all in one place. For an alias, this would display that.
+
+
 
 // =============================================================================
 
@@ -254,7 +290,7 @@ module.exports = {
       '$access': stub_command,
       '$cooldown': stub_command,
       '$alias': stub_command,
-      '$cmdinfo': stub_command
+      '$cmdinfo': get_command_info
     };
   },
 
