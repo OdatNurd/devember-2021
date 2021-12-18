@@ -55,6 +55,14 @@ const access_display = [
 // =============================================================================
 
 
+function stub_command(api, details, userInfo) {
+  api.chat.say('I\'m a little teapot');
+}
+
+
+// =============================================================================
+
+
 /* This command provides support for changing the state of commands on the fly,
  * allowing you to adjust their access levels, cooldowns and whether or not
  * they're enabled.
@@ -170,7 +178,11 @@ function edit_command(api, details, userInfo) {
 module.exports = {
   load: async api => {
     return {
-      '$edit': edit_command
+      '$enable': stub_command,
+      '$access': stub_command,
+      '$cooldown': stub_command,
+      '$alias': stub_command,
+      '$cmdinfo': stub_command
     };
   },
 

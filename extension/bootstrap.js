@@ -30,7 +30,44 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$edit",
+      name: "$enable",
+      aliases: ["$disable"],
+      enabled: 1,
+      sourceFile: "command/edit.js",
+      core: 1,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },
+  {
+      name: "$access",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/edit.js",
+      core: 1,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },  {
+      name: "$cooldown",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/edit.js",
+      core: 1,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },  {
+      name: "$alias",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/edit.js",
+      core: 1,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },  {
+      name: "$cmdinfo",
       aliases: [],
       enabled: 1,
       sourceFile: "command/edit.js",
