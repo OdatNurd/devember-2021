@@ -14,7 +14,8 @@ async function modify_regulars(api, details, userinfo) {
   // We require two arguments minimum, and the first one needs to be the
   // command to do something with.
   if (details.words.length < 2 || ['add', 'remove'].indexOf(details.words[0]) === -1) {
-    api.chat.say(`Usage: ${details.command} [add/remove] username list`);
+    api.chat.say(`Usage: ${details.command} <add/remove> <username list> - ` +
+      `add or remove regulars from the list of regular users`);
     return;
   }
 

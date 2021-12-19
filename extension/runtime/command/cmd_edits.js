@@ -170,7 +170,8 @@ function parseCooldownSpec(spec) {
 function get_command_info(api, details, userInfo) {
   // We need to be given a command name.
   if (details.words.length === 0) {
-    api.chat.say(`Usage: ${details.command} command`);
+    api.chat.say(`Usage: ${details.command} <command> - ` +
+                 `display information about the given command or alias`);
     return;
   }
 
@@ -224,13 +225,24 @@ async function change_enabled_state(api, details, userInfo) {
 
   // We need to be given a command name.
   if (details.words.length === 0) {
-    api.chat.say(`Usage: ${details.command} command`);
+    if (enabled) {
+      api.chat.say(`Usage: ${details.command} command - enable the given command so it can be executed`);
+    } else {
+      api.chat.say(`Usage: ${details.command} command - disable the given command so it can no longer be executed`);
+    }
+
     return;
   }
 
   // Get the target command or leave; on error, this displays an error for us.
   const cmd = getCommand(api, details, details.words[0], false, false);
   if (cmd === null) {
+    return;
+  }
+
+  // Indicate if the command was already in the desired state.
+  if (cmd.enabled === enabled) {
+    api.chat.say(`${cmd.name} is already ${enabled === true ? 'enabled' : 'disabled'}`);
     return;
   }
 
@@ -254,7 +266,8 @@ async function change_access_level(api, details, userInfo) {
 
   // We need to be given a command name.
   if (details.words.length < 1) {
-    api.chat.say(`Usage: ${details.command} command [${levels.join('|')}]`);
+    api.chat.say(`Usage: ${details.command} <command> <${levels.join('|')}> - ` +
+                 `change the access level required to execute a command`);
     return;
   }
 
@@ -299,7 +312,8 @@ async function change_cmd_cooldown(api, details, userInfo) {
 
   // We need to be given a command name.
   if (details.words.length < 1) {
-    api.chat.say(`Usage: ${details.command} command [${specs.join('|')}]`);
+    api.chat.say(`Usage: ${details.command} <command> <${specs.join('|')}> - ` +
+                 `specify the time required between invocations of a command`);
     return;
   }
 
@@ -353,7 +367,8 @@ function handle_alias_add(api, details, userInfo) {
   // For an add, we need to have at least 3 arguments; the add operation, the
   // command to add the alias to, and the new alias itself.
   if (details.words.length < 3) {
-    api.chat.say(`Usage: ${details.command} add command [alias]`);
+    api.chat.say(`Usage: ${details.command} add <command> <alias> - ` +
+                 `add an alias for the command to be able to execute it via another name`);
     return errReturn;
   }
 
@@ -414,7 +429,8 @@ function handle_alias_remove(api, details, userInfo) {
   // alias that is to be removed. The command that is aliased to will be
   // inferred from the alias itself.
   if (details.words.length < 2) {
-    api.chat.say(`Usage: ${details.command} remove [alias]`);
+    api.chat.say(`Usage: ${details.command} remove <alias> - ` +
+                 `remove an alias for a command`);
     return errReturn;
   }
 
@@ -454,8 +470,8 @@ async function modify_cmd_aliases(api, details, userInfo) {
   // At a minimum, we need to receive at least one argument, which will tell us
   // what we;re trying to do.
   if (details.words.length < 1) {
-    api.chat.say(`Usage: ${details.command} [add|remove] command [alias] ; ` +
-                 `specify only a command to view aliases for that command`);
+    api.chat.say(`Usage: ${details.command} [add|remove] <command> [alias] - ` +
+                 `add or remove aliases for a command; specify only a command name to view it's aliases`);
     return;
   }
 

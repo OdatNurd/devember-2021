@@ -68,7 +68,7 @@ const commands = [
       cooldown: 0
   },  {
       name: "$cmdinfo",
-      aliases: [],
+      aliases: ["$info"],
       enabled: 1,
       sourceFile: "command/cmd_edits.js",
       core: 1,
@@ -88,7 +88,7 @@ const commands = [
   },
   {
       name: "$regulars",
-      aliases: ["$regular"],
+      aliases: ["$regular", "$regs"],
       enabled: 1,
       sourceFile: "command/regulars.js",
       core: 1,

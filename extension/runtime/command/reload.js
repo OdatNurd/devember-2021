@@ -15,7 +15,8 @@ async function reload_items(api, details, userInfo) {
 
   // If nothing to reload was provided, show usage details and leave
   if (details.words.length === 0) {
-    api.chat.say(`Usage: ${details.command} [mode=(glob|*name)] <globspec>`);
+    api.chat.say(`Usage: ${details.command} [mode=(glob|*name)] <globspec|name> - ` +
+                 `hot reload the files that match the spec or name list`);
     return;
   }
 
