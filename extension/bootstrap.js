@@ -59,7 +59,7 @@ const commands = [
       cooldown: 0
   },  {
       name: "$alias",
-      aliases: [],
+      aliases: ["$aliases"],
       enabled: 1,
       sourceFile: "command/cmd_edits.js",
       core: 1,

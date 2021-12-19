@@ -329,9 +329,17 @@ async function change_cmd_cooldown(api, details, userInfo) {
 // =============================================================================
 
 
-//   $alias add command alias
+/* This helper for the alias add command assumes that it's being called from the
+ * alias command and that there are enough arguments available for the main
+ * command to know that it's an addition.
+ *
+ * This will check the remaining arguments for validity and, if all is well,
+ * return back an array of items that represents the command that is going to
+ * have an alias added and an update object to be used to update the database
+ * to put the new alias in effect.
+ *
+ * On any error, this returns a null command and an empty update dictionary. */
 function handle_alias_add(api, details, userInfo) {
-  console.log(details);
   const errReturn = [null, {}];
 
   // For an add, we need to have at least 3 arguments; the add operation, the
@@ -393,10 +401,19 @@ async function modify_cmd_aliases(api, details, userInfo) {
 
   let cmd = undefined;
   let update = undefined;
+  let postUpdate = undefined;
 
   switch(details.words[0]) {
     case 'add':
+      // Use the sub handler to get the aliased command and the new alias; this
+      // will do error checking and return a null command on error.
       [cmd, update] = handle_alias_add(api, details, userInfo);
+
+      // If the add looks like it's correct, then set up a handler to update the
+      // command list as appropriate.
+      if (cmd !== null) {
+        postUpdate = () => api.commands.addAlias(cmd.name, update.aliases[0]);
+      }
       break;
 
     case 'break':
@@ -429,6 +446,9 @@ async function modify_cmd_aliases(api, details, userInfo) {
 
   // Update the command with the changes, then report them.
   await storeCmdChanges(api, cmd, update);
+  if (postUpdate !== undefined) {
+    postUpdate();
+  }
   api.chat.say(`aliases for the ${cmd.name} command are now: ${cmd.aliases}`);
 }
 
