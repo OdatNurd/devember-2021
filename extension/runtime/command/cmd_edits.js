@@ -210,6 +210,18 @@ function get_command_info(api, details, userInfo) {
  * which of the two it's supposed to do based on the name that it's invoked
  * with. */
 async function change_enabled_state(api, details, userInfo) {
+  // The command can either enable or disable a command; how this works depends
+  // on the name that it's invoked with.
+  const enabled = (details.command.endsWith('enable'));
+
+  // As a sanity check, if the command name is not enable, it has to be disable
+  // or someone somehow set up an alias when they should not have been allowed
+  // to.
+  if (enabled === false && details.command.endsWith('disable') === false) {
+    api.chat.say(`${details.command} cannot be executed; the underlying command should not be aliased.`);
+    return;
+  }
+
   // We need to be given a command name.
   if (details.words.length === 0) {
     api.chat.say(`Usage: ${details.command} command`);
@@ -217,14 +229,10 @@ async function change_enabled_state(api, details, userInfo) {
   }
 
   // Get the target command or leave; on error, this displays an error for us.
-  const cmd = getCommand(api, details, details.words[0], false, true);
+  const cmd = getCommand(api, details, details.words[0], false, false);
   if (cmd === null) {
     return;
   }
-
-  // The command can either enable or disable a command; how this works depends
-  // on the name that it's invoked with.
-  const enabled = (details.command.endsWith('enable'));
 
   // Update the command with the changes, then report them.
   await storeCmdChanges(api, cmd, { enabled })
@@ -356,6 +364,15 @@ function handle_alias_add(api, details, userInfo) {
     return errReturn;
   }
 
+  // As a special rule here, the enable command is special and uses the name
+  // that it's invoked with to know what to do, so it's exempt from being
+  // aliased, even though other core commands can indeed be aliased.
+  if (cmd.name.endsWith('enable') === true) {
+    api.chat.say(`The ${cmd.name} command cannot be aliased; it uses the name ` +
+                 `it is invoked with to know what to do`);
+    return errReturn;
+  }
+
   // The last argument is the new alias text; this needs to be something that
   // doesn't already exist in the commands list at all.
   const alias = details.words[2];
@@ -406,6 +423,15 @@ function handle_alias_remove(api, details, userInfo) {
   // allowed, since they are in fact required.
   const alias = getCommand(api, details, details.words[1], true, true);
   if (alias === null) {
+    return errReturn;
+  }
+
+  // As a special rule here, the enable command is special and uses the name
+  // that it's invoked with to know what to do, so it's exempt from being
+  // aliased, even though other core commands can indeed be aliased.
+  if (alias.name.endsWith('enable') === true) {
+    api.chat.say(`The ${alias.name} command does not allow alias changes; it uses the name ` +
+                 `it is invoked with to know what to do`);
     return errReturn;
   }
 
@@ -499,25 +525,16 @@ async function modify_cmd_aliases(api, details, userInfo) {
 // =============================================================================
 
 
-// Commands that we want:
-//   - Add a new alias for a command, delete a specific alias for an existing
-//     command, or see the list of aliases for a command. In this one instance
-//     this can be invoked on an alias. It will display information on the
-//     aliases available for whatever the command is.
-//
-//     Aliases should not be allowed on core commands, since they may rely on
-//     the name they're invoked with to know what to do.
-
-
-// =============================================================================
-
-
 module.exports = {
   load: async api => {
     return {
       '$enable': change_enabled_state,
       '$accesslevel': change_access_level,
       '$cooldown': change_cmd_cooldown,
+
+      // This command specifically does not allow the enable command or its
+      // aliases to be modified; change the code if we decide to change the
+      // names that command is known by.
       '$alias': modify_cmd_aliases,
       '$cmdinfo': get_command_info
     };
