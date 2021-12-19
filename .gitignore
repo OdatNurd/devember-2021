@@ -4,3 +4,4 @@ coverage
 bower_components
 *.sublime-*
 *.db
+*.todo
