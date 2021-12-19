@@ -340,7 +340,7 @@ async function change_cmd_cooldown(api, details, userInfo) {
  *
  * On any error, this returns a null command and an empty update dictionary. */
 function handle_alias_add(api, details, userInfo) {
-  const errReturn = [null, {}];
+  const errReturn = [null, null, {}];
 
   // For an add, we need to have at least 3 arguments; the add operation, the
   // command to add the alias to, and the new alias itself.
@@ -373,16 +373,50 @@ function handle_alias_add(api, details, userInfo) {
     return errReturn;
   }
 
-  return [cmd, { aliases: [alias, ...cmd.aliases]}]
+  return [cmd, alias, { aliases: [...cmd.aliases, alias] }]
 }
 
 
 // =============================================================================
 
 
-//   $alias delete alias
+/* This helper for the alias add command assumes that it's being called from the
+ * alias command and that there are enough arguments available for the main
+ * command to know that it's an addition.
+ *
+ * This will check the remaining arguments for validity and, if all is well,
+ * return back an array of items that represents the command that is going to
+ * have an alias added and an update object to be used to update the database
+ * to put the new alias in effect.
+ *
+ * On any error, this returns a null command and an empty update dictionary. */
 function handle_alias_remove(api, details, userInfo) {
-  return [null, {}];
+  const errReturn = [null, null, {}];
+
+  // For a remove, we need only two arguments; the remove operation and the
+  // alias that is to be removed. The command that is aliased to will be
+  // inferred from the alias itself.
+  if (details.words.length < 2) {
+    api.chat.say(`Usage: ${details.command} remove [alias]`);
+    return errReturn;
+  }
+
+  // We already know this is a remove, so fetch the command that represents the
+  // alias that we want to remove. Here we want to make sure that aliases are
+  // allowed, since they are in fact required.
+  const alias = getCommand(api, details, details.words[1], true, true);
+  if (alias === null) {
+    return errReturn;
+  }
+
+  // The command that we got needs to be an alias; otherwise someone is trying
+  // to remove a command, which is not allowed here.
+  if (alias.name === details.words[1]) {
+    api.chat.say(`${alias.name} is not an alias; it cannot be removed by this command`);
+    return errReturn;
+  }
+
+  return [alias, details.words[1], { aliases: alias.aliases.filter(name => name !== details.words[1])}];
 }
 
 
@@ -400,6 +434,7 @@ async function modify_cmd_aliases(api, details, userInfo) {
   }
 
   let cmd = undefined;
+  let alias = undefined;
   let update = undefined;
   let postUpdate = undefined;
 
@@ -407,17 +442,25 @@ async function modify_cmd_aliases(api, details, userInfo) {
     case 'add':
       // Use the sub handler to get the aliased command and the new alias; this
       // will do error checking and return a null command on error.
-      [cmd, update] = handle_alias_add(api, details, userInfo);
+      [cmd, alias, update] = handle_alias_add(api, details, userInfo);
 
       // If the add looks like it's correct, then set up a handler to update the
       // command list as appropriate.
       if (cmd !== null) {
-        postUpdate = () => api.commands.addAlias(cmd.name, update.aliases[0]);
+        postUpdate = () => api.commands.addAlias(cmd.name, alias);
       }
       break;
 
-    case 'break':
-      [cmd, update] = handle_alias_remove(api, details, userInfo);
+    case 'remove':
+      // Use the sub handler to get the aliased command and the alias to remove;
+      // this will do error checking and return a null command on error.
+      [cmd, alias, update] = handle_alias_remove(api, details, userInfo);
+
+      // If the remove looks like it's correct, then set up a handler to update
+      // the command list as appropriate.
+      if (cmd !== null) {
+        postUpdate = () => api.commands.removeAlias(cmd.name, alias);
+      }
       break;
 
     // If we get here, we got what should be a command, so display the list of
