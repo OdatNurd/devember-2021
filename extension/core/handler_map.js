@@ -88,6 +88,61 @@ class CodeHandlerMap {
       return this.handlerList.get(name) || null;
     }
 
+    /* This will find the entry in the handler list for the named command and
+     * then, if found, apply it as an alias to the command in the table. This
+     * will ensure that the alias is available and that the command being
+     * aliased exists,
+     *
+     * This only changes the handler list; the command isn't updated to know
+     * that it has a new alias. For that, modify the cmd entry manually. */
+    addAlias(name, alias) {
+      const cmd = this.find(name);
+      if (cmd === null) {
+        this.api.log.warn(`WARN: Alias ${alias} cannot be added to ${name}; aliased command was not found`);
+        return
+      }
+
+      // If there is already a command with this alias, we can't add one as it
+      // would be a collision.
+      if (this.find(alias) !== null) {
+        this.api.log.warn(`WARN: Alias ${alias} collides with ${this.modelName} name; skipping`);
+        return;
+      }
+
+      // Set the actual alias up
+      this.handlerList.set(alias, cmd)
+    }
+
+    /* This will find the entry in the handler list that represents both the
+     * name and the alias, and if they both represent the same command, the
+     * alias will be removed from the list. A warning is generated if the alias
+     * doesn't exist or doesn't alias the given command.
+     *
+     * This only changes the handler list; the command isn't updated to know
+     * that it has one fewer aliases. For that, modify the cmd entry manualy. */
+    removeAlias(name, alias) {
+      const cmd = this.find(name);
+      if (cmd === null) {
+        this.api.log.warn(`WARN: Alias ${alias} cannot be added to ${name}; aliased command was not found`);
+        return
+      }
+
+      // We need to find the entry that matches the alias; it both needs to
+      // exist and have the same name as the command we found above.
+      const aliasCmd = this.find(alias);
+      if (aliasCmd === null) {
+        this.api.log.warn(`WARN: Alias ${alias} cannot be removed from ${name}; aliased command was not found`);
+        return;
+      }
+
+      if (aliasCmd.name !== cmd.name) {
+        this.api.log.warn(`WARN: Alias ${alias} is not an alias for ${name}; skipping removal`);
+        return;
+      }
+
+      this.handlerList.delete(alias);
+    }
+
     /* This will initialize the map by loading all of the database records from
      * the defined model, creating all of the appropriate objects, and loading
      * all of the implementation files.
