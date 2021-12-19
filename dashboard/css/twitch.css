@@ -47,3 +47,16 @@ panel-buttons {
   padding-top: 1em;
   text-align: right;
 }
+
+.flex {
+  display: flex;
+}
+
+.flex-grow {
+  flex-grow: 2;
+}
+
+.mx-sm {
+  margin-left: 6px;
+  margin-right: 6px;
+}
