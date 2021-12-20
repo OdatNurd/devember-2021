@@ -30,6 +30,16 @@ const commands = [
       cooldown: 0
   },
   {
+      name: "$addcommand",
+      aliases: ["$addcmd"],
+      enabled: 1,
+      sourceFile: "command/cmd_add.js",
+      core: 1,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },
+  {
       name: "$enable",
       aliases: ["$disable"],
       enabled: 1,

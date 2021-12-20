@@ -88,6 +88,37 @@ class CodeHandlerMap {
       return this.handlerList.get(name) || null;
     }
 
+    /* Given an item name that exists in the database but not in this existing
+     * handler list, add a new stub entry into the handler list for this item.
+     *
+     * The data for the stub entry will come from the database record, but there
+     * will be no handler, no aliases will be set up, and so on.
+     *
+     * This is used to add in new items dynamically at runtime, since the
+     * dynamic reloader can't find new items on its own and can only reload
+     * existing entries. */
+    async addItemStub(name) {
+      // Sanity check; don't blow stuff up.
+      if (this.find(name) !== null) {
+        api.log.error(`trying to add a new stub item ${name}in ${this.modelName} when it already exists`);
+        return;
+      }
+
+      // Pull a record out of the database for the item with his name; we need
+      // to make sure that it actually exists.
+      const record = await this.dataModel.findOne({ name });
+      if (record === undefined) {
+        api.log.error(`trying to add a new stub item ${name}in ${this.modelName} but no such record exists`);
+        return;
+      }
+
+      // Create a new item using the factory and plug it into the list; this
+      // won't have a handler, but this call is for adding items before forcing
+      // a reload.
+      const item = this.factory(record);
+      this.handlerList.set(item.name, item);
+    }
+
     /* This will find the entry in the handler list for the named command and
      * then, if found, apply it as an alias to the command in the table. This
      * will ensure that the alias is available and that the command being
