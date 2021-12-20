@@ -39,7 +39,6 @@ async function reload_items(api, details, userInfo) {
       api.chat.say(`nothing found to reload`);
       break;
 
-    case null:
     default:
       api.chat.say(`error encountered during the reload; please check the console`);
       break;

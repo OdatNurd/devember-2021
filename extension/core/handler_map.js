@@ -148,14 +148,17 @@ class CodeHandlerMap {
      * all of the implementation files.
      *
      * The load will also apply any configured aliases, as defined in the
-     * database records. */
+     * database records.
+     *
+     * This will return back a list of errors that occured while the list was
+     * initializing, which may be empty. */
     async initialize() {
       // Find all of the records from our model and create the appropriate
       // list items out of them. This will create an entry for each item, load
       // and install the handler code, and apply aliases.
       try {
         const itemInfo = await this.dataModel.find({});
-        await this.#createItems(itemInfo);
+        return await this.#createItems(itemInfo);
       } catch (error) {
         this.api.log.error(`Error loading ${this.modelName}: ${error.toString()}`);
       }
@@ -173,7 +176,10 @@ class CodeHandlerMap {
      *
      * This should be a file that is not currently loaded, and is meant to be
      * used in situations where a new file needs to be added, since adding a new
-     * file isn't actually a reload operation. */
+     * file isn't actually a reload operation.
+     *
+     * The return value of this is a list of errors that occured while loading
+     * the file; this may be empty. */
     async loadNewFile(loadSpec) {
       this.api.log.info(`* Adding ${loadSpec} `);
 
@@ -185,7 +191,7 @@ class CodeHandlerMap {
       // the file was actually loaded previously, this will still work because
       // the loader makes sure to always unload files first.
       try {
-        await this.#innerReload(new Set([loadSpec]));
+        return await this.#innerReload(new Set([loadSpec]));
       } catch (error) {
         this.api.log.error(`Error adding ${this.modelName}: ${error.toString()}`);
       }
@@ -200,7 +206,11 @@ class CodeHandlerMap {
      * only one type of item.
      *
      * The argument "name" indicates wether the incoming list represents names
-     * or not; false indicates that the list contains glob file specs. */
+     * or not; false indicates that the list contains glob file specs.
+     *
+     * The return value is true if the reload succeeded, false if there was
+     * nothing to reload, and a list of errors if the reload happened but
+     * there were issues. */
     async reload(reloadSpec, name) {
       this.api.log.info(`* Reloading ${name ? 'named items' : 'file globs'}: ${JSON.stringify(reloadSpec)}`);
       if (reloadSpec.length === 0) {
@@ -239,14 +249,16 @@ class CodeHandlerMap {
 
       // Perform the reload; this call takes care the entirety of the
       // operation.
+      let load_errors = []
       try {
-        await this.#innerReload(selected);
+        load_errors = await this.#innerReload(selected);
       } catch (error) {
+        load_errors.push(error)
         this.api.log.error(`Error reloading ${this.modelName}: ${error.toString()}`);
         return null;
       }
 
-      return true;
+      return (load_errors.length === 0) ? true : load_errors;
     }
 
     /* This takes a list of database records that represent new or changed items
@@ -257,7 +269,11 @@ class CodeHandlerMap {
      *
      * The optional argument unloadFileList represents a list of files that
      * should be unloaded before the new files are loaded; if not given nothing
-     * is unloaded first. */
+     * is unloaded first.
+     *
+     * The return value is a list of errors that occured during the load, such
+     * as compilation failures and the like. This list will be empty if there
+     * were no errors. */
     async #createItems(itemInfo, unloadFileList) {
       // Get a unique'd list of source files implementing each item so that we
       // can load them.
@@ -267,7 +283,7 @@ class CodeHandlerMap {
       // unload any files we were told to unload first, and returns a Map that
       // keys on item name with values that are the associated handler
       // function.
-      const handlers = await this.#loadSources(sources, unloadFileList);
+      const [handlers, load_errors] = await this.#loadSources(sources, unloadFileList);
 
       // For each new item, use the factory to create a new wrapper and add
       // it to the list of added items.
@@ -308,6 +324,9 @@ class CodeHandlerMap {
       for (const item of newItems) {
         this.#applyAliases(item);
       }
+
+      // Send errors back.
+      return load_errors;
     }
 
     /* This takes a list of file specifications to load and an optional list of
@@ -323,7 +342,8 @@ class CodeHandlerMap {
      *
      * The return value is a Map that maps the names of items declared in all
      * loaded files with the handlers that represent them, so that they can be
-     * applied later. */
+     * applied later, and a list of errors that occured as a result of loading
+     * those files (if any). */
     async #loadSources(srcList, unloadFileList) {
       // Start by unloading files in the unload list, if one was given. This
       // also removes it from the source list since we're now done with it and
@@ -338,6 +358,11 @@ class CodeHandlerMap {
           this.sourceMap.delete(file);
         }
       }
+
+      // While loading the source files, this will store any errors that are
+      // generated so that they can be returned back to the caller, where they
+      // can stored, displayed, etc.
+      const load_errors = [];
 
       // Iterate over all of the incoming files that we should be loading, and
       // import them. We use import-fresh here, which makes sure that the
@@ -385,10 +410,12 @@ class CodeHandlerMap {
         } catch (error) {
           this.api.log.error(`Error: ${error}`);
           this.api.log.error(`Stack: ${error.stack}`);
+
+          load_errors.push(error);
         }
       }
 
-      return handlers;
+      return [handlers, load_errors];
     }
 
     /* Given an item, add any aliases it might contain to the overall handler
@@ -440,12 +467,15 @@ class CodeHandlerMap {
      *
      * Once this is complete, any files that were previously loaded will have
      * their commands and aliases removed, followed by new files being loaded
-     * and new items and aliases being added. */
+     * and new items and aliases being added.
+     *
+     * The return value is a list of errors that occured while the reload was
+     * happening, which can be an empty list if everything suceeded. */
     async #innerReload(fileList) {
       // If there's nothing to reload, silently leave. This is a safety since
       // the public facing item should filter such requests away.
       if (fileList.size === 0) {
-        return;
+        return [];
       }
 
       // Fetch from the database information for all items contained in any of
@@ -475,7 +505,7 @@ class CodeHandlerMap {
       // Using the list of new items, treat this as an initial load and add
       // the new items to the list; this will also handle unloading items from
       // the list we were originally given.
-      await this.#createItems(newItemInfo, fileList);
+      return await this.#createItems(newItemInfo, fileList);
     }
 
     // Given an item name or alias, look for the handler object associated with
