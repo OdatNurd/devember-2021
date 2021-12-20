@@ -10,11 +10,11 @@
  *
  * This simply takes a command (add or remove) as well as a list of 1 or more
  * people, and updates the database as appropriate. */
-async function modify_regulars(api, details, userinfo) {
+async function modify_regulars(api, cmd, userinfo) {
   // We require two arguments minimum, and the first one needs to be the
   // command to do something with.
-  if (details.words.length < 2 || ['add', 'remove'].indexOf(details.words[0]) === -1) {
-    api.chat.say(`Usage: ${details.command} <add/remove> <username list> - ` +
+  if (cmd.words.length < 2 || ['add', 'remove'].indexOf(cmd.words[0]) === -1) {
+    api.chat.say(`Usage: ${cmd.name} <add/remove> <username list> - ` +
       `add or remove regulars from the list of regular users`);
     return;
   }
@@ -23,16 +23,16 @@ async function modify_regulars(api, details, userinfo) {
   const model = api.db.getModel('regulars');
 
   // Track whether we're adding or removing users.
-  const addNew = (details.words[0] === 'add');
+  const addNew = (cmd.words[0] === 'add');
 
   // For each user provided, look them up and then either add or remove from
   // the database as needed.
   let modified = 0;
   let unknown = [];
-  for (let i = 1; i < details.words.length; i++) {
+  for (let i = 1; i < cmd.words.length; i++) {
     // Get the user (discarding leading prefix if needed), then look up the
     // information on that user.
-    const user = (details.words[i][0] === '@' ? details.words[i].substr(1) : details.words[i]);
+    const user = (cmd.words[i][0] === '@' ? cmd.words[i].substr(1) : cmd.words[i]);
     const userDetails = await api.twitch.users.getUserByName(user);
 
     // Keep track of users we don't know so we can generate a message later.

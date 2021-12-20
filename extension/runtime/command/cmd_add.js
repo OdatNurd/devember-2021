@@ -20,12 +20,12 @@ const { CommandParser } = require('../../core/command');
  * This is done by making a copy of a stub file and putting it into place in the
  * appropriate directory, then adding a record to the database and requesting
  * that it be reloaded to bring the command into existence. */
-async function add_new_command(api, details, userInfo) {
+async function add_new_command(api, cmd, userInfo) {
   // We expect to be given the name of a new command and optionally the name of
   // the file that it should be stored in; if we don't have at least one
   // argument, then we're unhappy.
-  if (details.words.length < 1) {
-    api.chat.say(`Usage: ${details.command} <newname> [sourceFile] - ` +
+  if (cmd.words.length < 1) {
+    api.chat.say(`Usage: ${cmd.name} <newname> [sourceFile] - ` +
                  `dynamically add a new command, optionally specifying the source file it lives in`);
     return;
   }
@@ -33,7 +33,7 @@ async function add_new_command(api, details, userInfo) {
   // Get the name of the new item and the file it should be implemented in.
   // The source file is optional and will be inferred from the item name if
   // it's not provided.
-  let [newCmdName, newSrcFile] = details.words;
+  let [newCmdName, newSrcFile] = cmd.words;
 
   // Infer a missing file from the name of the item being added; if the name
   // is a command, we need to strip the prefixes off the name first.
@@ -128,17 +128,17 @@ async function add_new_command(api, details, userInfo) {
  * This adjusts the database and the command list to ensure that the command
  * doesn't execute, but it leaves the code for the command alone so that it can
  * be recovered if it was removed in error. */
-async function remove_existing_command(api, details, userInfo) {
+async function remove_existing_command(api, cmd, userInfo) {
   // We expect to be given the name of a new command and optionally the name of
   // the file that it should be stored in; if we don't have at least one
   // argument, then we're unhappy.
-  if (details.words.length < 1) {
-    api.chat.say(`Usage: ${details.command} <oldname> - dynamically remove an existing command`);
+  if (cmd.words.length < 1) {
+    api.chat.say(`Usage: ${cmd.name} <oldname> - dynamically remove an existing command`);
     return;
   }
 
   // Get the name of the command that we're removing.
-  let [oldCmdName] = details.words;
+  let [oldCmdName] = cmd.words;
 
   // If this name doesn't exist, then it can't be removed.
   const oldCmd = api.commands.find(oldCmdName);

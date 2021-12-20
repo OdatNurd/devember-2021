@@ -2,9 +2,9 @@
 
 
 /* This function implements the stub command. The bot API is available via api,
- * details is the details of the parsed command that is being executed, and
- * userInfo is the user that executed the command. */
-function stub_cmd(api, details, userInfo) {
+ * cmd is the details of the parsed command that is being executed, and userInfo
+ * is the user that executed the command. */
+function stub_cmd(api, cmd, userInfo) {
   api.log.info('I am a stub command');
 }
 

@@ -26,7 +26,7 @@ class CommandDetails {
 
     // The name of the command; this is the empty string if this does not
     // represent a command.
-    command;
+    name;
 
     // The parameters to the command stored as a Map, which are specified as
     // key=value pairs at the start of the incoming text. If name is the empty
@@ -51,9 +51,9 @@ class CommandDetails {
     // bits and emotes used in the message.
     rawMsg;
 
-    constructor(line, command, params, text, words) {
+    constructor(line, name, params, text, words) {
       this.line = line;
-      this.command = command;
+      this.name = name;
       this.params = params;
 
       this.isAlias = false;
@@ -101,7 +101,7 @@ class CommandParser {
     parse(message) {
       // Tokenize the original message into words. The first word is the name
       // of the command, and the remainder are potential arguments.
-      let [command, ...parts] = message.split(/ +/).map(s => s.trim()).filter(s => s !== '');
+      let [name, ...parts] = message.split(/ +/).map(s => s.trim()).filter(s => s !== '');
       const params = new Map();
 
       // If the name of the command has a valid prefix, parse the potential
@@ -109,7 +109,7 @@ class CommandParser {
       //
       // When the command has no valid prefix, put it back into the parts
       // array and turn it into the empty string.
-      if (command !== undefined && CommandParser.VALID_PREFIX_LIST.indexOf(command[0]) !== -1) {
+      if (name !== undefined && CommandParser.VALID_PREFIX_LIST.indexOf(name[0]) !== -1) {
         // As long as the first word in the parts list is a potential key/value
         // pair, remove it and add it to the parameter list.
         while (parts.length !== 0 && parts[0].indexOf('=') !== -1) {
@@ -119,11 +119,11 @@ class CommandParser {
       } else {
         // The command does not have a valid prefix; put the command name
         // back into the parts list and redact it.
-        parts.splice(0, 0, command);
-        command = '';
+        parts.splice(0, 0, name);
+        name = '';
       }
 
-      return new CommandDetails(message, command, params, parts.join(' '), parts);
+      return new CommandDetails(message, name, params, parts.join(' '), parts);
     }
 }
 

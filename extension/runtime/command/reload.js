@@ -9,27 +9,27 @@
  * In either case, the reload operation will cause the files affected to be
  * unloaded and reloaded, and the data from the database for those items will be
  * refreshed.  */
-async function reload_items(api, details, userInfo) {
+async function reload_items(api, cmd, userInfo) {
   // The list of valid options for the mode argument.
   const valid = ['name', 'glob'];
 
-  // If nothing to reload was provided, show usage details and leave
-  if (details.words.length === 0) {
-    api.chat.say(`Usage: ${details.command} [mode=(glob|*name)] <globspec|name> - ` +
+  // If nothing to reload was provided, show usage cmd and leave
+  if (cmd.words.length === 0) {
+    api.chat.say(`Usage: ${cmd.name} [mode=(glob|*name)] <globspec|name> - ` +
                  `hot reload the files that match the spec or name list`);
     return;
   }
 
   // Get the mode the user asked for, defaulting to the name mode if one is
   // not provided.
-  const mode = details.params.get('mode') || 'name';
+  const mode = cmd.params.get('mode') || 'name';
   if (valid.indexOf(mode) === -1) {
     api.chat.say(`invalid mode '${mode}; valid modes are: ${valid.join(', ')}`);
     return;
   }
 
   // Ask the command handler to reload based on the information provided.
-  const result = await api.commands.reload(details.words, mode === 'name');
+  const result = await api.commands.reload(cmd.words, mode === 'name');
   switch (result) {
     case true:
       api.chat.say(`reload operation completed`);

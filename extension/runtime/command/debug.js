@@ -9,9 +9,9 @@
  *
  * This ultimately sets up flags in the API that the internal chat handler uses
  * to know if it should log or not. */
-function debug_command(api, details, userInfo) {
+function debug_command(api, cmd, userInfo) {
   // Shallow clone the list of words so we can manipulate it.
-  const args = [...details.words];
+  const args = [...cmd.words];
 
   // If the first argument is a single word, then it can be either an
   // instruction on changing the setup, OR a single user to modify.
@@ -48,7 +48,7 @@ function debug_command(api, details, userInfo) {
   if (args.length === 0) {
     const state = (api.debugMsgs === 0) ? 'disabled' : 'enabled';
     api.chat.say(`chat message debug logging is currently ${state}; ` +
-                 `use ${details.command} [on|off|users] to change the state or view users, ` +
+                 `use ${cmd.name} [on|off|users] to change the state or view users, ` +
                  `or give a list of users to add or remove from the list`);
     return;
   }

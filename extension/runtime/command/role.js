@@ -25,25 +25,25 @@ const os = require('os');
  * !role detault newDefault - Set the default command role
  * !role default            - Remove the default command role
  */
-function modify_role(api, details, userInfo) {
+function modify_role(api, cmd, userInfo) {
   // Used with no arguments, this will tell you the current and default role
-  if (details.words.length === 0) {
+  if (cmd.words.length === 0) {
     const host = os.hostname().split('.')[0];
     const defRole = api.defaultCmdRole || 'none';
     api.chat.say(`Running with role ${api.role}[default=${defRole}] on ${host}` +
-                 `; to change, use ${details.command} default [newDefault]`);
+                 `; to change, use ${cmd.name} default [newDefault]`);
     return;
   }
 
   // With at least one argument, the arg must be the word 'default'; otherwise
   // show usage information.
-  if (details.words[0] !== 'default') {
-    return api.chat.say(`To change the default, ${details.command} default [newDefault]`)
+  if (cmd.words[0] !== 'default') {
+    return api.chat.say(`To change the default, ${cmd.name} default [newDefault]`)
   }
 
   // The second word is the new role; undefined and the string 'none' both map
   // to the value undefined, which means no default.
-  api.defaultCmdRole = details.words[1] === 'none' ? undefined : details.words[1];
+  api.defaultCmdRole = cmd.words[1] === 'none' ? undefined : cmd.words[1];
   const newDefRole = api.defaultCmdRole || 'none';
 
   // Say what happened

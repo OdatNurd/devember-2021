@@ -63,27 +63,27 @@ const access_display = [
  *
  * When this returns null, it generates a message to the chat that indicates
  * that the command being executed cannot be executed. */
-function getCommand(api, details, name, allowAlias, allowCore) {
+function getCommand(api, cmd, name, allowAlias, allowCore) {
   // Find the command named in the command list; if this is null we can
   // immediately generate an error and return back.
-  const cmd = api.commands.find(name);
-  if (cmd === null) {
+  const target = api.commands.find(name);
+  if (target === null) {
     api.chat.say(`unable to locate command ${name}; did you spell it correctly and provide a command prefix?`);
     return null;
   }
 
   // If this is an alias but they're not allowed, then reject the command.
-  if (allowAlias === false && cmd.name !== name) {
-    api.chat.say(`${details.command} does not modify aliased commands; did you mean to modify ${cmd.name}?`);
+  if (allowAlias === false && target.name !== name) {
+    api.chat.say(`${cmd.name} does not modify aliased commands; did you mean to modify ${target.name}?`);
     return null;
   }
 
-  if (allowCore === false && cmd.core === true) {
-    api.chat.say(`${details.command} does not modify core commands; to avoid executing them, try the 'role' command`);
+  if (allowCore === false && target.core === true) {
+    api.chat.say(`${cmd.name} does not modify core commands; to avoid executing them, try the 'role' command`);
     return null;
   }
 
-  return cmd;
+  return target;
 }
 
 
@@ -95,14 +95,14 @@ function getCommand(api, details, name, allowAlias, allowCore) {
  * on the id of the command that is provided.
  *
  * This only touches the fields provided and leaves everything else alone. */
-async function storeCmdChanges(api, cmd, changes) {
+async function storeCmdChanges(api, command, changes) {
   // Get the database model for commands and perform the update.
   const model = api.db.getModel('commands');
-  await model.update({ id: cmd.id }, changes);
+  await model.update({ id: command.id }, changes);
 
   // We also need to apply the changes directly to the command, or they won't
   // be seen until it reloads and refreshes its information from the database.
-  Object.keys(changes).forEach(key => cmd[key] = changes[key]);
+  Object.keys(changes).forEach(key => command[key] = changes[key]);
 }
 
 
@@ -167,32 +167,32 @@ function parseCooldownSpec(spec) {
 /* This command allows you to see a visualization of all of the information that
  * is currently known about a specific command, including its aliases and the
  * implementation file it's stored in. */
-function get_command_info(api, details, userInfo) {
+function get_command_info(api, cmd, userInfo) {
   // We need to be given a command name.
-  if (details.words.length === 0) {
-    api.chat.say(`Usage: ${details.command} <command> - ` +
+  if (cmd.words.length === 0) {
+    api.chat.say(`Usage: ${cmd.name} <command> - ` +
                  `display information about the given command or alias`);
     return;
   }
 
   // Get the target command or leave; on error, this displays an error for us.
-  const cmd = getCommand(api, details, details.words[0], true, true);
-  if (cmd === null) {
+  const target = getCommand(api, cmd, cmd.words[0], true, true);
+  if (target === null) {
     return;
   }
 
   // Create aliased values for all of the information that we're about to
   // display so that the final message is easier to understand.
-  const name = cmd.name;
-  const visible = (cmd.hidden === true ? 'hidden ' : '');
-  const type = (cmd.core === true ? 'core' : 'regular');
-  const src = cmd.sourceFile;
-  const access = access_display[cmd.userLevel];
-  const status = (cmd.enabled === true) ? 'enabled' : 'disabled';
-  const aliases = (cmd.aliases.length === 0) ? 'none': cmd.aliases.join(',');
-  const cooldown = (cmd.cooldown === 0) ? 'no cool down' :
-                    `a cool down of ${displayableCooldown(cmd.cooldown)}`;
-  const missing = (cmd.handler === null || cmd.handler === undefined)
+  const name = target.name;
+  const visible = (target.hidden === true ? 'hidden ' : '');
+  const type = (target.core === true ? 'core' : 'regular');
+  const src = target.sourceFile;
+  const access = access_display[target.userLevel];
+  const status = (target.enabled === true) ? 'enabled' : 'disabled';
+  const aliases = (target.aliases.length === 0) ? 'none': target.aliases.join(',');
+  const cooldown = (target.cooldown === 0) ? 'no cool down' :
+                    `a cool down of ${displayableCooldown(target.cooldown)}`;
+  const missing = (target.handler === null || target.handler === undefined)
                     ? ' (handler is currently missing)' : '';
 
   // Send out the display
@@ -212,45 +212,45 @@ function get_command_info(api, details, userInfo) {
  * This function serves both the enable and disable option and can determine
  * which of the two it's supposed to do based on the name that it's invoked
  * with. */
-async function change_enabled_state(api, details, userInfo) {
+async function change_enabled_state(api, cmd, userInfo) {
   // The command can either enable or disable a command; how this works depends
   // on the name that it's invoked with.
-  const enabled = (details.command.endsWith('enable'));
+  const enabled = (cmd.name.endsWith('enable'));
 
   // As a sanity check, if the command name is not enable, it has to be disable
   // or someone somehow set up an alias when they should not have been allowed
   // to.
-  if (enabled === false && details.command.endsWith('disable') === false) {
-    api.chat.say(`${details.command} cannot be executed; the underlying command should not be aliased.`);
+  if (enabled === false && cmd.name.endsWith('disable') === false) {
+    api.chat.say(`${cmd.name} cannot be executed; the underlying command should not be aliased.`);
     return;
   }
 
   // We need to be given a command name.
-  if (details.words.length === 0) {
+  if (cmd.words.length === 0) {
     if (enabled) {
-      api.chat.say(`Usage: ${details.command} command - enable the given command so it can be executed`);
+      api.chat.say(`Usage: ${cmd.name} command - enable the given command so it can be executed`);
     } else {
-      api.chat.say(`Usage: ${details.command} command - disable the given command so it can no longer be executed`);
+      api.chat.say(`Usage: ${cmd.name} command - disable the given command so it can no longer be executed`);
     }
 
     return;
   }
 
   // Get the target command or leave; on error, this displays an error for us.
-  const cmd = getCommand(api, details, details.words[0], false, false);
-  if (cmd === null) {
+  const target = getCommand(api, cmd, cmd.words[0], false, false);
+  if (target === null) {
     return;
   }
 
   // Indicate if the command was already in the desired state.
-  if (cmd.enabled === enabled) {
-    api.chat.say(`${cmd.name} is already ${enabled === true ? 'enabled' : 'disabled'}`);
+  if (target.enabled === enabled) {
+    api.chat.say(`${target.name} is already ${enabled === true ? 'enabled' : 'disabled'}`);
     return;
   }
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, cmd, { enabled })
-  api.chat.say(`the ${cmd.name} command status has been set to ${enabled === true ? 'enabled' : 'disabled'}`);
+  await storeCmdChanges(api, target, { enabled })
+  api.chat.say(`the ${target.name} command status has been set to ${enabled === true ? 'enabled' : 'disabled'}`);
 }
 
 
@@ -261,40 +261,40 @@ async function change_enabled_state(api, details, userInfo) {
  * run a particular command. The list of access levels that can be specified is
  * an enhanced list that includes various aliased names for levels to make the
  * command more natural to run. */
-async function change_access_level(api, details, userInfo) {
+async function change_access_level(api, cmd, userInfo) {
   // The levels we use in our display here; the actual values supported is a
   // much larger list, to make commands more natural.
   const levels = ['streamer', 'mods', 'vips', 'regs', 'subs', 'all'];
 
   // We need to be given a command name.
-  if (details.words.length < 1) {
-    api.chat.say(`Usage: ${details.command} <command> <${levels.join('|')}> - ` +
+  if (cmd.words.length < 1) {
+    api.chat.say(`Usage: ${cmd.name} <command> <${levels.join('|')}> - ` +
                  `change the access level required to execute a command`);
     return;
   }
 
   // Get the target command or leave; on error, this displays an error for us.
-  const cmd = getCommand(api, details, details.words[0], false, false);
-  if (cmd === null) {
+  const target = getCommand(api, cmd, cmd.words[0], false, false);
+  if (target === null) {
     return;
   }
 
   // If we only got a command name, then display the current level and leave.
-  if (details.words.length === 1) {
-    api.chat.say(`the access level for ${cmd.name} is currently set to ${access_display[cmd.userLevel]}`);
+  if (cmd.words.length === 1) {
+    api.chat.say(`the access level for ${target.name} is currently set to ${access_display[target.userLevel]}`);
     return;
   }
 
   // Look up the appropriate user level based on the argument provided.
-  const userLevel = access_options[details.words[1]];
+  const userLevel = access_options[cmd.words[1]];
   if (userLevel === undefined) {
-    api.chat.say(`${details.words[1]} is not a valid access level; valid levels are: ${levels.join(',')}`)
+    api.chat.say(`${cmd.words[1]} is not a valid access level; valid levels are: ${levels.join(',')}`)
     return;
   }
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, cmd, { userLevel })
-  api.chat.say(`the access level for ${cmd.name} has been set to ${access_display[userLevel]}`);
+  await storeCmdChanges(api, target, { userLevel })
+  api.chat.say(`the access level for ${target.name} has been set to ${access_display[userLevel]}`);
 }
 
 
@@ -307,37 +307,37 @@ async function change_access_level(api, details, userInfo) {
  *
  * The broadcaster and mods are always exempt from the cooldown timer and can
  * execute the command at any time. */
-async function change_cmd_cooldown(api, details, userInfo) {
+async function change_cmd_cooldown(api, cmd, userInfo) {
   // The possible formats for times that we use in our display here; the actual
   // values are parsed from user input in this style.
   const specs = ['##.#s', '##.#m', '##.#h'];
 
   // We need to be given a command name.
-  if (details.words.length < 1) {
-    api.chat.say(`Usage: ${details.command} <command> <${specs.join('|')}> - ` +
+  if (cmd.words.length < 1) {
+    api.chat.say(`Usage: ${cmd.name} <command> <${specs.join('|')}> - ` +
                  `specify the time required between invocations of a command`);
     return;
   }
 
   // Get the target command or leave; on error, this displays an error for us.
-  const cmd = getCommand(api, details, details.words[0], false, false);
-  if (cmd === null) {
+  const target = getCommand(api, cmd, cmd.words[0], false, false);
+  if (target === null) {
     return;
   }
 
   // If we only got a command name, then display the current cooldown and leave.
-  if (details.words.length === 1) {
-    const curCool = (cmd.cooldown === 0) ? 'no cool down' :
-                     `a cool down of ${displayableCooldown(cmd.cooldown)}`;
+  if (cmd.words.length === 1) {
+    const curCool = (target.cooldown === 0) ? 'no cool down' :
+                     `a cool down of ${displayableCooldown(target.cooldown)}`;
 
-    api.chat.say(`the cool down timer for ${cmd.name} is currently set to ${curCool}`);
+    api.chat.say(`the cool down timer for ${target.name} is currently set to ${curCool}`);
     return;
   }
 
   // Look up the appropriate user level based on the argument provided.
-  const cooldown = parseCooldownSpec(details.words[1]);
+  const cooldown = parseCooldownSpec(cmd.words[1]);
   if (cooldown === undefined) {
-    api.chat.say(`${details.words[1]} is not a valid cool down specification; valid formats are: ${specs.join(',')}`)
+    api.chat.say(`${cmd.words[1]} is not a valid cool down specification; valid formats are: ${specs.join(',')}`)
     return;
   }
 
@@ -345,8 +345,8 @@ async function change_cmd_cooldown(api, details, userInfo) {
                    `a cool down of ${displayableCooldown(cooldown)}`;
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, cmd, { cooldown })
-  api.chat.say(`the cool down time for ${cmd.name} has been set to ${newCool}`);
+  await storeCmdChanges(api, target, { cooldown })
+  api.chat.say(`the cool down time for ${target.name} has been set to ${newCool}`);
 }
 
 
@@ -363,36 +363,36 @@ async function change_cmd_cooldown(api, details, userInfo) {
  * to put the new alias in effect.
  *
  * On any error, this returns a null command and an empty update dictionary. */
-function handle_alias_add(api, details, userInfo) {
+function handle_alias_add(api, cmd, userInfo) {
   const errReturn = [null, null, {}];
 
   // For an add, we need to have at least 3 arguments; the add operation, the
   // command to add the alias to, and the new alias itself.
-  if (details.words.length < 3) {
-    api.chat.say(`Usage: ${details.command} add <command> <alias> - ` +
+  if (cmd.words.length < 3) {
+    api.chat.say(`Usage: ${cmd.name} add <command> <alias> - ` +
                  `add an alias for the command to be able to execute it via another name`);
     return errReturn;
   }
 
   // We already know this is an add, so fetch the command that we want to set
   // the alias on.
-  const cmd = getCommand(api, details, details.words[1], false, true);
-  if (cmd === null) {
+  const target = getCommand(api, cmd, cmd.words[1], false, true);
+  if (target === null) {
     return errReturn;
   }
 
   // As a special rule here, the enable command is special and uses the name
   // that it's invoked with to know what to do, so it's exempt from being
   // aliased, even though other core commands can indeed be aliased.
-  if (cmd.name.endsWith('enable') === true) {
-    api.chat.say(`The ${cmd.name} command cannot be aliased; it uses the name ` +
+  if (target.name.endsWith('enable') === true) {
+    api.chat.say(`The ${target.name} command cannot be aliased; it uses the name ` +
                  `it is invoked with to know what to do`);
     return errReturn;
   }
 
   // The last argument is the new alias text; this needs to be something that
   // doesn't already exist in the commands list at all.
-  const alias = details.words[2];
+  const alias = cmd.words[2];
   const checkCmd = api.commands.find(alias);
   if (checkCmd !== null) {
     api.chat.say(`${alias} cannot be used as an alias; it already resolves to ${checkCmd.name}`);
@@ -402,12 +402,12 @@ function handle_alias_add(api, details, userInfo) {
   // The first character of the proposed new alias needs to be a valid prefix
   // character, or the alias will never be able to execute.
   if (CommandParser.VALID_PREFIX_LIST.indexOf(alias[0]) === -1) {
-    api.chat.say(`${details.words[2]} cannot be used as an alias; it does not have a command prefix. ` +
+    api.chat.say(`${cmd.words[2]} cannot be used as an alias; it does not have a command prefix. ` +
                  `Did you mean to include one of '${CommandParser.VALID_PREFIX_LIST}'`);
     return errReturn;
   }
 
-  return [cmd, alias, { aliases: [...cmd.aliases, alias] }]
+  return [target, alias, { aliases: [...target.aliases, alias] }]
 }
 
 
@@ -424,14 +424,14 @@ function handle_alias_add(api, details, userInfo) {
  * to put the new alias in effect.
  *
  * On any error, this returns a null command and an empty update dictionary. */
-function handle_alias_remove(api, details, userInfo) {
+function handle_alias_remove(api, cmd, userInfo) {
   const errReturn = [null, null, {}];
 
   // For a remove, we need only two arguments; the remove operation and the
   // alias that is to be removed. The command that is aliased to will be
   // inferred from the alias itself.
-  if (details.words.length < 2) {
-    api.chat.say(`Usage: ${details.command} remove <alias> - ` +
+  if (cmd.words.length < 2) {
+    api.chat.say(`Usage: ${cmd.name} remove <alias> - ` +
                  `remove an alias for a command`);
     return errReturn;
   }
@@ -439,7 +439,7 @@ function handle_alias_remove(api, details, userInfo) {
   // We already know this is a remove, so fetch the command that represents the
   // alias that we want to remove. Here we want to make sure that aliases are
   // allowed, since they are in fact required.
-  const alias = getCommand(api, details, details.words[1], true, true);
+  const alias = getCommand(api, cmd, cmd.words[1], true, true);
   if (alias === null) {
     return errReturn;
   }
@@ -455,12 +455,12 @@ function handle_alias_remove(api, details, userInfo) {
 
   // The command that we got needs to be an alias; otherwise someone is trying
   // to remove a command, which is not allowed here.
-  if (alias.name === details.words[1]) {
+  if (alias.name === cmd.words[1]) {
     api.chat.say(`${alias.name} is not an alias; it cannot be removed by this command`);
     return errReturn;
   }
 
-  return [alias, details.words[1], { aliases: alias.aliases.filter(name => name !== details.words[1])}];
+  return [alias, cmd.words[1], { aliases: alias.aliases.filter(name => name !== cmd.words[1])}];
 }
 
 
@@ -468,42 +468,42 @@ function handle_alias_remove(api, details, userInfo) {
 
 
 //   $alias command
-async function modify_cmd_aliases(api, details, userInfo) {
+async function modify_cmd_aliases(api, cmd, userInfo) {
   // At a minimum, we need to receive at least one argument, which will tell us
   // what we;re trying to do.
-  if (details.words.length < 1) {
-    api.chat.say(`Usage: ${details.command} [add|remove] <command> [alias] - ` +
+  if (cmd.words.length < 1) {
+    api.chat.say(`Usage: ${cmd.name} [add|remove] <command> [alias] - ` +
                  `add or remove aliases for a command; specify only a command name to view it's aliases`);
     return;
   }
 
-  let cmd = undefined;
+  let target = undefined;
   let alias = undefined;
   let update = undefined;
   let postUpdate = undefined;
 
-  switch(details.words[0]) {
+  switch(cmd.words[0]) {
     case 'add':
       // Use the sub handler to get the aliased command and the new alias; this
       // will do error checking and return a null command on error.
-      [cmd, alias, update] = handle_alias_add(api, details, userInfo);
+      [target, alias, update] = handle_alias_add(api, cmd, userInfo);
 
       // If the add looks like it's correct, then set up a handler to update the
       // command list as appropriate.
-      if (cmd !== null) {
-        postUpdate = () => api.commands.addAlias(cmd.name, alias);
+      if (target !== null) {
+        postUpdate = () => api.commands.addAlias(target.name, alias);
       }
       break;
 
     case 'remove':
       // Use the sub handler to get the aliased command and the alias to remove;
       // this will do error checking and return a null command on error.
-      [cmd, alias, update] = handle_alias_remove(api, details, userInfo);
+      [target, alias, update] = handle_alias_remove(api, cmd, userInfo);
 
       // If the remove looks like it's correct, then set up a handler to update
       // the command list as appropriate.
-      if (cmd !== null) {
-        postUpdate = () => api.commands.removeAlias(cmd.name, alias);
+      if (target !== null) {
+        postUpdate = () => api.commands.removeAlias(target.name, alias);
       }
       break;
 
@@ -512,31 +512,31 @@ async function modify_cmd_aliases(api, details, userInfo) {
     // displays based on the native command.
     default:
       // Get the target command or leave; on error, this displays an error for us.
-      cmd = getCommand(api, details, details.words[0], true, true);
-      if (cmd === null) {
+      target = getCommand(api, cmd, cmd.words[0], true, true);
+      if (target === null) {
         return;
       }
 
-      const aliases = (cmd.aliases.length === 0) ? 'none': cmd.aliases.join(',');
+      const aliases = (target.aliases.length === 0) ? 'none': target.aliases.join(',');
 
       // Send out the display
-      api.chat.say(`aliases for the ${cmd.name} command : ${aliases}`);
+      api.chat.say(`aliases for the ${target.name} command : ${aliases}`);
       return;
   }
 
 
-  // If we get to this point and cmd is null, then the add or remove operation
+  // If we get to this point and target is null, then the add or remove operation
   // was not valid for some reason, so just leave.
-  if (cmd === null) {
+  if (target === null) {
     return;
   }
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, cmd, update);
+  await storeCmdChanges(api, target, update);
   if (postUpdate !== undefined) {
     postUpdate();
   }
-  api.chat.say(`aliases for the ${cmd.name} command are now: ${cmd.aliases}`);
+  api.chat.say(`aliases for the ${target.name} command are now: ${target.aliases}`);
 }
 
 

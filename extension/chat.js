@@ -291,12 +291,12 @@ async function joinTwitchChat(api) {
       // would be the empty strin/g, which is never going to be found as a
       // command.
       const details = api.cmdParser.parse(message);
-      const cmd = api.commands.find(details.command);
+      const cmd = api.commands.find(details.name);
 
       // Set up information about parsed contents now; the information about
       // this being a command alias is only possible if this is actually a
       // command.
-      details.isAlias = (cmd !== null) ? (details.command !== cmd.name) : false;
+      details.isAlias = (cmd !== null) ? (details.name !== cmd.name) : false;
       details.channel = channel;
       details.rawMsg = rawMsg;
 
@@ -310,14 +310,14 @@ async function joinTwitchChat(api) {
 
       // If the input contained no command, then this is just a regular message
       // so leave.
-      if (details.command === '') {
+      if (details.name === '') {
         return;
       }
 
       // The line contained a command, so either run it or complain that we
       // don't know what it is.
       if (cmd === null) {
-        api.log.error(`Unknown command: ${details.command}`);
+        api.log.error(`Unknown command: ${details.name}`);
       } else {
         cmd.execute(api, details, rawMsg.userInfo);
       }
