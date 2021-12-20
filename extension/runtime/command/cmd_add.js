@@ -123,10 +123,62 @@ async function add_new_command(api, details, userInfo) {
 // =============================================================================
 
 
+/* This command allows for dynamically removing a command from the system.
+ *
+ * This adjusts the database and the command list to ensure that the command
+ * doesn't execute, but it leaves the code for the command alone so that it can
+ * be recovered if it was removed in error. */
+async function remove_existing_command(api, details, userInfo) {
+  // We expect to be given the name of a new command and optionally the name of
+  // the file that it should be stored in; if we don't have at least one
+  // argument, then we're unhappy.
+  if (details.words.length < 1) {
+    api.chat.say(`Usage: ${details.command} <oldname> - dynamically remove an existing command`);
+    return;
+  }
+
+  // Get the name of the command that we're removing.
+  let [oldCmdName] = details.words;
+
+  // If this name doesn't exist, then it can't be removed.
+  const oldCmd = api.commands.find(oldCmdName);
+  if (oldCmd === null) {
+    api.chat.say(`unable to remove command ${oldCmdName} because it does not exist`);
+    return;
+  }
+
+  // We don't want to allow removing an alias using this, so the command that's
+  // looked up has to have the same name as the one the user specified.
+  if (oldCmd.name !== oldCmdName) {
+    api.chat.say(`unable to remove command ${oldCmdName} because it is an alias; did you mean ${oldCmd.name}?`);
+    return;
+  }
+
+  // Make sure that we don't let anyone remove a core command, because that is a
+  // recipe for disaster.
+  if (oldCmd.core === true) {
+    api.chat.say(`unable to remove command ${oldCmdName} because core commands can't be removed`);
+    return;
+  }
+
+  api.chat.say(`removing command ${oldCmdName}`);
+
+  // To get rid of the command, we need to remove it from the database; we can
+  // then tell the reloader to reload the file that it's contained inside of,
+  // and it will notice that the command is gone and remove it from the lists.
+  await api.db.getModel('commands').remove({ id: oldCmd.id });
+  api.commands.reload([oldCmd.name], true);
+}
+
+
+// =============================================================================
+
+
 module.exports = {
   load: async api => {
     return {
       '$addcommand': add_new_command,
+      '$removecommand': remove_existing_command,
     };
   },
 
