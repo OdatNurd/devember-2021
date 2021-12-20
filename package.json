@@ -27,6 +27,14 @@
         "file": "twitch.html",
         "fullbleed": true,
         "headerColor": "#525F78"
+      },
+      {
+        "name": "results",
+        "width": 6,
+        "title": "Command Loader Log",
+        "file": "cmd_log.html",
+        "headerColor": "#525F78",
+        "workspace": "Commands"
       }
     ],
     "graphics": [
