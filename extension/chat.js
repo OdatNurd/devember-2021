@@ -258,8 +258,12 @@ async function joinTwitchChat(api) {
   const chat = new ChatClient({
     authProvider: api.chat.auth,
     channels: [api.chat.channel],
-    botLevel: "none",   // "none", known" or "verified"
-    isAlwaysMod: false,
+    botLevel: "none",   // "none", "known" or "verified"
+
+    // When this is true, the code assumes that the bot account is a mod and
+    // uses a different rate limiter. If the bot is not ACTUALLY a mod and you
+    // do this, you may end up getting it throttled, which is Not Good (tm).
+    isAlwaysMod: true,
   });
 
   // Store the chat client in our top level API, and then turn on the chat
