@@ -192,11 +192,13 @@ function get_command_info(api, details, userInfo) {
   const aliases = (cmd.aliases.length === 0) ? 'none': cmd.aliases.join(',');
   const cooldown = (cmd.cooldown === 0) ? 'no cool down' :
                     `a cool down of ${displayableCooldown(cmd.cooldown)}`;
+  const missing = (cmd.handler === null || cmd.handler === undefined)
+                    ? ' (handler is currently missing)' : '';
 
   // Send out the display
   api.chat.say(`${name} is a ${visible}${type} command implemented in ${src} ` +
                `requiring access level ${access} with ${cooldown}` +
-               `, and is ${status}; aliases: ${aliases}`);
+               `, and is ${status}${missing}; aliases: ${aliases}`);
 }
 
 
