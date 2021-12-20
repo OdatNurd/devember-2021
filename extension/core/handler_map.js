@@ -478,28 +478,60 @@ class CodeHandlerMap {
         return [];
       }
 
-      // Fetch from the database information for all items contained in any of
-      // the files being reloaded. This may end up with a different number of
-      // items than we currently have in the list.
+      // Scan the entire current list of items looking for anything that comes
+      // from one of the source files that are being reloaded. For any such
+      // item, remove the item and it's aliases from the list in preparation for
+      // them to be recreated.
+      //
+      // For each command we are removing, keep track of it's old data so that
+      // we can try and find them to reload them; command id values should never
+      // change, but the files they're stored in might. So we don't want to rely
+      // on that.
+      const cmds = [];
+      for (const [name, item] of this.handlerList.entries()) {
+        if (fileList.has(item.sourceFile) && name === item.name) {
+          // Store this command for later.
+          cmds.push(item)
+
+          // Remove the aliases and the command so that this item no longer
+          // exists and is ready to be replaced.
+          this.#removeAliases(item);
+          this.handlerList.delete(name);
+          this.api.log.info(`Removing ${this.modelName}: ${name}`);
+        }
+      }
+
+      // Fetch from the database new information for all commands that we just
+      // removed; this should come up with the same number of commands but may
+      // end up generating potential warnings if a file name change makes the
+      // list of commands handled by a file different than it was.
       //
       // Here we use a series of promises because Trilogy does not seem to
       // support "in" in queries, and using the wrapped knex instance does not
       // pass the data through Trilogy's data manipulation layer when the
       // results come back.
       const newItemInfo = [];
-      const query = Promise.all(Array.from(fileList, file => this.dataModel.find(['sourceFile', '=', file])));
+      const query = Promise.all(Array.from(cmds, cmd => this.dataModel.find(['id', '=', cmd.id])));
       (await query).forEach(result => newItemInfo.push(...result));
 
-      // Scan the entire current list of items looking for anything that comes
-      // from one of the source files that are being reloaded. For any such
-      // item, remove the item and it's aliases from the list in preparation
-      // for them to be recreated.
-      for (const [name, item] of this.handlerList.entries()) {
-        if (fileList.has(item.sourceFile) && name === item.name) {
-          this.#removeAliases(item);
-          this.handlerList.delete(name);
-          this.api.log.info(`Removing ${this.modelName}: ${name}`);
-        }
+      // If the items to reload is a different number than the items that we
+      // just unloaded, some database entries have been removed, so generate a
+      // message to say what commands no longer exist.
+      if (newItemInfo.length !== cmds.length) {
+        // Determine which items are in the old list but not in the new list so
+        // that we can see which are the ones that are missing. Array.some()
+        // tells us if there's at least one item in the array that matches, so
+        // we just need to determine which items are not matches.
+        const missing = cmds.filter(({ id: id1 }) => newItemInfo.some(({ id: id2 }) => id2 === id1) === false);
+        const names = missing.map(cmd => cmd.name);
+
+        this.api.log.warn(`During reload, some commands no longer exist in the database: ${names.join(', ')}`);
+      }
+
+      // If there is nothing to reload now, then just return an empty error list
+      // back since there's nothing to do.
+      if (newItemInfo.length === 0) {
+        return [];
       }
 
       // Using the list of new items, treat this as an initial load and add
