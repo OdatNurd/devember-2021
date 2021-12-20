@@ -33,16 +33,19 @@ async function reload_items(api, details, userInfo) {
   switch (result) {
     case true:
       api.chat.say(`reload operation completed`);
-      break;
+      api.nodecg.sendMessage('set-cmd-log', 'The last reload command completed successfully');
+      return;
 
     case false:
       api.chat.say(`nothing found to reload`);
-      break;
-
-    default:
-      api.chat.say(`error encountered during the reload; please check the console`);
-      break;
+      api.nodecg.sendMessage('set-cmd-log', 'The last reload command did not find anything to reload');
+      return;
   }
+
+  // If we get here, the reload resulted in a failure of some sort; turn the
+  // error objects into a block of text and transmit it.
+  api.chat.say(`error encountered during the reload; please check the console`);
+  api.nodecg.sendMessage('set-cmd-log', result.map(err => `${err}\n${err.stack}`).join("\n"))
 }
 
 

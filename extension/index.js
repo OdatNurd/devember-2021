@@ -175,10 +175,16 @@ module.exports = async function(nodecg) {
   // The above code creates the handler maps that are required, but in order to
   // make the code available we need to tell them to initialize themselves, which
   // will get them to pull from the database and load the appropriate files.
-  const lists = [api.commands];
-  for (const list of lists) {
-    await list.initialize();
-  }
+  //
+  // This can return a list of errors that indicate issues; capture the initial
+  // log result and store it.
+  const cmdResult = await api.commands.initialize();
+  const initialCmdLog = cmdResult.length === 0
+                            ? 'All commands loaded successfuly'
+                            : cmdResult.map(err => `${err}\n${err.stack}`).join("\n");
+
+  // When requested by the front end, send the initial log to them.
+  api.nodecg.listenFor('get-initial-cmd-log', () => api.nodecg.sendMessage('set-cmd-log', initialCmdLog));
 };
 
 
