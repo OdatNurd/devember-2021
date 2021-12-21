@@ -4,6 +4,12 @@
 // =============================================================================
 
 
+const { usage } = require('../../utils');
+
+
+// =============================================================================
+
+
 /* This command allows for the easy addition or removal of regular users, which
  * are users that have special command permissions that are greater than those
  * of casual viewers, since a regular viewer is more trust worthy.
@@ -14,9 +20,8 @@ async function modify_regulars(api, cmd, userinfo) {
   // We require two arguments minimum, and the first one needs to be the
   // command to do something with.
   if (cmd.words.length < 2 || ['add', 'remove'].indexOf(cmd.words[0]) === -1) {
-    api.chat.say(`Usage: ${cmd.name} <add/remove> <username list> - ` +
-      `add or remove regulars from the list of regular users`);
-    return;
+    return usage(api, cmd, '<add/remove> <username list>', `add or remove regulars
+      from the list of regular users`);
   }
 
   // Get the model that we're going to update

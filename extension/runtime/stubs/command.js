@@ -1,3 +1,12 @@
+'use strict';
+
+
+// =============================================================================
+
+
+const { usage } = require('../../utils');
+
+
 // =============================================================================
 
 
@@ -5,6 +14,11 @@
  * cmd is the details of the parsed command that is being executed, and userInfo
  * is the user that executed the command. */
 function stub_cmd(api, cmd, userInfo) {
+  if (cmd.words.length === 0) {
+    return usage(api, cmd, '<arg1> [arg2]', `does something with the two
+      given arguments, which is probably quite intereting.`);
+  }
+
   api.log.info('I am a stub command');
 }
 

@@ -3,6 +3,12 @@
 
 // =============================================================================
 
+
+const { usage } = require('../../utils');
+
+
+// =============================================================================
+
 /* This command allows for the hot reloading of commands and other items, either
  * by specifying their name or by using a filename glob to capture them.
  *
@@ -15,9 +21,8 @@ async function reload_items(api, cmd, userInfo) {
 
   // If nothing to reload was provided, show usage cmd and leave
   if (cmd.words.length === 0) {
-    api.chat.say(`Usage: ${cmd.name} [mode=(glob|*name)] <globspec|name> - ` +
-                 `hot reload the files that match the spec or name list`);
-    return;
+    return usage(api, cmd, '[mode=(glob|*name)] <globspec|name>', `hot reload
+      the files that match the spec or name list provided`);
   }
 
   // Get the mode the user asked for, defaulting to the name mode if one is

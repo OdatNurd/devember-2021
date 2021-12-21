@@ -5,6 +5,7 @@
 
 
 const { CommandParser } = require('../../core/command');
+const { usage } = require('../../utils');
 
 
 // =============================================================================
@@ -170,9 +171,8 @@ function parseCooldownSpec(spec) {
 function get_command_info(api, cmd, userInfo) {
   // We need to be given a command name.
   if (cmd.words.length === 0) {
-    api.chat.say(`Usage: ${cmd.name} <command> - ` +
-                 `display information about the given command or alias`);
-    return;
+    return usage(api, cmd, '<command>', `display information about the given
+      command or alias`);
   }
 
   // Get the target command or leave; on error, this displays an error for us.
@@ -227,13 +227,9 @@ async function change_enabled_state(api, cmd, userInfo) {
 
   // We need to be given a command name.
   if (cmd.words.length === 0) {
-    if (enabled) {
-      api.chat.say(`Usage: ${cmd.name} command - enable the given command so it can be executed`);
-    } else {
-      api.chat.say(`Usage: ${cmd.name} command - disable the given command so it can no longer be executed`);
-    }
-
-    return;
+    return usage(api, cmd, '<command>', (enabled === true)
+      ? `enable the given command so it can be executed`
+      : `disable the given command so it can no longer be executed`);
   }
 
   // Get the target command or leave; on error, this displays an error for us.
@@ -268,9 +264,8 @@ async function change_access_level(api, cmd, userInfo) {
 
   // We need to be given a command name.
   if (cmd.words.length < 1) {
-    api.chat.say(`Usage: ${cmd.name} <command> <${levels.join('|')}> - ` +
-                 `change the access level required to execute a command`);
-    return;
+    return usage(api, cmd, `<command> <${levels.join('|')}>`, `change the access
+      level required to execute a command`);
   }
 
   // Get the target command or leave; on error, this displays an error for us.
@@ -314,9 +309,9 @@ async function change_cmd_cooldown(api, cmd, userInfo) {
 
   // We need to be given a command name.
   if (cmd.words.length < 1) {
-    api.chat.say(`Usage: ${cmd.name} <command> <${specs.join('|')}> - ` +
-                 `specify the time required between invocations of a command`);
-    return;
+    return usage(api, cmd, `<command> <${specs.join('|')}>`, `specify the time
+      required between invocations of a command. The broadcaster and mods are
+      exempt from the cooldown restructions`);
   }
 
   // Get the target command or leave; on error, this displays an error for us.
@@ -369,8 +364,8 @@ function handle_alias_add(api, cmd, userInfo) {
   // For an add, we need to have at least 3 arguments; the add operation, the
   // command to add the alias to, and the new alias itself.
   if (cmd.words.length < 3) {
-    api.chat.say(`Usage: ${cmd.name} add <command> <alias> - ` +
-                 `add an alias for the command to be able to execute it via another name`);
+    usage(api, cmd, 'add <command> <alias>', `add an alias for the command to
+      be able to execute it via another name`);
     return errReturn;
   }
 
@@ -431,8 +426,7 @@ function handle_alias_remove(api, cmd, userInfo) {
   // alias that is to be removed. The command that is aliased to will be
   // inferred from the alias itself.
   if (cmd.words.length < 2) {
-    api.chat.say(`Usage: ${cmd.name} remove <alias> - ` +
-                 `remove an alias for a command`);
+    usage(api, cmd, 'remove <alias>', `remove a command alias`);
     return errReturn;
   }
 
@@ -472,9 +466,9 @@ async function modify_cmd_aliases(api, cmd, userInfo) {
   // At a minimum, we need to receive at least one argument, which will tell us
   // what we;re trying to do.
   if (cmd.words.length < 1) {
-    api.chat.say(`Usage: ${cmd.name} [add|remove] <command> [alias] - ` +
-                 `add or remove aliases for a command; specify only a command name to view it's aliases`);
-    return;
+    return usage(api, cmd, '[add|remove] <command> [alias]', `add or remove aliases
+      for a command; specify only a command name to view the aliases for that
+      command`);
   }
 
   let target = undefined;

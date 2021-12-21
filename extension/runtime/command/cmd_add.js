@@ -9,6 +9,7 @@ const path = require('path');
 const { existsSync, copyFileSync, constants } = require('fs');
 
 const { CommandParser } = require('../../core/command');
+const { usage } = require('../../utils');
 
 
 // =============================================================================
@@ -25,9 +26,8 @@ async function add_new_command(api, cmd, userInfo) {
   // the file that it should be stored in; if we don't have at least one
   // argument, then we're unhappy.
   if (cmd.words.length < 1) {
-    api.chat.say(`Usage: ${cmd.name} <newname> [sourceFile] - ` +
-                 `dynamically add a new command, optionally specifying the source file it lives in`);
-    return;
+    return usage(api, cmd, '<newname> [sourceFile]', `dynamically add a new command,
+      optionally specifying the source file it lives in`);
   }
 
   // Get the name of the new item and the file it should be implemented in.
@@ -133,8 +133,7 @@ async function remove_existing_command(api, cmd, userInfo) {
   // the file that it should be stored in; if we don't have at least one
   // argument, then we're unhappy.
   if (cmd.words.length < 1) {
-    api.chat.say(`Usage: ${cmd.name} <oldname> - dynamically remove an existing command`);
-    return;
+    return usage(api, cmd, '<oldname>', `dynamically remove an existing command`);
   }
 
   // Get the name of the command that we're removing.
