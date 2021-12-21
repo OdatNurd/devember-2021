@@ -25,7 +25,7 @@ const CommandSchema = {
 
   // Wether this command is enabled or not. Disabled commands cannot be
   // executed by anyone, regardless of circumstance.
-  enabled: { type: Boolean, defaultsTo: true },
+  enabled: { type: Boolean, defaultsTo: 1 },
 
   // The file that is expected to contain the implementation of this command.
   // This should be a relative path name; the bot will ensure that it's loaded
@@ -40,11 +40,11 @@ const CommandSchema = {
   // list of commands presented, stopping them from being hot loaded, etc.
   //
   // Currently, nothing takes advantage of this.
-  core: { type: Boolean, defaultsTo: false },
+  core: { type: Boolean, defaultsTo: 0 },
 
   // Wether this command is hidden or not. Hidden commands are not displayed
   // by commands that visually display the command list.
-  hidden: { type: Boolean, defaultsTo: false },
+  hidden: { type: Boolean, defaultsTo: 0 },
 
   // The access level required to execute this command. User access levels
   // must be equal to or lower than the value here to be able to execute the
