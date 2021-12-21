@@ -115,6 +115,21 @@ const commands = [
       hidden: 0,
       userLevel: 1,
       cooldown: 0
+  },
+
+  // Although this is a core command, it needs to have no cooldown and an access
+  // level of everyone. The command itself will track the last invocation of
+  // any of its aliases as needed to apply cooldowns on its own, and will also
+  // do its own access control.
+  {
+      name: "$text",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/text.js",
+      core: 1,
+      hidden: 0,
+      userLevel: 5,
+      cooldown: 0
   }
 ];
 
