@@ -33,7 +33,7 @@ const setup_db = require('./db/');
 const { setup_auth } = require('./auth');
 const setup_chat = require('./chat');
 const bootstrap_core_data = require('./bootstrap');
-const { CommandParser, CodeHandlerMap, BotCommand } = require('./core/');
+const { CommandParser, CodeHandlerMap, StaticHandlerMap, BotCommand, TextResponder } = require('./core/');
 
 
 // =============================================================================
@@ -183,8 +183,19 @@ module.exports = async function(nodecg) {
                             ? 'All commands loaded successfuly'
                             : cmdResult.map(err => `${err}\n${err.stack}`).join("\n");
 
+  // Create a static handler that associates the text responders in the database
+  // with available responders that can be triggered at runtime.
+  //
+  // This is similar to commands, but here the items have a single, static
+  // handler function and only need the text from the entries in order to
+  // trigger.
+  api.responders = new StaticHandlerMap(api, 'responders', data => new TextResponder(data));
+  api.responders.initialize();
+
   // When requested by the front end, send the initial log to them.
   api.nodecg.listenFor('get-initial-cmd-log', () => api.nodecg.sendMessage('set-cmd-log', initialCmdLog));
+
+
 };
 
 

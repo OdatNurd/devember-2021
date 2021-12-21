@@ -314,10 +314,18 @@ async function joinTwitchChat(api) {
         return;
       }
 
-      // The line contained a command, so either run it or complain that we
-      // don't know what it is.
+      // It seems like the line contains a command. If one was actually found
+      // then execute it. If not, check to see if it's a responder and trigger
+      // it.
+      //
+      // When there's no responder AND no command, log the missing command.
       if (cmd === null) {
-        api.log.error(`Unknown command: ${details.name}`);
+        const responder = api.responders.find(details.name);
+        if (responder !== null) {
+          responder.execute(api, rawMsg.userInfo);
+        } else {
+          api.log.error(`Unknown command: ${details.name}`);
+        }
       } else {
         cmd.execute(api, details, rawMsg.userInfo);
       }
