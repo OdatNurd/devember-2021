@@ -100,7 +100,7 @@ class CodeHandlerMap {
     async addItemStub(name) {
       // Sanity check; don't blow stuff up.
       if (this.find(name) !== null) {
-        api.log.error(`trying to add a new stub item ${name}in ${this.modelName} when it already exists`);
+        api.log.error(`trying to add a new stub item ${name} in ${this.modelName} when it already exists`);
         return;
       }
 
@@ -108,7 +108,7 @@ class CodeHandlerMap {
       // to make sure that it actually exists.
       const record = await this.dataModel.findOne({ name });
       if (record === undefined) {
-        api.log.error(`trying to add a new stub item ${name}in ${this.modelName} but no such record exists`);
+        api.log.error(`trying to add a new stub item ${name} in ${this.modelName} but no such record exists`);
         return;
       }
 
