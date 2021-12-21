@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito');
+
+html, body {
+  margin: 0px;
+  padding: 0px;
+  height:  100%;
+  overflow: hidden;
+  /*background: rgba(12, 12, 12, 1.0);*/
+}
+
+#container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+}
+
+.hide {
+  display: none;
+}
+
+#alert {
+  position: relative;
+}
+
+#alert-image {
+  width:  300px;
+  height: 300px;
+}
+
+#alert-text {
+  position: absolute;
+
+  /* Half the width of this minus half the width of the alert image */
+  left:  -200px;
+
+  padding: 16px;
+
+  font-family: 'Nunito', sans-serif;
+  font-size: 42px;
+  line-height: 44px;
+  font-weight: bold;
+
+
+  color: white;
+  text-align: center;
+  text-shadow: #2e1bbf 2px 2px 2px;
+
+  width: 700px;
+}
+
+#username {
+  display: inline-block;
+  color: rgb(8.9648, 29.198, 86.66);
+}
+
+#game {
+  display: inline-block;
+  color: orangered;
+}

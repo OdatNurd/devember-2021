@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SHOUTOUT!</title>
+  <link rel="stylesheet" href="css/shoutout.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="alert">
+      <img id="alert-image">
+      <div id="alert-text">
+      </div>
+    </div>
+  </div>
+
+  <script src="js/gsap/gsap.min.js"></script>
+
+  <!--
+    If you have a membership to Club GreenSock and have access to the bonus
+    plugins, you can include that plugin here and adjust the code below to
+    allow for text animations as well.
+
+  <script src="js/gsap/SplitText.min.js"></script>
+  -->
+
+  <script type="text/javascript">
+    // If the SplitText plugin is available, register it.
+    // gsap.registerPlugin(SplitText);
+
+    // Get the elements that make up the different parts of the animation so
+    // that we can manipulate them.
+    const alert = document.body.querySelector("#alert");
+    const alertText = document.body.querySelector("#alert-text");
+    const alertImage = document.body.querySelector("#alert-image");
+
+    // Register an effect for reuse; pulse the item you pass in. it will scale
+    // items up and down based on the configuration values provided, and return
+    // them to a provided scale which defaults to 100% when it's done.
+    gsap.registerEffect({
+      name: "pulse",
+      effect: (targets, config) => {
+      const quartTime = config.duration / 4;
+      const remTime = config.duration - (3 * quartTime);
+      return gsap
+        .to(targets, { keyframes: [
+                 { duration: quartTime, scale: config.lower },
+                 { duration: quartTime, scale: config.natural || 1.0},
+                 { duration: quartTime, scale: config.higher },
+                 { duration: remTime, scale: config.natural || 1.0},
+               ], repeat: config.repeat});
+      },
+      defaults: {repeat: 0, lower: 0.9, upper: 1.0},
+      extendTimeline: true
+    });
+
+    // The page structure and CSS outlines where the alert should be displayed;
+    // before we begin, move the parts to the positions that they should start
+    // animating from, which is off the right hand side of the screen
+    gsap.set(alert, {scale: 0.5, x: 1200});
+    gsap.set(alertText, {perspective: 400});
+
+    // Start an animation sequence, which will display the given text message.
+    // The values passed in specify the username of the person that's being
+    // shouted out, the name of the game that they were playing and a link to
+    // their profile image.
+    //
+    // The message can have %USERNAME$ and %GAME% placeholders to specify where
+    // the values will be inserted.
+    function startAnimation(msg, username, game, url) {
+      msg = msg.replace(/%USERNAME%/, `<div id="username">${username}</div>`)
+           .replace(/%GAME%/, `<div id="game">${game}</div>`);
+
+      // Include the text of the message and the user's profile image into the
+      // appropriate containers.
+      alertText.innerHTML = msg;
+      alertImage.src = url;
+
+      /* This section of code creates a "swirl" animation that uses the SplitText
+       * plugin to animate the incoming text so that it animates into the screen.
+       *
+       * In order to do this you need to have access to the SplitText bonus
+       * plugin only available to Club GreenSock members. It is still possible
+       * to animate text like this without the plugin, but one would have to
+       * manipulate the DOM into having all of the words in the message be
+       * wrapped in divs in order to animate them.
+
+      // Fetch the text that we're going to swirl and split it into parts
+      // so we can animate it.
+      const textParts = new SplitText(alertText, {type: "words, chars"});
+      // console.log(textParts.chars.length, textParts.words.length);
+
+      const swirl = gsap.from(textParts.chars, {
+        duration: 0.50,
+        opacity: 0,
+        scale: 0,
+        y: 100,
+        rotationX: 180,
+        transformOrigin: "0% 50% -50",
+        ease: "elastic",
+        stagger: 0.02
+      });
+      */
+
+      // Set up the animation that will cause the shoutout to happen. Each of
+      // the animations will run one after the other, causing the whole alert
+      // to slide in, pulse, and slide out.
+      const shoutout = gsap.timeline({id: 'shoutout'})
+        .add('beginShoutput')
+        .to(alert, {duration: 1, x: 0, ease: "power4.in"})
+        .to(alert, {duration: 0.25, scale: 1, ease: "power2.in"})
+
+        // .add('beginText')
+        // .add(swirl)
+
+        .add('beginPulse')
+        .pulse(alertImage, {duration: 5, lower: 0.9, higher: 1.1, repeat: 1})
+        .pulse('#username', {duration: 5, lower: 0.95, higher: 1.05, repeat: 1}, "beginPulse")
+        .pulse('#game', {duration: 5, lower: 0.95, higher: 1.05, repeat: 1}, "beginPulse")
+        .to(alert, {delay: 10, scale: 0.5, ease: "power2.out"}, "beginPulse")
+
+        .add('exitScene')
+        .to(alert, {duration: 0.75, x: 1200, ease: "power4.out"})
+    }
+
+    // Listen for a message from the back end that will tell us who we're
+    // shouting out. and then start the animation.
+    nodecg.listenFor('shoutout', info => {
+      startAnimation(info.msg, info.username, info.game || '', info.url);
+    });
+
+    // Start the animation manually on page load, as a simple test while doing
+    // development.
+    // startAnimation('This is a test shoutout message for %USERNAME%, who streams %GAME%',
+    //                'OdatNurd',
+    //                'Software and Game Development',
+    //                'https://static-cdn.jtvnw.net/jtv_user_pictures/c734d46c-712b-4ee7-af89-204cc97bc367-profile_image-300x300.png')
+
+  </script>
+</body>
+</html>

@@ -130,7 +130,27 @@ const commands = [
       hidden: 0,
       userLevel: 5,
       cooldown: 0
-  }
+  },
+
+
+  // ==================================================
+  // Commands below here are "regular" commands and not
+  // core commands; they're included here because they
+  // are included in the bot code and we need to
+  // bootstrap them if the database does not include
+  // them.
+  // ==================================================
+
+  {
+      name: "$shoutout",
+      aliases: ["$so"],
+      enabled: 1,
+      sourceFile: "command/shoutout.js",
+      core: 0,
+      hidden: 0,
+      userLevel: 1,
+      cooldown: 0
+  },
 ];
 
 
