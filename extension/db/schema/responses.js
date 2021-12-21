@@ -4,47 +4,47 @@
 // =============================================================================
 
 
-/* This schema is used by the core text command to represent simple text
- * responses in response to a command invocation; that is, commands which, when
- * invoked, get the bot to respond with some predefined text and that's all.
+/* This schema is used for represent text responders; a special class of
+ * commands which, when triggered, will cause the bot to generate text into the
+ * chat. These are commonly used to generate responses to often asked questions
+ * and the like.
  *
- * It associates an name with a string of text and allows for setting up a
- * simple text response from the bot without requiring custom code.
+ * Each entry here associates a main name and a set of potential aliases for the
+ * same thing, all of which associate with text to display, and contain a user
+ * level required to trigger them, and a cooldown timer.
  *
- * Since it is common to want a longer and shorter version of such commands,
- * this also supports an "alias" (or link) which can link multuiple entries
- * together such that multiple entries can associate with the same text without
- * reauiring many edits. */
-const ResponseSchema = {
-  // Unique ID for this entry
+ * This is very similar to commands, except that without a source file they
+ * need to be linked via special dispatcher in the chat code. */
+const ResponderSchema = {
+  // Unique ID for this text response entry
   id: 'increments',
 
-  // The textual name for this entry. This should ideally be a command name or
-  // alias of such, but the interpretation is up to the command that utilizes
-  // the data.
+  // The responder name and the aliases that it can be known by (which can be an
+  // empty list). All responders must have unique names. The name of responders
+  // and the aliases for them must always include a valid command prefix.
   name: { type: String, unique: true, nullable: false },
+  aliases: { type: Array, defaultsTo: [] },
 
-  // The ID value of another entry in the table that this entry should draw its
-  // text from. When this is 0, the text in the field below represents the text
-  // for this entry; otherwise the text for this entry comes from the linked ID.
-  link: { type: Number, defaultsTo: 0 },
-
-  // The text that represents this response.
+  // The text for the bot to say when this responder is triggered.
   text: { type: String, nullable: false, defaultsTo: '' },
 
-  // The access level required for this to execute; this is similar to how
-  // commands work, but here it's used to specify specific permissions for this
-  // particular expansion.
-  //
-  // When an item is linked, it inherits the userLevel of it's linked entry.
+  // The access level required to trigger this responder. User access levels
+  // must be equal to or lower than the value here to be able to trigger the
+  // responder.
+  //    0: isBroadcaster
+  //    1: isMod
+  //    2: isVip
+  //    3: isRegular
+  //    4: isSubscriber
+  //    5: isEveryone
   userLevel: { type: Number, defaultsTo: 0 },
 
   // When non zero, this is the amount of time in milliseconds that must elapsed
-  // between insertions of this message. Within the cooldown period, the command
-  // is silently dropped.
+  // between invocations of this responder. Within the cooldown period, the
+  // request for the response is silently dropped.
   //
   // Moderators and the Broadcaster are exempt from the cooldown period and may
-  // always execute a command even if it's in cooldown.
+  // always trigger a responder even if it's in cooldown.
   cooldown: { type: Number, defaultsTo: 0 }
 };
 
@@ -53,5 +53,5 @@ const ResponseSchema = {
 
 
 module.exports = {
-  ResponseSchema
+  ResponderSchema
 };
