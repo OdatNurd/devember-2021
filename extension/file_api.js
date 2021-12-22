@@ -139,7 +139,6 @@ async function setup_file_server(api) {
   // --------------------------------------------------------------------------
 
   runtime.get('/commands', async (req, res) => {
-    api.log.info(JSON.stringify(req.query));
     const query = queryFilter(req.query, ['id', 'name', 'enabled', 'sourceFile',
                                           'core', 'hidden', 'userLevel']);
     const result = await commands.find(query);
