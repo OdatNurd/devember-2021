@@ -1,79 +1,60 @@
 @font-face {
-    font-family: 'iosevka_ss09regular';
-    font-weight: normal;
-    font-style: normal;
-    src: url('../webfonts/iosevka-ss09-regular-webfont.woff2') format('woff2'),
-         url('../webfonts/iosevka-ss09-regular-webfont.woff') format('woff');
+  font-family: 'iosevka_ss09regular';
+  font-weight: normal;
+  font-style: normal;
+  src: url('../webfonts/iosevka-ss09-regular-webfont.woff2') format('woff2'),
+       url('../webfonts/iosevka-ss09-regular-webfont.woff') format('woff');
 }
 
 body {
-    margin: 8px;
-    padding: 0px;
+  margin: 8px;
+  padding: 0px;
 }
 
 #controls {
-    height: 30px;
-    display: grid;
-    grid-template-columns: 70% auto;
-    grid-template-rows: 30px;
-    column-gap: 10px;
-}
-
-.group {
-    display: flex;
-    flex-wrap: nowrap;
-    gap:  8px;
-
-    align-items: center;
-    /*justify-content: flex-end;*/
-}
-.group-end {
-    justify-content: flex-end;
-}
-
-/*.group select, .group button, .group label {*/
-.group * {
-    font-size: 20px;
-    height: 30px;
+  height: 35px;
+  display: flex;
+  justify-content: space-between;
 }
 
 #editor {
-    position: absolute;
-    top: 46px;
-    right: 0;
-    bottom: 28px;
-    left: 0;
+  position: absolute;
+  top: 54px;
+  right: 0;
+  bottom: 28px;
+  left: 0;
 }
 #statusBar {
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
 
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
 
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 
-    height: 28px;
-    line-height: 28px;
+  height: 28px;
+  line-height: 28px;
 
-    background-color: darkslateblue;
-    color: white;
+  background-color: darkslateblue;
+  color: white;
 }
 #statusBar.isDirty {
   background-color: darkred;
 }
 
 #statusBar span {
-     padding-left:  4px;
-     padding-right:  4px;
- }
+ padding-left:  4px;
+ padding-right:  4px;
+}
 
- #itemGroups {
-    width: 250px;
- }
- #itemList {
-    width: 400px;
- }
+#itemGroups {
+  width: 250px;
+}
+
+#itemList {
+  width: 400px;
+}

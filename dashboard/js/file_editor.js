@@ -2,6 +2,9 @@
 // used to determine what controls should be active.
 let isDirty = false;
 
+// The form that wraps the editor controls
+const fileControls = document.getElementById('file-controls');
+
 // Capture the select elements that we're going to be manipulating.
 const itemGroups = document.querySelector('#itemGroups');
 const itemList = document.querySelector('#itemList');
@@ -346,6 +349,11 @@ const setItems = async (selectTag, itemType) => {
     loadEditorText(itemType, firstID);
   }
 };
+
+// The file controls need to be inside of a form in order for the CSS library
+// to style them, but we handle our own button presses, so block the form's
+// ability to submit itself.
+fileControls.addEventListener('submit', e => e.preventDefault());
 
 // When the type of item changes, make a request to fetch the items of the
 // new type and populate them into the item list.

@@ -2,29 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" type="text/css" href="css/file_editor.css">
 </head>
 <body>
-  <div id="controls">
-    <div class="group">
-      <select id="itemGroups">
-        <option value="commands">Commands</option>
-<!--
-        <option value="channelpoints">Channel Point Redeems</option>
-        <option value="events">Events</option>
--->
-      </select>
-      <select id="itemList">
-      </select>
-    </div>
+  <form id="file-controls" class="pure-form">
+    <div id="controls">
+      <div>
+        <select id="itemGroups">
+          <option value="commands">Commands</option>
+  <!--
+          <option value="channelpoints">Channel Point Redeems</option>
+          <option value="events">Events</option>
+  -->
+        </select>
+        <select id="itemList">
+        </select>
+      </div>
 
-    <div class="group group-end">
-      <button id="saveBtn" disabled>Save</button>
-      <input type="checkbox" id="refreshOnSave" name="refreshOnSave" checked>
-      <label for="refreshOnSave"> Rehash on save</label>
-      <button disabled id="discardBtn">Discard</button>
+      <div>
+        <button id="saveBtn" class="pure-button" disabled>Save</button>
+        <input type="checkbox" id="refreshOnSave" name="refreshOnSave" checked>
+        <label for="refreshOnSave">Reload on Save</label>
+        <button id="discardBtn" class="pure-button" disabled>Discard</button>
+      </div>
     </div>
-  </div>
+  </form>
 
   <div id="editor"></div>
   <div id="statusBar"><span id="editor-status"></span><span id="editor-file">filename_here</span></div>
