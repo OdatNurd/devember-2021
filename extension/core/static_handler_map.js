@@ -78,8 +78,8 @@ class StaticHandlerMap  {
      * This only changes the handler list; the item isn't updated to know that
      * it has a new alias. For that, modify the entry manually. */
     addAlias(name, alias) {
-      const cmd = this.find(name);
-      if (cmd === null) {
+      const item = this.find(name);
+      if (item === null) {
         this.api.log.warn(`WARN: Alias ${alias} cannot be added to ${name}; aliased item was not found`);
         return
       }
@@ -92,7 +92,7 @@ class StaticHandlerMap  {
       }
 
       // Set the actual alias up
-      this.handlerList.set(alias, cmd)
+      this.handlerList.set(alias, item)
     }
 
     /* This will find the entry in the handler list that represents both the
@@ -103,21 +103,21 @@ class StaticHandlerMap  {
      * This only changes the handler list; the item isn't updated to know
      * that it has one fewer aliases. For that, modify the entry manualy. */
     removeAlias(name, alias) {
-      const cmd = this.find(name);
-      if (cmd === null) {
+      const item = this.find(name);
+      if (item === null) {
         this.api.log.warn(`WARN: Alias ${alias} cannot be added to ${name}; aliased item was not found`);
         return
       }
 
       // We need to find the entry that matches the alias; it both needs to
       // exist and have the same name as the item we found above.
-      const aliasCmd = this.find(alias);
-      if (aliasCmd === null) {
+      const aliasItem = this.find(alias);
+      if (aliasItem === null) {
         this.api.log.warn(`WARN: Alias ${alias} cannot be removed from ${name}; aliased item was not found`);
         return;
       }
 
-      if (aliasCmd.name !== cmd.name) {
+      if (aliasItem.name !== item.name) {
         this.api.log.warn(`WARN: Alias ${alias} is not an alias for ${name}; skipping removal`);
         return;
       }

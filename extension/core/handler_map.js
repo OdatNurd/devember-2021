@@ -119,54 +119,55 @@ class CodeHandlerMap {
       this.handlerList.set(item.name, item);
     }
 
-    /* This will find the entry in the handler list for the named command and
-     * then, if found, apply it as an alias to the command in the table. This
-     * will ensure that the alias is available and that the command being
-     * aliased exists,
+    /* This will find the entry in the handler list for the named item and then,
+     * if found, apply it as an alias to that item in the table. This will
+     * ensure that the alias is available and that the item being aliased
+     * exists,
      *
-     * This only changes the handler list; the command isn't updated to know
-     * that it has a new alias. For that, modify the cmd entry manually. */
+     * This only changes the handler list; the items themselves are not
+     * updated to know that they have a new alias. For that, modify the item
+     * entry manually. */
     addAlias(name, alias) {
-      const cmd = this.find(name);
-      if (cmd === null) {
-        this.api.log.warn(`WARN: Alias ${alias} cannot be added to ${name}; aliased command was not found`);
+      const item = this.find(name);
+      if (item === null) {
+        this.api.log.warn(`WARN: Alias ${alias} cannot be added to ${name}; parent was not found`);
         return
       }
 
-      // If there is already a command with this alias, we can't add one as it
+      // If there is already an item with this alias, we can't add one as it
       // would be a collision.
       if (this.find(alias) !== null) {
-        this.api.log.warn(`WARN: Alias ${alias} collides with ${this.modelName} name; skipping`);
+        this.api.log.warn(`WARN: Alias ${alias} collides with existing ${this.modelName} name; skipping`);
         return;
       }
 
       // Set the actual alias up
-      this.handlerList.set(alias, cmd)
+      this.handlerList.set(alias, item)
     }
 
     /* This will find the entry in the handler list that represents both the
-     * name and the alias, and if they both represent the same command, the
-     * alias will be removed from the list. A warning is generated if the alias
-     * doesn't exist or doesn't alias the given command.
+     * name and the alias, and if they both represent the same item, the alias
+     * will be removed from the list. A warning is generated if the alias
+     * doesn't exist or doesn't alias the given item.
      *
-     * This only changes the handler list; the command isn't updated to know
-     * that it has one fewer aliases. For that, modify the cmd entry manualy. */
+     * This only changes the handler list; the item isn't updated to know
+     * that it has one fewer aliases. For that, modify its entry manualy. */
     removeAlias(name, alias) {
-      const cmd = this.find(name);
-      if (cmd === null) {
-        this.api.log.warn(`WARN: Alias ${alias} cannot be added to ${name}; aliased command was not found`);
+      const item = this.find(name);
+      if (item === null) {
+        this.api.log.warn(`WARN: Alias ${alias} cannot be removed from ${name}; parent item was not found`);
         return
       }
 
       // We need to find the entry that matches the alias; it both needs to
-      // exist and have the same name as the command we found above.
-      const aliasCmd = this.find(alias);
-      if (aliasCmd === null) {
-        this.api.log.warn(`WARN: Alias ${alias} cannot be removed from ${name}; aliased command was not found`);
+      // exist and have the same name as the item we found above.
+      const aliasItem = this.find(alias);
+      if (aliasItem === null) {
+        this.api.log.warn(`WARN: Alias ${alias} cannot be removed from ${name}; aliased item was not found`);
         return;
       }
 
-      if (aliasCmd.name !== cmd.name) {
+      if (aliasItem.name !== item.name) {
         this.api.log.warn(`WARN: Alias ${alias} is not an alias for ${name}; skipping removal`);
         return;
       }
@@ -203,7 +204,7 @@ class CodeHandlerMap {
     }
 
     /* This takes the name of a new file and attempts to load it, adding in any
-     * new commands.
+     * new items.
      *
      * This should be a file that is not currently loaded, and is meant to be
      * used in situations where a new file needs to be added, since adding a new
@@ -497,7 +498,7 @@ class CodeHandlerMap {
      * in this list will be loaded in order to update the list.
      *
      * Once this is complete, any files that were previously loaded will have
-     * their commands and aliases removed, followed by new files being loaded
+     * their entries and aliases removed, followed by new files being loaded
      * and new items and aliases being added.
      *
      * The return value is a list of errors that occured while the reload was
@@ -514,49 +515,49 @@ class CodeHandlerMap {
       // item, remove the item and it's aliases from the list in preparation for
       // them to be recreated.
       //
-      // For each command we are removing, keep track of it's old data so that
-      // we can try and find them to reload them; command id values should never
+      // For each item we are removing, keep track of it's old data so that we
+      // can try and find them to reload them; the id values should never
       // change, but the files they're stored in might. So we don't want to rely
       // on that.
-      const cmds = [];
+      const items = [];
       for (const [name, item] of this.handlerList.entries()) {
         if (fileList.has(item.sourceFile) && name === item.name) {
-          // Store this command for later.
-          cmds.push(item)
+          // Store this item for later.
+          items.push(item)
 
-          // Remove the aliases and the command so that this item no longer
-          // exists and is ready to be replaced.
+          // Remove the aliases and the item so that it no longer exists and is
+          // ready to be replaced.
           this.#removeAliases(item);
           this.handlerList.delete(name);
           this.api.log.info(`Removing ${this.modelName}: ${name}`);
         }
       }
 
-      // Fetch from the database new information for all commands that we just
-      // removed; this should come up with the same number of commands but may
-      // end up generating potential warnings if a file name change makes the
-      // list of commands handled by a file different than it was.
+      // Fetch from the database new information for all items that we just
+      // removed; this should come up with the same number of items but may end
+      // up generating potential warnings if a file name change makes the list
+      // of items handled by a file different than it was.
       //
       // Here we use a series of promises because Trilogy does not seem to
       // support "in" in queries, and using the wrapped knex instance does not
       // pass the data through Trilogy's data manipulation layer when the
       // results come back.
       const newItemInfo = [];
-      const query = Promise.all(Array.from(cmds, cmd => this.dataModel.find(['id', '=', cmd.id])));
+      const query = Promise.all(Array.from(items, item => this.dataModel.find(['id', '=', item.id])));
       (await query).forEach(result => newItemInfo.push(...result));
 
       // If the items to reload is a different number than the items that we
       // just unloaded, some database entries have been removed, so generate a
-      // message to say what commands no longer exist.
-      if (newItemInfo.length !== cmds.length) {
+      // message to say which items no longer exist.
+      if (newItemInfo.length !== items.length) {
         // Determine which items are in the old list but not in the new list so
         // that we can see which are the ones that are missing. Array.some()
         // tells us if there's at least one item in the array that matches, so
         // we just need to determine which items are not matches.
-        const missing = cmds.filter(({ id: id1 }) => newItemInfo.some(({ id: id2 }) => id2 === id1) === false);
-        const names = missing.map(cmd => cmd.name);
+        const missing = items.filter(({ id: id1 }) => newItemInfo.some(({ id: id2 }) => id2 === id1) === false);
+        const names = missing.map(item => item.name);
 
-        this.api.log.warn(`During reload, some commands no longer exist in the database: ${names.join(', ')}`);
+        this.api.log.warn(`During reload, some ${this.modelName} no longer exist in the database: ${names.join(', ')}`);
       }
 
       // If there is nothing to reload now, then just return an empty error list
