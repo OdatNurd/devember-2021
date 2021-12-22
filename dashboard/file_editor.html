@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="css/file_editor.css">
+</head>
+<body>
+  <div id="controls">
+    <div class="group">
+      <select id="itemGroups">
+        <option value="commands">Commands</option>
+<!--
+        <option value="channelpoints">Channel Point Redeems</option>
+        <option value="events">Events</option>
+-->
+      </select>
+      <select id="itemList">
+      </select>
+    </div>
+
+    <div class="group group-end">
+      <button id="saveBtn" disabled>Save</button>
+      <input type="checkbox" id="refreshOnSave" name="refreshOnSave" checked>
+      <label for="refreshOnSave"> Rehash on save</label>
+      <button disabled id="discardBtn">Discard</button>
+    </div>
+  </div>
+
+  <div id="editor"></div>
+  <div id="statusBar"><span id="editor-status"></span><span id="editor-file">filename_here</span></div>
+
+  <script type="text/javascript" src="js/ace/ace.js"></script>
+  <script type="text/javascript" src="js/ace/ext-language_tools.js"></script>
+  <script type="text/javascript" src="js/file_editor.js"></script>
+</body>
+</html>

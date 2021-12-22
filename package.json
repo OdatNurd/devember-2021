@@ -35,6 +35,13 @@
         "file": "cmd_log.html",
         "headerColor": "#525F78",
         "workspace": "Commands"
+      },
+      {
+        "name": "Editor",
+        "title": "File Editor",
+        "fullbleed": true,
+        "file": "file_editor.html",
+        "headerColor": "#525F78"
       }
     ],
     "graphics": [
