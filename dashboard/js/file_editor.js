@@ -119,11 +119,15 @@ function markDirty(makeDirty) {
   itemGroups.disabled = isDirty;
   itemList.disabled = isDirty;
 
-  // The save and discard buttons should only be enabled while the file
-  // is dirty; otherwise they would be saving and discarding nothing of
-  // interest.
+  // The save button should only be enabled while the file is dirty; otherwise
+  // it would be saving nothing of interest.
   saveBtn.disabled = !isDirty;
-  discardBtn.disabled = !isDirty;
+
+  // The discard button should always be enabled, but the label on the button
+  // should change so that when the buffer isn't dirty, it appears to offer a
+  // reload, so that we can be assured that the file we're about to edit hasn't
+  // been touched elsewhere if it was already loaded.
+  discardBtn.innerText = (isDirty === true) ? 'Discard' : 'Reload';
 }
 
 // This is invoked to save the text currently in the editor back to the
@@ -162,12 +166,6 @@ async function saveEditorText() {
 // This is invoked to discard the contents of the buffer and put it back
 // into the state needed for the current file.
 function discardEditorText() {
-  // Do nothing if the file is not currently dirty, since there is nothing
-  // that would require us to revert.
-  if (isDirty === false) {
-    return;
-  }
-
   // Re-load the currentl selected item from the select lists, clobbering
   // over any existing text. This will also change the dirty state as
   // needed.
