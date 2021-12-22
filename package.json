@@ -52,6 +52,7 @@
     "@twurple/chat": "^5.0.10",
     "@twurple/eventsub": "^5.0.10",
     "axios": "^0.24.0",
+    "body-parser": "^1.19.1",
     "convict": "^6.2.1",
     "dotenv": "^10.0.0",
     "import-fresh": "^3.3.0",
