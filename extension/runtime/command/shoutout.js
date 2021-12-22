@@ -36,7 +36,6 @@ async function perform_shoutout(api, cmd, userInfo) {
 
     // If we were unable to look up the channel information for the user, we need
     // to adjust the messages accordingly.
-    console.log(channelInfo.gameName);
     if (channelInfo === null || channelInfo.gameName === '') {
       overlayMsg = 'Check out the amazing %USERNAME%, who totally rocks ALL of the kasbahs!';
       chatMsg = `You know who's super awesome? ${userDetails.displayName}! You should check them out at twitch.tv/${userDetails.name} `;

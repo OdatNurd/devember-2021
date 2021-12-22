@@ -30,6 +30,7 @@ const config = require('./config')(baseDir);
 const setup_twitch_api = require('./twitch_api');
 const setup_crypto = require('./crypto');
 const setup_db = require('./db/');
+const setup_file_server = require('./file_api');
 const { setup_auth } = require('./auth');
 const setup_chat = require('./chat');
 const bootstrap_core_data = require('./bootstrap');
@@ -161,6 +162,10 @@ module.exports = async function(nodecg) {
   // this method finishes and broadcasts that the appropriate accounts have been
   // authorized (if they were pre-authorized from a prior run).
   await setup_auth(api);
+
+  // Set up the routes that allow for the front end to query and save the
+  // contents of files for online editing.
+  await setup_file_server(api);
 
   // Create a code handler that associates the commands in the database with
   // the classes that know how to execute them as appropriate based on the
