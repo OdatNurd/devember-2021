@@ -1,11 +1,4 @@
 
-// TODO:
-//    - The command for setting up and editing text entries should have the
-//      ability to change the userlevel and cooldown on a per entry basis, and
-//      should respect that when invoked as an alias. Currently neither of those
-//      things happen.
-
-
 // =============================================================================
 
 

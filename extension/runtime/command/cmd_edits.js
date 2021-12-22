@@ -130,7 +130,7 @@ function displayableCooldown(cooldown) {
  *
  * If the incoming string is not in a recognized format, undefined will be
  * returned; otherwise the time in milliseconds is returned. */
-function parseCooldownSpec(spec) {
+function parseCooldownSpec(api, spec) {
   // The last character is the time specifier, and the remainder of the string
   // is the time in that unit; grab them both out.
   const value = spec.substr(0, spec.length - 1);
@@ -328,7 +328,7 @@ async function change_cmd_cooldown(api, cmd, userInfo) {
   }
 
   // Look up the appropriate user level based on the argument provided.
-  const cooldown = parseCooldownSpec(cmd.words[1]);
+  const cooldown = parseCooldownSpec(api, cmd.words[1]);
   if (cooldown === undefined) {
     api.chat.say(`${cmd.words[1]} is not a valid cool down specification; valid formats are: ${specs.join(',')}`);
     return;
