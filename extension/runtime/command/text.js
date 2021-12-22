@@ -1,5 +1,3 @@
-'use strict';
-
 
 // TODO:
 //    - The command for setting up and editing text entries should have the

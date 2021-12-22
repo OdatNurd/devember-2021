@@ -1,5 +1,3 @@
-'use strict';
-
 
 // =============================================================================
 
@@ -73,7 +71,7 @@ function debug_command(api, cmd, userInfo) {
   }
 
   api.chat.say(`chat message debug users adjusted; +${added}/-${removed}, ` +
-               `list is ${api.debugMsgsFrom.join(',')}`)
+               `list is ${api.debugMsgsFrom.join(',')}`);
 }
 
 

@@ -1,5 +1,3 @@
-'use strict';
-
 
 // =============================================================================
 
@@ -37,7 +35,7 @@ const access_options = {
   all: 5,
   everyone: 5,
   rabble: 5
-}
+};
 
 /* When displaying the access level of a command, this array maps the integral
  * access levels with a textual name. */
@@ -48,7 +46,7 @@ const access_display = [
   'regulars',
   'subscribers',
   'everyone'
-]
+];
 
 
 // =============================================================================
@@ -245,7 +243,7 @@ async function change_enabled_state(api, cmd, userInfo) {
   }
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, target, { enabled })
+  await storeCmdChanges(api, target, { enabled });
   api.chat.say(`the ${target.name} command status has been set to ${enabled === true ? 'enabled' : 'disabled'}`);
 }
 
@@ -283,12 +281,12 @@ async function change_access_level(api, cmd, userInfo) {
   // Look up the appropriate user level based on the argument provided.
   const userLevel = access_options[cmd.words[1]];
   if (userLevel === undefined) {
-    api.chat.say(`${cmd.words[1]} is not a valid access level; valid levels are: ${levels.join(',')}`)
+    api.chat.say(`${cmd.words[1]} is not a valid access level; valid levels are: ${levels.join(',')}`);
     return;
   }
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, target, { userLevel })
+  await storeCmdChanges(api, target, { userLevel });
   api.chat.say(`the access level for ${target.name} has been set to ${access_display[userLevel]}`);
 }
 
@@ -332,7 +330,7 @@ async function change_cmd_cooldown(api, cmd, userInfo) {
   // Look up the appropriate user level based on the argument provided.
   const cooldown = parseCooldownSpec(cmd.words[1]);
   if (cooldown === undefined) {
-    api.chat.say(`${cmd.words[1]} is not a valid cool down specification; valid formats are: ${specs.join(',')}`)
+    api.chat.say(`${cmd.words[1]} is not a valid cool down specification; valid formats are: ${specs.join(',')}`);
     return;
   }
 
@@ -340,7 +338,7 @@ async function change_cmd_cooldown(api, cmd, userInfo) {
                    `a cool down of ${displayableCooldown(cooldown)}`;
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, target, { cooldown })
+  await storeCmdChanges(api, target, { cooldown });
   api.chat.say(`the cool down time for ${target.name} has been set to ${newCool}`);
 }
 
@@ -402,7 +400,7 @@ function handle_alias_add(api, cmd, userInfo) {
     return errReturn;
   }
 
-  return [target, alias, { aliases: [...target.aliases, alias] }]
+  return [target, alias, { aliases: [...target.aliases, alias] }];
 }
 
 

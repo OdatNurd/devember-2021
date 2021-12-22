@@ -1,5 +1,3 @@
-'use strict';
-
 // TODO:
 //   - It would be nice if we captured the output to stdout and stdin so that
 //     we could see the chat and other output live in the panel. This is

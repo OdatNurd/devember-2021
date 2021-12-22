@@ -1,5 +1,3 @@
-'use strict';
-
 
 // =============================================================================
 
@@ -39,7 +37,7 @@ function modify_role(api, cmd, userInfo) {
   // With at least one argument, the arg must be the word 'default'; otherwise
   // show 1 information.
   if (cmd.words[0] !== 'default') {
-    return api.chat.say(`To change the default, ${cmd.name} default [newDefault]`)
+    return api.chat.say(`To change the default, ${cmd.name} default [newDefault]`);
   }
 
   // The second word is the new role; undefined and the string 'none' both map

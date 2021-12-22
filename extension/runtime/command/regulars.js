@@ -1,5 +1,3 @@
-'use strict';
-
 
 // =============================================================================
 
@@ -73,7 +71,7 @@ async function modify_regulars(api, cmd, userinfo) {
 
   // If any lookups failed, let the user know
   if (unknown.length !== 0) {
-    api.chat.say(`check spelling? unable to look up: ${unknown.join(', ')}`)
+    api.chat.say(`check spelling? unable to look up: ${unknown.join(', ')}`);
   }
 }
 
