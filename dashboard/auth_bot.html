@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="css/common.css">
+</head>
+<body>
+  <div class="pure-g">
+
+    <div class="pure-u-1">
+      <bot-card>
+        <user-info>
+          <img id="bot-avatar" src="res/img/auth/bot-avatar.png">
+          <user-details>
+            <text-line id="bot-user"></text-line>
+            <text-line id="bot-type"></text-line>
+            <text-line id="bot-date"></text-line>
+          </user-details>
+        </user-info>
+
+        <user-description id="bot-about"></user-description>
+
+        <panel-buttons>
+          <a id="bot-auth-link" href="#" target="_top"><button class="pure-button" id="bot-authorize-btn">Authorize with Bot Account</button></a>
+        </panel-buttons>
+      </bot-card>
+    </div>
+
+  </div>
+
+  <script type="text/javascript" src="js/auth.js"></script>
+  <script type="text/javascript">
+    // Listen for an incoming message that gives us information on the account
+    // being used for the bot, and when received display it. Then, request that
+    // the back end provide us the bot information so we can populate the page.
+    nodecg.listenFor('bot-user-info', botInfo => displayLoginInfo('bot', botInfo))
+    nodecg.sendMessage('get-bot-user-info');
+  </script>
+</body>
+</html>

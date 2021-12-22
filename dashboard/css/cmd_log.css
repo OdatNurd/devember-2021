@@ -1,18 +1,3 @@
-html, button, input, select, textarea,
-.pure-g [class *= "pure-u"] {
-  font-family: 'Roboto', sans-serif;
-}
-
-cmd-card {
-  display: block;
-}
-
-cmd-card {
-  padding: 1em;
-  margin:  1em;
-  border: 1px solid #525F78;
-  border-radius: 5px;
-}
 
 .log {
   white-space: pre;

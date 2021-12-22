@@ -6,7 +6,7 @@
 // bot account authorized (and thus nothing can happen with the bot) and that
 // the user should authorize with the account that the bot should run as.
 const botDefaults = {
-  avatar: 'res/img/twitch/bot-avatar.png',
+  avatar: 'res/img/auth/bot-avatar.png',
   acctType: '',
   joinDate: '',
   about: `
@@ -31,7 +31,7 @@ const botDefaults = {
 //
 // This is used as the above, but in a different panel.
 const chanDefaults = {
-  avatar: 'res/img/twitch/user-avatar.png',
+  avatar: 'res/img/auth/user-avatar.png',
   acctType: '',
   joinDate: '',
   about: `
@@ -50,16 +50,6 @@ const chanDefaults = {
   deauthBtnText: 'Leave Channel',
   authBtnText: 'Authorize Bot for your Channel',
 };
-
-
-// =============================================================================
-
-
-// When we ask the back end code for information on the user that the bot is
-// running as, it responds by dispatching this message to tell us. We use the
-// information to set up the panel as appropriate.
-nodecg.listenFor('bot-user-info', botInfo => displayLoginInfo('bot', botInfo))
-nodecg.listenFor('user-user-info', userInfo => displayLoginInfo('user', userInfo))
 
 
 // =============================================================================
@@ -125,29 +115,6 @@ function displayLoginInfo(panel, acctInfo) {
     authLink.href = defaults.authLink;;
   }
 }
-
-
-// =============================================================================
-
-
-// When the page loads, ask the back end for the information on the currently
-// active bot account, if any. The result of this will be a call to the code
-// that sets up the panel as appropriate.
-nodecg.sendMessage('get-bot-user-info');
-nodecg.sendMessage('get-user-user-info');
-
-// The panel has input buttons and forms that can be used to make the bot say
-// text or do actions. Grab the appropriate elements.
-const form = document.getElementById('bot-speak');
-const text = document.getElementById('text-to-say');
-const method = document.getElementById('text-send-method');
-
-// Respond to submitting the form by sending text to the chat via a message.
-form.addEventListener('submit', e => {
-  e.preventDefault();
-  text.select();
-  nodecg.sendMessage(method.value === 'say' ? 'say-in-chat' : 'do-in-chat', text.value);
-});
 
 
 // =============================================================================

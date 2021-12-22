@@ -14,12 +14,6 @@ bot-card {
   border-radius: 5px;
 }
 
-bot-card > h1 {
-  text-align: center;
-  border-bottom: 1px solid #525f78;
-  margin: 4px;
-}
-
 bot-card > legend {
   border-bottom: 1px solid #525f78;
   margin: 1em 4px 4px 4px;
@@ -46,6 +40,17 @@ user-description {
 panel-buttons {
   padding-top: 1em;
   text-align: right;
+}
+
+cmd-card {
+  display: block;
+}
+
+cmd-card {
+  padding: 1em;
+  margin:  1em;
+  border: 1px solid #525F78;
+  border-radius: 5px;
 }
 
 .flex {

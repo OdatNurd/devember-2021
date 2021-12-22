@@ -7,20 +7,28 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="css/common.css">
-  <link rel="stylesheet" type="text/css" href="css/cmd_log.css">
 </head>
 <body>
-
   <div class="pure-g">
 
     <div class="pure-u-1">
-      <cmd-card class="log" id="log-data">
-        No log data loaded.
-      </cmd-card>
+      <bot-card>
+        <legend>Send text to the chat</legend>
+        <form id="bot-speak" class="pure-form">
+          <fieldset class="flex">
+              <input id="text-to-say" class="flex-grow" placeholder="Send text to chat as the bot" />
+              <select id="text-send-method" class="mx-sm">
+                <option value="say">text</option>
+                <option value="do">action</option>
+              </select>
+              <button type="submit" class="pure-button pure-button-primary ">Send</button>
+          </fieldset>
+        </form>
+      </bot-card>
     </div>
 
   </div>
 
-  <script type="text/javascript" src="js/cmd_log.js"></script>
+  <script type="text/javascript" src="js/bot.js"></script>
 </body>
 </html>

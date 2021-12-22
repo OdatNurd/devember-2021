@@ -22,11 +22,28 @@
     "compatibleRange": "^1.1.1",
     "dashboardPanels": [
       {
-        "name": "twitch",
-        "title": "Twitch",
-        "file": "twitch.html",
-        "fullbleed": true,
-        "headerColor": "#525F78"
+        "name": "bot",
+        "width": 4,
+        "title": "Bot Account",
+        "file": "auth_bot.html",
+        "headerColor": "#525F78",
+        "workspace": "Auth"
+      },
+      {
+        "name": "channel",
+        "width": 4,
+        "title": "Twitch Channel",
+        "file": "auth_channel.html",
+        "headerColor": "#525F78",
+        "workspace": "Auth"
+      },
+      {
+        "name": "bot-commands",
+        "width": 4,
+        "title": "Communication",
+        "file": "bot_cmd.html",
+        "headerColor": "#525F78",
+        "workspace": "Bot"
       },
       {
         "name": "results",
