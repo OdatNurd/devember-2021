@@ -71,6 +71,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@google-cloud/text-to-speech": "^3.4.0",
     "@twurple/api": "^5.0.13",
     "@twurple/auth": "^5.0.13",
     "@twurple/chat": "^5.0.13",
