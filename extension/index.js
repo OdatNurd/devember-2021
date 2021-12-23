@@ -31,7 +31,10 @@ const setup_db = require('./db/');
 const setup_file_server = require('./file_api');
 const { setup_auth } = require('./auth');
 const setup_chat = require('./chat');
+const setup_tts = require('./google_tts');
 const bootstrap_core_data = require('./bootstrap');
+
+
 const { CommandParser, CodeHandlerMap, StaticHandlerMap, BotCommand, TextResponder } = require('./core/');
 
 
@@ -160,6 +163,11 @@ module.exports = async function(nodecg) {
   // this method finishes and broadcasts that the appropriate accounts have been
   // authorized (if they were pre-authorized from a prior run).
   await setup_auth(api);
+
+  // Set up the Text to Speech system; this provides an endpoint that we can
+  // use to cause the bot to speak text in a variety of different voices and
+  // languages.
+  setup_tts(api);
 
   // Set up the routes that allow for the front end to query and save the
   // contents of files for online editing.
