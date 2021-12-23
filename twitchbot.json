@@ -40,5 +40,20 @@
     // at the same time. Roles allow commands to be directed to specific
     // instances of the bot.
     "role": null,               // TWITCHBOT_ROLE
+  },
+
+  // The configuration options for the TTS system, which is powered by Google's
+  // TTS API. The settings here control the voice used and it's parameters. For
+  // details on what can be used here, see:
+  //
+  //  https://cloud.google.com/text-to-speech/docs/voices
+  //
+  // In order for TTS to be configured, the GOOGLE_APPLICATION_CREDENTIALS
+  // environment variable must be set and must point to the JSON file that
+  // provides the auth information for your Google Service Account.
+  "tts": {
+    "language": null,          // TWITCHBOT_TTS_LANGUAGE
+    "gender": null,            // TWITCHBOT_TTS_GENDER
+    "voice": null,             // TWITCHBOT_TTS_VOICE
   }
 }

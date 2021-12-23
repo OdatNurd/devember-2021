@@ -112,6 +112,36 @@ const config = convict({
       env: 'TWITCHBOT_ROLE',
       default: 'dev'
     }
+  },
+
+  // These items relate to the configuration of the TTS system (powered by
+  // Google's TTS API). They specify the different parameters that can be used
+  // to select the voice that is used.
+  //
+  // In order for the Google TTS system to work, the
+  // GOOGLE_APPLICATION_CREDENTIALS variable must be set and point to the file
+  // that has the appropriate credentials for the application inside. That is
+  // not configured here (though you could store it in your .env file); if it's
+  // not set, then TTS will be disabled.
+  tts: {
+    language: {
+      doc: 'The language that the TTS system should use to speak',
+      format: '*',
+      env: 'TWITCHBOT_TTS_LANGUAGE',
+      default: 'en-US'
+    },
+    gender: {
+      doc: 'The gender of the TTS voice',
+      format: ['MALE', 'FEMALE'],
+      env: 'TWITCHBOT_TTS_GENDER',
+      default: 'MALE'
+    },
+    voice: {
+      doc: 'The name of the voice used to speak',
+      format: '*',
+      env: 'TWITCHBOT_TTS_VOICE',
+      default: 'en-US-Standard-J'
+    }
   }
 });
 
