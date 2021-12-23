@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="css/common.css">
+</head>
+<body>
+  <div class="pure-g">
+
+    <div class="pure-u-1">
+      <bot-card>
+        <legend>Send text through the Google TTS System</legend>
+        <form id="bot-speak" class="pure-form">
+          <fieldset class="flex">
+              <input id="text-to-say" class="flex-grow" placeholder="Speak this text" />
+              <select id="text-language" class="mx-sm">
+                <option value="en-AU">en-AU</option>
+                <option value="en-IN">en-IN</option>
+                <option value="en-GB">en-GB</option>
+                <option value="en-US">en-US</option>
+              </select>
+              <select id="text-gender" class="mx-sm">
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+              </select>
+              <select id="text-voice" class="mx-sm">
+                <optgroup label="en-AU Standard">
+                  <option value="en-AU-Standard-A">Standard A</option>
+                  <option value="en-AU-Standard-B">Standard B</option>
+                  <option value="en-AU-Standard-C">Standard C</option>
+                  <option value="en-AU-Standard-D">Standard D</option>
+                </optgroup>
+                <optgroup label="en-AU Wavenet">
+                  <option value="en-AU-Wavenet-A">Wavenet A</option>
+                  <option value="en-AU-Wavenet-B">Wavenet B</option>
+                  <option value="en-AU-Wavenet-C">Wavenet C</option>
+                  <option value="en-AU-Wavenet-D">Wavenet D</option>
+                </optgroup>
+
+                <optgroup label="en-IN Standard">
+                  <option value="en-IN-Standard-A">Standard A</option>
+                  <option value="en-IN-Standard-B">Standard B</option>
+                  <option value="en-IN-Standard-C">Standard C</option>
+                  <option value="en-IN-Standard-D">Standard D</option>
+                </optgroup>
+                <optgroup label="en-IN Wavenet">
+                  <option value="en-IN-Wavenet-A">Wavenet A</option>
+                  <option value="en-IN-Wavenet-B">Wavenet B</option>
+                  <option value="en-IN-Wavenet-C">Wavenet C</option>
+                  <option value="en-IN-Wavenet-D">Wavenet D</option>
+                </optgroup>
+
+                <optgroup label="en-GB Standard">
+                  <option value="en-GB-Standard-A">Standard A</option>
+                  <option value="en-GB-Standard-B">Standard B</option>
+                  <option value="en-GB-Standard-C">Standard C</option>
+                  <option value="en-GB-Standard-D">Standard D</option>
+                  <option value="en-GB-Standard-F">Standard F</option>
+                </optgroup>
+                <optgroup label="en-GB Wavenet">
+                  <option value="en-GB-Wavenet-A">Wavenet A</option>
+                  <option value="en-GB-Wavenet-B">Wavenet B</option>
+                  <option value="en-GB-Wavenet-C">Wavenet C</option>
+                  <option value="en-GB-Wavenet-D">Wavenet D</option>
+                  <option value="en-GB-Wavenet-F">Wavenet F</option>
+                </optgroup>
+
+                <optgroup label="en-US Standard">
+                  <option value="en-US-Standard-A">Standard A</option>
+                  <option value="en-US-Standard-B">Standard B</option>
+                  <option value="en-US-Standard-C">Standard C</option>
+                  <option value="en-US-Standard-D">Standard D</option>
+                  <option value="en-US-Standard-E">Standard E</option>
+                  <option value="en-US-Standard-F">Standard F</option>
+                  <option value="en-US-Standard-G">Standard G</option>
+                  <option value="en-US-Standard-H">Standard H</option>
+                  <option value="en-US-Standard-I">Standard I</option>
+                  <option value="en-US-Standard-J">Standard J</option>
+                </optgroup>
+                <optgroup label="en-US Wavenet">
+                  <option value="en-US-Wavemet-A">Wavemet A</option>
+                  <option value="en-US-Wavemet-B">Wavemet B</option>
+                  <option value="en-US-Wavemet-C">Wavemet C</option>
+                  <option value="en-US-Wavemet-D">Wavemet D</option>
+                  <option value="en-US-Wavemet-E">Wavemet E</option>
+                  <option value="en-US-Wavemet-F">Wavemet F</option>
+                  <option value="en-US-Wavemet-G">Wavemet G</option>
+                  <option value="en-US-Wavemet-H">Wavemet H</option>
+                  <option value="en-US-Wavemet-I">Wavemet I</option>
+                  <option value="en-US-Wavemet-J">Wavemet J</option>
+                </optgroup>
+
+              </select>
+              <button type="submit" class="pure-button pure-button-primary ">Say</button>
+          </fieldset>
+        </form>
+      </bot-card>
+    </div>
+
+  </div>
+
+  <script type="text/javascript" src="js/bot_say.js"></script>
+</body>
+</html>

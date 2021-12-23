@@ -38,10 +38,18 @@
         "workspace": "Auth"
       },
       {
-        "name": "bot-commands",
-        "width": 4,
-        "title": "Communication",
-        "file": "bot_cmd.html",
+        "name": "bot-chat",
+        "width": 6,
+        "title": "Chat Actions",
+        "file": "bot_chat.html",
+        "headerColor": "#525F78",
+        "workspace": "Bot"
+      },
+      {
+        "name": "bot-say",
+        "width": 6,
+        "title": "Text To Speech",
+        "file": "bot_say.html",
         "headerColor": "#525F78",
         "workspace": "Bot"
       },

@@ -110,6 +110,17 @@ function setup_tts(api) {
     api.nodecg.sendMessage('stream-tts', id);
   };
 
+  // Respond to a request to speak text from the dashboard or an overlay by
+  // triggering the appropriate back end method.
+  api.nodecg.listenFor('trigger-tts', info => {
+    api.log.info(info);
+    api.tts.speak(info.text, {
+      language: info.language,
+      gender: info.gender,
+      voice: info.voice
+    });
+  });
+
   // Set up a route that will proxy a request for a specific job ID to google,
   // sending the resulting audio back to whoever made the request. The URL
   // needs to contain an ID value that is the UUID of the job, allowing us to
