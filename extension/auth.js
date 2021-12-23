@@ -206,7 +206,7 @@ async function handleAuthCallback(api, state, name, req, res)  {
  * request comes back we can verify that it's valid and not a potential spoof
  * attempt. */
 function performTokenAuth(api, name, req, res) {
-  const bot_scopes = 'chat:read chat:edit';
+  const bot_scopes = 'chat:read chat:edit whispers:read whispers:edit channel:moderate';
   const user_scopes = 'user:read:email'
 
   const params = {

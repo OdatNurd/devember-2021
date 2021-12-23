@@ -256,7 +256,7 @@ async function joinTwitchChat(api) {
   const chat = new ChatClient({
     authProvider: api.chat.auth,
     channels: [api.chat.channel],
-    botLevel: "none",   // "none", "known" or "verified"
+    botLevel: "known",   // "none", "known" or "verified"
 
     // When this is true, the code assumes that the bot account is a mod and
     // uses a different rate limiter. If the bot is not ACTUALLY a mod and you
@@ -327,6 +327,11 @@ async function joinTwitchChat(api) {
       } else {
         cmd.execute(api, details, rawMsg.userInfo);
       }
+    }),
+
+    // Whenever we get a whispered message, log it.
+    chat.onWhisper((user, message, rawMsg) => {
+      api.log.info(`WHISPER from ${user}: ${message}`);
     }),
 
     // Whenever an action appears in the chat, display it to the console.
