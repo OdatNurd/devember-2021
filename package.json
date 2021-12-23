@@ -66,6 +66,11 @@
         "file": "shoutout.html",
         "width": 1920,
         "height": 1080
+      },
+      {
+        "file": "tts.html",
+        "width": 1920,
+        "height": 1080
       }
     ]
   },

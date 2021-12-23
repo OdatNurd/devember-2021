@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <script>
+        // This audio tag is used for all of our TTS operations. The src is
+        // given a URL on the server that will respond with the appropriate
+        // audio for the text to be spoken.
+        const audioTag = document.createElement('audio');
+
+        // Only one TTS operation can be undertaken, so we have a queue of items
+        // implemented using an array. For simple expedience, we track whether
+        // we think we're speaking or not, which is set to true when we start a
+        // voice request and false when it finishes.
+        const speech = [];
+        let speaking = false;
+
+        // Start playback on the audio element whenever the browser thinks it's
+        // loaded enough of the speech data for it to finish, and when playback
+        // ends check to see if there's more text queued to speak.
+        audioTag.addEventListener('canplaythrough', e => audioTag.play());
+        audioTag.addEventListener('ended', e => {
+            speaking = false;
+            play();
+        });
+
+        // Try to start text synthesis for the next chunk of text; if there is
+        // not one, or speech is already in progress, silently do nothing;
+        // events will ensure that when the current job finishes we check again
+        // automagically.
+        function play() {
+            if (speaking) {
+                return;
+            }
+            const id = speech.shift();
+            if (id !== undefined) {
+                audioTag.src = `/tts/${id}`;
+                speaking = true;
+            }
+        }
+
+        // When we're asked to speak, push the job ID onto the queue and then
+        // try to play; if there is already a job running the play will do
+        // nothing. Whenever a playback finishes, the queue is checked to see
+        // if there's another job.
+        nodecg.listenFor('stream-tts', id => {
+            speech.push(id);
+            play();
+        });
+    </script>
+</body>
+</html>
