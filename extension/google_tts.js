@@ -30,7 +30,7 @@ const path = require('path');
  *
  * The overlay responds by hitting our server for that UUID, which will proxy
  * the results back into the overlay to be played.
-  *    - api.tts.say */
+  *    - api.tts.speak */
 function setup_tts(api) {
   // The TTS system adds a new item to the overall API that carries the default
   // configured speech parameters.

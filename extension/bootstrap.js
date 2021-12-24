@@ -144,6 +144,16 @@ const commands = [
       userLevel: 1,
       cooldown: 0
   },
+  {
+      name: "$tts",
+      aliases: ["$say"],
+      enabled: 1,
+      sourceFile: "command/tts_speak.js",
+      core: 0,
+      hidden: 0,
+      userLevel: 1,
+      cooldown: 0
+  },
 ];
 
 
