@@ -79,6 +79,11 @@
         "file": "tts.html",
         "width": 1920,
         "height": 1080
+      },
+      {
+        "file": "drop_game.html",
+        "width": 1920,
+        "height": 1080
       }
     ]
   },

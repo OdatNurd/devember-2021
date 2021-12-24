@@ -154,6 +154,67 @@ const commands = [
       userLevel: 1,
       cooldown: 0
   },
+
+  {
+      name: "$drop",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/drop_game.js",
+      core: 0,
+      hidden: 0,
+      userLevel: 5,
+      cooldown: 0
+  },
+  {
+      name: "$cut",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/drop_game.js",
+      core: 0,
+      hidden: 0,
+      userLevel: 5,
+      cooldown: 0
+  },
+  {
+      name: "$abdicate",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/drop_game.js",
+      core: 0,
+      hidden: 0,
+      userLevel: 5,
+      cooldown: 0
+  },
+  {
+      name: "$bdrop",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/drop_game.js",
+      core: 0,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },
+  {
+      name: "$bcut",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/drop_game.js",
+      core: 0,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },
+  {
+      name: "$babdicate",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "command/drop_game.js",
+      core: 0,
+      hidden: 0,
+      userLevel: 0,
+      cooldown: 0
+  },
 ];
 
 

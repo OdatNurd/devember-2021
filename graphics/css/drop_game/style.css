@@ -1,0 +1,345 @@
+body {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: black;
+  overflow: hidden;
+}
+
+/* For simplicity, target all divs; in a real world thing we'd want to
+ * target this more directly. */
+div {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-family: arial;
+  font-size: 12px;
+  color: white;
+  text-align: center;
+}
+
+/* This class styles the buttons in the test interface, positioning them
+ * at a specific location on the screen (which must be set per button as
+ * desired). */
+.button {
+  position: absolute;
+  width: 64px;
+  height: 16px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 2px solid black;
+  background: #666666;
+  color: white;
+  text-decoration: none;
+  display: block;
+  font-size: 16px;
+  line-height: 16px;
+  font-family: arial;
+  text-align: center;
+}
+
+/* Apply a different background to buttons that are currently being hovered
+ * using the hover psuedoclass. */
+.button:hover {
+  background: darkorange;
+}
+
+/* Style the button used for testing purposes to trigger drops. */
+#button-drop {
+  top: 16px;
+  left: 16px;
+}
+
+/* Style the button used for testing purposes to trigger cuts. */
+#button-cut {
+  top: 16px;
+  left: 112px;
+}
+
+/* Style the button used for testing purposes to trigger abdication. */
+#button-abdicate {
+  top: 16px;
+  left: 208px;
+}
+
+/* Style the button used for testing purposes to trigger number bumping. */
+#button-bump {
+  top: 16px;
+  left: 304px;
+}
+
+
+/* The div with this ID fills the content of the page and is the container that
+ * the DOM sprites or sprite groups are stored inside of. */
+#viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Stop items from being displayed; applied to the parachute while it's supposed
+ * to be invisible as well as the score plate, which is deferred until the
+ * score is known. */
+.hide {
+  display: none;
+}
+
+/* Droppers that don't land on the target get this class added to them so that
+ * they are less obtrusive, because nobody wants to look at a loser. */
+.loser {
+  opacity: 0.70;
+}
+
+/* Droppers that fail will have this class added to their class list when their
+ * death animation is applied, so that they will stay all dead after they're
+ * faded out. */
+.ghost {
+  opacity: 0.0;
+}
+
+/* These keyframes are for deploying the parachute when the drop initiates; they
+ * scale the parachute up to full size from the bottom center, to give the
+ * illusion that it's billowing out after you pull the cord. */
+@keyframes deployParachute {
+  0% {
+    transform: scale(0.01);
+  }
+  100% {
+    transform: scale(1.0);
+  }
+}
+
+/* An animation that can be applied to scale something from 0.01% of its size
+ * up to 100% of it's size, scaling from the center bottom of the image. This
+ * is used to "deploy" the parachute. */
+.deployChute {
+  animation: deployParachute 0.5s cubic-bezier(0.58, 0.11, 0.26, 1.21);
+  transform-origin: 50% 100%;
+}
+
+
+/* These keyframes are for releasing the parachute when a drop ends or when it's
+ * cut by the player. It fades the parachute out while scaling it down and
+ * translating upwards and to the right a little. */
+@keyframes releaseParachute {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(12px, -56px) scale(0.8);
+  }
+}
+
+/* An animation that can be applied to translate something up and away from it's
+ * current location while also fading out. This is similar to the animation used
+ * when a dropper dies, but in the other direction. */
+.releaseChute {
+  animation: releaseParachute 0.5s cubic-bezier(0.58, 0.11, 0.26, 1.21);
+  transform-origin: 50% 100%;
+}
+
+/* These keyframes describe an animation that causes the element to slowly sway
+ * to the left and right infinitely. The crossing point of the sway happens
+ * between key frames. */
+@keyframes dropperSway {
+  0% {
+    transform: rotate(8deg);
+  }
+  50% {
+    transform: rotate(-8deg);
+  }
+  100% {
+    transform: rotate(8deg);
+  }
+}
+
+/* An animation that can be applied to cause something to sway slowly from
+ * side to side from it's center-top side.
+ *
+ * The animation delay starts the animation at the point it would be at after
+ * that many seconds. This is because the first frame of the animation is
+ * at 8 degrees rotated, which looks odd. Thus the animation starts more in an
+ * upright portion of the animation. */
+.sway {
+  animation: dropperSway 7s ease-in-out infinite;
+  animation-delay: -5.25s;
+  transform-origin: 50% 0%;
+}
+
+/* These keyframes apply an animation that brings something from full
+ * transparency to fully opaque, for use in fading in an element. */
+@keyframes fadeInElement {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* An animation that can be applied to fade an element in from full
+ * transparency. */
+.fadeIn {
+  animation: fadeInElement 0.5s cubic-bezier(0.58, 0.11, 0.26, 1.21);
+}
+
+
+/* These keyframes apply an animation that brings something from fully
+ * opaque to fully transparent, for use in fading out an element. */
+@keyframes fadeOutElement {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* An animation that can be applied to fade an element out from full
+ * opaqueness. */
+.fadeOut {
+  animation: fadeOutElement 0.5s cubic-bezier(0.58, 0.11, 0.26, 1.21);
+}
+
+/* These keyframes "reap" a dropper that is considered to be a loser by fading
+ * it out as it translates out of the bottom of the screen. */
+@keyframes reapDropper {
+  0% {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(56px);
+  }
+}
+
+/* An animation that is used to "reap" a dead dropper, which includes one that
+ * is not a winner as well as one that gets "highlandered" when someone else
+ * gets a higher score on the target. It fades them out as the drop away. */
+.reap {
+  animation: reapDropper 3.0s cubic-bezier(0.58, 0.11, 0.26, 1.21);
+}
+
+
+/* These keyframes do a small translation in the Y axis that make the emote
+ * portion of a dropper fall slightly, to let the player know that their cut
+ * command was received. */
+@keyframes cutDropper {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(14px);
+  }
+}
+
+/* An animation that can be applied to an emote to cause it to drop down
+ * visibly while still being attached to the parachute. This makes it more
+ * visually obvious that a cut is in progress on the chute. */
+.cutDrop {
+  animation: cutDropper 0.75s cubic-bezier(0.58, 0.11, 0.26, 1.21);
+}
+
+
+/* This is applied to emotes when the cutDrop animation is playing so that when
+ * the animation is complete, the position remains where it is. */
+.cut {
+  transform: translateY(14px);
+}
+
+
+/* This class is applied to the sprite group that contains the parachute and
+ * the emote that's being dropped. */
+.dropper {
+  /*border: 1px dashed yellow;*/
+  width: 120px;
+  height: 162px; /* parachute height + 3/4's of the emote height) */
+  left: 100px;
+  top: 100px;
+}
+
+/* This class is applied to the sprite that represents the emote being dropped;
+ * it sets the sprite sheet image to be used. */
+.emote {
+  /*border: 1px dashed red;*/
+  background-image: url(../../resources/images/emotes.png);
+  width:  56px;
+  height: 56px;
+  z-index: 1;
+}
+
+/* This class is applied to a sprite that is using a twitch emote; in that case
+ * it doesn't have a sprite sheet and instead has an enforced background image
+ * for which the URL is a twitch emote URL. */
+.twitch-emote {
+  /*border: 1px dashed red;*/
+  background-size: contain;
+  background-repeat: no-repeat;
+  width:  56px;
+  height: 56px;
+  z-index: 1;
+}
+
+/* This class is applied to the sprite that represents the parachute; it sets
+ * the sprite sheet image to be used. */
+.parachute {
+  /*border: 1px dashed red;*/
+  background-image: url(../../resources/images/parachutes.png);
+  width:  120px;
+  height: 120px;
+  z-index: -1;
+}
+
+/* This class is applied to the sprite that represents the target. Unlike the
+ * others, this is a sprite sheet that contains just a single sprite
+ * (currently). */
+.target {
+  /*border: 1px dashed red;*/
+  background-image: url(../../resources/images/target.png);
+  width:  390px;
+  height: 110px;
+  z-index: -10;
+}
+
+/* This class is applied to the div that is used to hold the visible name that
+ * is associated with a dropper while it's falling, or while it's marked as a
+ * winner on the target. */
+.nickname {
+  /*border: 1px dashed purple;*/
+
+  /* Arial, Bangers, Furore, Pricedown, Raleway, Roboto */
+  font-family: 'Righteous', cursive;
+  color: darkorange;
+  font-size: 24px;
+  text-shadow: 3px 4px 5px darkslategrey;
+
+  text-align: center;
+  vertical-align: middle;
+  line-height: 24px;
+
+  height:  24px;
+  width: 350px;
+}
+
+/* This class is applied to the dic that is used to hold the visible score that
+ * a dropper gets when it lands sucessfully on the target. */
+.score {
+  /*border: 1px dashed purple;*/
+
+  font-family: 'Righteous', cursive;
+  color: white;
+  font-size: 18px;
+  text-shadow: 3px 4px 5px darkslategrey;
+
+  text-align: center;
+  vertical-align: middle;
+  line-height: 18px;
+
+  height: 18px;
+  width: 80px;
+}
