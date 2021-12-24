@@ -4,6 +4,9 @@
 const googleTTS = require('@google-cloud/text-to-speech');
 const stream = require('stream');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+const json5 = require('json5');
+const path = require('path');
 
 
 // =============================================================================
@@ -121,15 +124,33 @@ function setup_tts(api) {
     });
   });
 
-  // Set up a route that will proxy a request for a specific job ID to google,
-  // sending the resulting audio back to whoever made the request. The URL
-  // needs to contain an ID value that is the UUID of the job, allowing us to
-  // know what the request to google should look like.
+  // Create a router for our TTS options.
   const tts = api.nodecg.Router();
-  tts.get('/tts/:id', async (req, res, next) => {
+
+  // Set up a route that will allow the front end to capture a list of all of
+  // the available text to speech voices. This currently comes from a hard coded
+  // file, although  it's possible to also fetch this directly from Google's TTS
+  // API as well, although in that case the format of the data is vastly
+  // different.
+  tts.get('/tts/voices', (req, res, next) => {
+    try {
+      api.log.info(`GET /tts/voices`);
+      const data = fs.readFileSync(path.resolve(api.baseDir, 'google_tts_voices.json'));
+
+      res.json(json5.parse(data))
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Set up a route that will proxy a request for a specific job ID to google,
+  // sending the resulting audio back to whoever made the request. The URL needs
+  // to contain an ID value that is the UUID of the job, allowing us to know
+  // what the request to google should look like.
+  tts.get('/tts/job/:id', async (req, res, next) => {
     try {
       const { id } = req.params;
-      api.log.debug(`Saying: ${id}`);
+      api.log.info(`GET /tts/${id}`);
 
       const ttsReq = speechJob.get(id);
       speechJob.delete(id);
