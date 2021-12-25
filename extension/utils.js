@@ -63,13 +63,30 @@ function usage(api, cmd, signature, description) {
  * hours, minutes and (fractional) seconds, eliding any that are not relevant
  * to the provided interval. */
 function cooldownToString(cooldown) {
-  // On a level of 1 to 10, where 1 is gross and 10 is awesome, this rates a
-  // disgusting; but it's good enough for the time being.
-  return new Date(cooldown)
-    .toISOString()
-    .substr(11, 8)
-    .replace(':', 'h ')
-    .replace(':', 'm ') + 's';
+  const result = [];
+  let secs = cooldown / 1000;
+
+  const hours = Math.floor(secs / (60 * 60));
+  if (hours !== 0) {
+    result.push(`${hours}h`)
+    secs -= (hours * (60 * 60));
+  }
+
+  const mins = Math.floor(secs / 60);
+  if (mins !== 0) {
+    secs -= (mins * 60);
+    result.push(`${mins}m`)
+  }
+
+  if (secs !== 0) {
+    if (secs % 1 !== 0) {
+      secs = secs.toFixed(2);
+    }
+
+    result.push(`${secs}s`)
+  }
+
+  return result.join('');
 }
 
 
