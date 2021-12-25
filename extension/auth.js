@@ -182,7 +182,7 @@ async function handleAuthCallback(api, state, name, req, res)  {
     }
   }
 
-  res.redirect('/dashboard/#workspace/auth');
+  res.redirect('/dashboard/#workspace/setup');
 }
 
 
@@ -253,7 +253,7 @@ async function performTokenDeauth(api, name, req, res) {
   // If we were called as a part of an express route handler, this operation was
   // done as part of a click in the user interface, so go back there.
   if (res !== undefined) {
-    res.redirect('/dashboard/#workspace/auth');
+    res.redirect('/dashboard/#workspace/setup');
   }
 }
 

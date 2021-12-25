@@ -22,20 +22,20 @@
     "compatibleRange": "^1.1.1",
     "dashboardPanels": [
       {
-        "name": "bot",
+        "name": "auth-bot",
         "width": 4,
         "title": "Bot Account",
         "file": "auth_bot.html",
         "headerColor": "#525F78",
-        "workspace": "Auth"
+        "workspace": "Setup"
       },
       {
-        "name": "channel",
+        "name": "auth-channel",
         "width": 4,
         "title": "Twitch Channel",
         "file": "auth_channel.html",
         "headerColor": "#525F78",
-        "workspace": "Auth"
+        "workspace": "Setup"
       },
       {
         "name": "bot-chat",
@@ -54,15 +54,15 @@
         "workspace": "Bot"
       },
       {
-        "name": "results",
+        "name": "reload-log",
         "width": 6,
-        "title": "Command Loader Log",
-        "file": "cmd_log.html",
+        "title": "Dynamic Command Loader",
+        "file": "reload_log.html",
         "headerColor": "#525F78",
-        "workspace": "Commands"
+        "workspace": "Logs"
       },
       {
-        "name": "Editor",
+        "name": "editor",
         "title": "File Editor",
         "fullbleed": true,
         "file": "file_editor.html",
