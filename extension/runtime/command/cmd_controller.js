@@ -7,50 +7,8 @@ const path = require('path');
 const { existsSync, copyFileSync, constants } = require('fs');
 
 const { CommandParser } = require('../../core/command');
-const { usage } = require('../../utils');
-
-
-// =============================================================================
-
-
-/* When changing the access level of a command, this specifies what values the
- * argument can take and what the resulting edited value should be. */
-const access_options = {
-  broadcaster: 0,
-  broadcast: 0,
-  channel:0,
-  streamer:0,
-
-  moderator: 1,
-  mod: 1,
-  mods: 1,
-
-  vip: 2,
-  vips: 2,
-
-  regular: 3,
-  regulars: 3,
-  regs: 3,
-
-  subscriber: 4,
-  sub: 4,
-  subs: 4,
-
-  all: 5,
-  everyone: 5,
-  rabble: 5
-};
-
-/* When displaying the access level of a command, this array maps the integral
- * access levels with a textual name. */
-const access_display = [
-  'broadcaster',
-  'moderators',
-  'VIPs',
-  'regulars',
-  'subscribers',
-  'everyone'
-];
+const { usage, cooldownToString, stringToCooldown,
+        userLevelToString, stringToUserLevel } = require('../../utils');
 
 
 // =============================================================================
@@ -112,61 +70,6 @@ async function storeCmdChanges(api, command, changes) {
 // =============================================================================
 
 
-/* Given a command cool down time in milliseconds, return back a more human
- * readable interpretation of it. */
-function displayableCooldown(cooldown) {
-  // On a level of 1 to 10, where 1 is gross and 10 is awesome, this rates a
-  // disgusting; but it's good enough for the time being.
-  return new Date(cooldown)
-    .toISOString()
-    .substr(11, 8)
-    .replace(':', 'h ')
-    .replace(':', 'm ') + 's';
-}
-
-
-// =============================================================================
-
-
-/* This takes an input string in a format that is a number followed by one of
- * the characters 's', 'm' or 'h' and converts it into an appropriate number of
- * milliseconds to represent that number of seconds, minutes or hours.
- *
- * If the incoming string is not in a recognized format, undefined will be
- * returned; otherwise the time in milliseconds is returned. */
-function parseCooldownSpec(api, spec) {
-  // The last character is the time specifier, and the remainder of the string
-  // is the time in that unit; grab them both out.
-  const value = spec.substr(0, spec.length - 1);
-  const unit = spec[spec.length - 1];
-
-  // The incoming value needs to be a valid number, or we're unhappy
-  const cooldown = parseFloat(value);
-  if (isNaN(cooldown) === true) {
-    return;
-  }
-
-  // Based on the time unit, multiple the value on the way out.
-  switch (unit) {
-    case 's':
-      return cooldown * 1000;
-
-    case 'm':
-      return cooldown * (1000 * 60);
-
-    case 'h':
-      return cooldown * (1000 * 60 * 60);
-
-    default:
-      api.log.error(`parseCooldownSpec is not properly handling the time unit '${unit}'`);
-      return;
-  }
-}
-
-
-// =============================================================================
-
-
 /* This command allows you to see a visualization of all of the information that
  * is currently known about a specific command, including its aliases and the
  * implementation file it's stored in. */
@@ -189,11 +92,11 @@ function get_command_info(api, cmd, userInfo) {
   const visible = (target.hidden === true ? 'hidden ' : '');
   const type = (target.core === true ? 'core' : 'regular');
   const src = target.sourceFile;
-  const access = access_display[target.userLevel];
+  const access = userLevelToString(target.userLevel);
   const status = (target.enabled === true) ? 'enabled' : 'disabled';
   const aliases = (target.aliases.length === 0) ? 'none': target.aliases.join(',');
   const cooldown = (target.cooldown === 0) ? 'no cool down' :
-                    `a cool down of ${displayableCooldown(target.cooldown)}`;
+                    `a cool down of ${cooldownToString(target.cooldown)}`;
   const missing = (target.handler === null || target.handler === undefined)
                     ? ' (handler is currently missing)' : '';
 
@@ -278,12 +181,12 @@ async function change_access_level(api, cmd, userInfo) {
 
   // If we only got a command name, then display the current level and leave.
   if (cmd.words.length === 1) {
-    api.chat.say(`the access level for ${target.name} is currently set to ${access_display[target.userLevel]}`);
+    api.chat.say(`the access level for ${target.name} is currently set to ${userLevelToString(target.userLevel)}`);
     return;
   }
 
   // Look up the appropriate user level based on the argument provided.
-  const userLevel = access_options[cmd.words[1]];
+  const userLevel = stringToUserLevel(cmd.words[1]);
   if (userLevel === undefined) {
     api.chat.say(`${cmd.words[1]} is not a valid access level; valid levels are: ${levels.join(',')}`);
     return;
@@ -291,7 +194,7 @@ async function change_access_level(api, cmd, userInfo) {
 
   // Update the command with the changes, then report them.
   await storeCmdChanges(api, target, { userLevel });
-  api.chat.say(`the access level for ${target.name} has been set to ${access_display[userLevel]}`);
+  api.chat.say(`the access level for ${target.name} has been set to ${userLevelToString(userLevel)}`);
 }
 
 
@@ -325,21 +228,21 @@ async function change_cmd_cooldown(api, cmd, userInfo) {
   // If we only got a command name, then display the current cooldown and leave.
   if (cmd.words.length === 1) {
     const curCool = (target.cooldown === 0) ? 'no cool down' :
-                     `a cool down of ${displayableCooldown(target.cooldown)}`;
+                     `a cool down of ${cooldownToString(target.cooldown)}`;
 
     api.chat.say(`the cool down timer for ${target.name} is currently set to ${curCool}`);
     return;
   }
 
   // Look up the appropriate user level based on the argument provided.
-  const cooldown = parseCooldownSpec(api, cmd.words[1]);
+  const cooldown = stringToCooldown(api, cmd.words[1]);
   if (cooldown === undefined) {
     api.chat.say(`${cmd.words[1]} is not a valid cool down specification; valid formats are: ${specs.join(',')}`);
     return;
   }
 
   const newCool = (cooldown === 0) ? 'no cool down' :
-                   `a cool down of ${displayableCooldown(cooldown)}`;
+                   `a cool down of ${cooldownToString(cooldown)}`;
 
   // Update the command with the changes, then report them.
   await storeCmdChanges(api, target, { cooldown });
