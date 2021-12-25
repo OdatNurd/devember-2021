@@ -135,7 +135,7 @@ function setup_tts(api) {
   tts.get('/tts/voices', (req, res, next) => {
     try {
       api.log.info(`GET /tts/voices`);
-      const data = fs.readFileSync(path.resolve(api.baseDir, 'google_tts_voices.json'));
+      const data = fs.readFileSync(path.resolve(api.baseDir, 'data/google_tts_voices.json'));
 
       res.json(json5.parse(data))
     } catch (error) {
