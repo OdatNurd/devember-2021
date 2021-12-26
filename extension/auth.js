@@ -2,7 +2,7 @@
 // =============================================================================
 
 
-const { getTokenInfo } = require('@twurple/auth');
+const { getTokenInfo, revokeToken } = require('@twurple/auth');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
@@ -109,6 +109,12 @@ async function getAccessToken(api, name, code) {
         obtained: Date.now(),
         expiration: response.data.expires_in,
       });
+    } else {
+      // When we get an access token for the user account, it's purely for
+      // authorizing the bot to take actions on our user data. So we don't
+      // actually want to keep the token around; it's not persisted above and
+      // here we revoke it to make sure that it doesn't leak.
+      await revokeToken(clientId, response.data.access_token);
     }
 
     // An authorization is now complete; send off a message to anyone that
@@ -240,11 +246,23 @@ function performTokenAuth(api, name, req, res) {
  * authorization was actually made and this needs to be cleaned up there, if
  * desired. */
 async function performTokenDeauth(api, name, req, res) {
+  // Before we do anything, try to fetch a record out of the token database for
+  // the token that we're going to be deauthorizing.
+  const record = await api.db.getModel('tokens').findOne({ name })
+
   // Remove the token and user record for this name, if any; these operations
   // may not do anything, such as for the user, who doesn't have a token in the
   // tokens table because their token is for authorization only. This is OK.
   await api.db.getModel('tokens').remove({ name });
   await api.db.getModel('users').remove({ type: name });
+
+  // If the token that's being deauthorized is the bot token, then decrupt the
+  // record we pulled above and revoke the token that it contains.
+  if (name === 'bot' && record !== undefined) {
+    api.log.warn(`deauthorizing the existing bot token`);
+    const accessToken = api.crypto.decrypt(record.token);
+    await revokeToken(api.config.get('twitch.core.clientId'), accessToken);
+  }
 
   // An authorization was removed; so send a message that tells people who care
   // that this authorization is now no longer valid.
