@@ -47,11 +47,25 @@ const user_access_levels = [
 // =============================================================================
 
 
+/* Given a string of text, this will remove any leading and trailing whitespace
+ * from the string, as well as replacing all interior runs of 1 or more
+ * whitespace characters with a single space.
+ *
+ * This is particuarly handy when using a template string to ensure that any
+ * inner newlines are redacted away. */
+function dedent(text) {
+  return text.replace(/\s+/g, ' ').trim()
+}
+
+
+// =============================================================================
+
+
 /* This sends usage information for the given command out to the channel chat.
  * The name of the command comes from the passed in command details, along with
  * the signature and a longer description of what the command actually does. */
 function usage(api, cmd, signature, description) {
-  api.chat.say(`Usage: ${cmd.name} ${signature} - ${description.replace(/\s+/g, ' ').trim()}`);
+  api.chat.say(`Usage: ${cmd.name} ${signature} - ${dedent(description)}`);
 }
 
 
@@ -163,6 +177,7 @@ function stringToUserLevel(input) {
 
 
 module.exports = {
+  dedent,
   usage,
   cooldownToString,
   stringToCooldown,
