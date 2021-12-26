@@ -1,3 +1,8 @@
+// =============================================================================
+
+
+const { dedent:_ } = require('./utils');
+
 
 // =============================================================================
 
@@ -218,6 +223,25 @@ const commands = [
 ];
 
 
+/* This is the list of responders that come packed in out of the box as examples
+ * for the command system to work with. These are not necessarily expected to
+ * always exist, but for the purposes of the demo they should.
+ *
+ * As such, the bootstrap code below makes sure that they're inserted into the
+ * database if they're missing. */
+const responders = [
+  {
+      name: "$code",
+      aliases: ["$repo"],
+      text: _(`The code for this simple bot can be found in the repository at
+              https://github.com/OdatNurd/devember-2021 ; if you have any questions
+              about it or how it works don't hestiate to ask!`),
+      userLevel: 5,
+      cooldown: 10000
+  },
+];
+
+
 // =============================================================================
 
 
@@ -268,6 +292,7 @@ async function bootstrap(api, modelName, items)
 async function bootstrap_core_data(api) {
   // Bootstrap all missing core items in turn.
   await bootstrap(api, 'commands', commands);
+  await bootstrap(api, 'responders', responders);
 }
 
 
