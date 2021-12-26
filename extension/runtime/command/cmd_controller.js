@@ -1,3 +1,8 @@
+// =============================================================================
+
+
+const { dedent: _ } = require('../../utils')
+
 
 // =============================================================================
 
@@ -102,9 +107,9 @@ function get_command_info(api, cmd, userInfo) {
                     ? ' (handler is currently missing)' : '';
 
   // Send out the display
-  api.chat.say(`${name} is a ${visible}${type} command implemented in ${src} ` +
-               `requiring access level ${access} with ${cooldown}` +
-               `, and is ${status}${missing}; aliases: ${aliases}`);
+  api.chat.say(_(`${name} is a ${visible}${type} command implemented in ${src}
+                 requiring access level ${access} with ${cooldown}
+                 , and is ${status}${missing}; aliases: ${aliases}`));
 }
 
 
@@ -286,8 +291,8 @@ function handle_alias_add(api, cmd, userInfo) {
   // that it's invoked with to know what to do, so it's exempt from being
   // aliased, even though other core commands can indeed be aliased.
   if (target.name.endsWith('enable') === true) {
-    api.chat.say(`The ${target.name} command cannot be aliased; it uses the name ` +
-                 `it is invoked with to know what to do`);
+    api.chat.say(_(`The ${target.name} command cannot be aliased; it uses the name
+                    it is invoked with to know what to do`));
     return errReturn;
   }
 
@@ -303,8 +308,8 @@ function handle_alias_add(api, cmd, userInfo) {
   // The first character of the proposed new alias needs to be a valid prefix
   // character, or the alias will never be able to execute.
   if (isValidCmdName(alias[0]) === false) {
-    api.chat.say(`${cmd.words[2]} cannot be used as an alias; it does not have a command prefix. ` +
-                 `Did you mean to include one of '${command_prefix_list}'?`);
+    api.chat.say(_(`${cmd.words[2]} cannot be used as an alias; it does not have a command prefix.
+                     Did you mean to include one of '${command_prefix_list}'?`));
     return errReturn;
   }
 
@@ -348,8 +353,8 @@ function handle_alias_remove(api, cmd, userInfo) {
   // that it's invoked with to know what to do, so it's exempt from being
   // aliased, even though other core commands can indeed be aliased.
   if (alias.name.endsWith('enable') === true) {
-    api.chat.say(`The ${alias.name} command does not allow alias changes; it uses the name ` +
-                 `it is invoked with to know what to do`);
+    api.chat.say(_(`The ${alias.name} command does not allow alias changes; it
+                   uses the name it is invoked with to know what to do`));
     return errReturn;
   }
 

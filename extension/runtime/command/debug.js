@@ -1,3 +1,8 @@
+// =============================================================================
+
+
+const { dedent: _ } = require('../../utils')
+
 
 // =============================================================================
 
@@ -27,10 +32,10 @@ function debug_command(api, cmd, userInfo) {
 
       // Show the list of users that have debug logging turned on
       case 'users':
-        api.chat.say(`chat message debug logging will be done for ` +
-                     `${api.debugMsgsFrom.length === 0
-                        ? 'all users'
-                        : api.debugMsgsFrom.join(', ')}`);
+        api.chat.say(_(`chat message debug logging will be done for
+                       ${api.debugMsgsFrom.length === 0
+                          ? 'all users'
+                          : api.debugMsgsFrom.join(', ')}`));
         return;
 
       // Anything else is a user, but in that case leave the argument alone and
@@ -45,9 +50,9 @@ function debug_command(api, cmd, userInfo) {
   // not and how to adjust the list of debugged users.
   if (args.length === 0) {
     const state = (api.debugMsgs === 0) ? 'disabled' : 'enabled';
-    api.chat.say(`chat message debug logging is currently ${state}; ` +
-                 `use ${cmd.name} [on|off|users] to change the state or view users, ` +
-                 `or give a list of users to add or remove from the list`);
+    api.chat.say(_(`chat message debug logging is currently ${state};
+                    use ${cmd.name} [on|off|users] to change the state or view users,
+                    or give a list of users to add or remove from the list`));
     return;
   }
 
@@ -70,8 +75,8 @@ function debug_command(api, cmd, userInfo) {
     }
   }
 
-  api.chat.say(`chat message debug users adjusted; +${added}/-${removed}, ` +
-               `list is ${api.debugMsgsFrom.join(',')}`);
+  api.chat.say(_(`chat message debug users adjusted; +${added}/-${removed},
+                 list is ${api.debugMsgsFrom.join(',')}`));
 }
 
 

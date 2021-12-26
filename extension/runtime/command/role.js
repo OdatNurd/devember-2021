@@ -3,6 +3,7 @@
 
 
 const os = require('os');
+const { dedent: _ } = require('../../utils')
 
 
 // =============================================================================
@@ -29,8 +30,8 @@ function modify_role(api, cmd, userInfo) {
   if (cmd.words.length === 0) {
     const host = os.hostname().split('.')[0];
     const defRole = api.defaultCmdRole || 'none';
-    api.chat.say(`Running with role ${api.role}[default=${defRole}] on ${host}` +
-                 `; to change, use ${cmd.name} default [newDefault]`);
+    api.chat.say(_(`Running with role ${api.role}[default=${defRole}] on ${host}
+                     ; to change, use ${cmd.name} default [newDefault]`));
     return;
   }
 
