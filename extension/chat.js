@@ -11,6 +11,204 @@ const { getUserInfo } = require('./auth');
 // =============================================================================
 
 
+/* Handles a chat message. */
+async function handleChatMessage(api, channel, user, message, rawMsg) {
+  // Before anything else happens, if we have any moderation logic to apply to
+  // this message, do so now before we go any further.
+  if (await filterMessage(api, channel, user, message, rawMsg) === true) {
+    return;
+  }
+
+  // TODO: Do some tracking here, like keeping track of the number of messages
+  // sent by each other that talks, etc. Ideally this would be tied in with
+  // the events that indicate that the stream is going online or offline so that
+  // the counts on this particular stream could be reset.
+
+  // Parse the incoming text to get the details of any commands it might
+  // contain, and then check to see if there is a command by that name or not.
+  //
+  // Messages with no commands won't be found in the command list.
+  const details = api.cmdParser.parse(message);
+  const cmd = api.commands.find(details.name);
+
+  // There are extra details associated with commands that can can only include
+  // after the command is parsed, so set those in now.
+  details.isAlias = (cmd !== null) ? (details.name !== cmd.name) : false;
+  details.channel = channel;
+  details.rawMsg = rawMsg;
+
+  // If we're debugging messages and the user that created the message is in
+  // the debug list, then do a debug log.
+  //
+  // When the list is empty, everyone gets logged and not just specific people.
+  if (api.debugMsgs !== 0 && (api.debugMsgsFrom.length === 0 || api.debugMsgsFrom.indexOf(user) !== -1)) {
+    debugMessageDetails(api, details, rawMsg.userInfo);
+  }
+
+  // Try to handle this as a command or responder, if it is one.
+  handleCommandMessage(api, details, cmd, rawMsg);
+}
+
+
+// =============================================================================
+
+
+/* This gets called for every chat message prior to any sort of handling being
+ * done for it (other than logging the actual message).
+ *
+ * The code here can do any sort of filtering that it might like on the chat
+ * message, such as timing out the user, deleting it, or taking whatever other
+ * actions it might like.
+ *
+ * The return value of this is a boolean that indicates if this message should
+ * be blocked from any further processing (e.g. executing it if it appears to
+ * be a command).
+ *
+ * A return value of false indicates that either nothing was filtered, or that
+ * it is safe to continue processing but other actions have also been taken. */
+async function filterMessage(api, channel, user, message, rawMsg) {
+  // IDEA:
+  //   As a first step in handling any chat message, if we have any rules about
+  //   what can and cannot be done in a message, check for and apply them here
+  //   before we continue.
+  //
+  //   For example, we could delete the message, silence the user, etc.
+
+  return false;
+}
+
+
+// =============================================================================
+
+
+/* This attempts to use the parsed details about a message to try and handle it
+ * as a command. This assumes that the lookup for a potential command has
+ * already been done and that the details object has been appropriately filled
+ * out beforehand.
+ *
+ * If this represents (or should represent) a command or text responder, then
+ * the appropriate action is taken and true is returned back.
+ *
+ * If the message doesn't detail any sort of command, false is returned. */
+function handleCommandMessage(api, details, cmd, rawMsg) {
+  // Nothing else needs to happen if there's no command.
+  if (details.name === '') {
+    return false;
+  }
+
+  // If we found a command, then we can execute it.
+  if (cmd !== null) {
+    cmd.execute(api, details, rawMsg.userInfo);
+  } else {
+    // There is no command, but the message looks like it contains one. Check to
+    // see if there's a responder by that name, and if so, respond to it.
+    const responder = api.responders.find(details.name);
+    if (responder !== null) {
+      responder.execute(api, rawMsg.userInfo);
+    } else {
+      // If we get here, then there's no command and no responder; responders
+      // are optional and take lower precedence, so log this as an unknown
+      // command.
+      api.log.error(`Unknown command: ${details.name}`);
+    }
+  }
+
+  // It counts as executing a command even if the command was not found; it
+  // SHOULD have been a command, and should not be considered for other
+  // reasons.
+  return true;
+}
+
+
+// =============================================================================
+
+
+/* This will log information about a given parsed message details and the user
+ * that sent it to the console. The information logs are detailed and contain
+ * not only the information that we parsed out of the incoming message but also
+ * the information that the chat library does as well. */
+function debugMessageDetails(api, details, userInfo) {
+  // Alias the raw message, which comes in the details. This makes the following
+  // code more concise.
+  const { rawMsg } = details;
+
+  const chatUser = rawMsg.userInfo;
+  const rawParts = rawMsg.parseEmotes();
+
+  // Display the details about the incoming message and how we parsed it.
+  api.log.info('===== Parse Details ===')
+  api.log.info(details);
+
+  // Display standard message fields from Twitch.
+  api.log.info('===== Standard Twitch Fields ===')
+  api.log.info(`bits: ${rawMsg.bits}`);
+  api.log.info(`channelId: ${rawMsg.channelId}`);
+  api.log.info(`id: ${rawMsg.id}`);
+  api.log.info(`isCheer: ${rawMsg.isCheer}`);
+  api.log.info(`emoteOffsets: ${rawMsg.emoteOffsets.size}`);
+
+  // For any message that contains emotes, the chat library parses them out for
+  // us. This gives us the positions and ID's of each emote used.
+  //
+  // For example:
+  //    -> 306898603: ["0-9","22-31"]
+  //    -> 307723742: ["11-20"]
+  api.log.info('===== Emote Offsets ===')
+  for (const [key, value] of rawMsg.emoteOffsets) {
+    api.log.info(` -> ${key}: ${JSON.stringify(value)}`);
+  }
+
+  // This splits the text out into emotes and text, splitting into
+  // objects that have a type of "text" or "emote" and other fields.
+  // This does not capture bits, though there is an API endpoint for that
+  // which is similar and requires an extra argument.
+  //
+  // Text in here is not stripped, so "!drop " would appear for the first
+  // item if there is an emote in the second position.
+  api.log.info('===== Raw Text Parts ===')
+  api.log.info(`${JSON.stringify(rawParts, null, 2)}`);
+
+  // Information on the user that invoked the command.
+  api.log.info('===== User Information ===')
+  api.log.info(`userId: ${chatUser.userId}`);
+  api.log.info(`userName: ${chatUser.userName}`);
+  api.log.info(`displayName: ${chatUser.displayName}`);
+  api.log.info(`userType: ${chatUser.userType}`);
+  api.log.info(`color: ${chatUser.color}`);
+  api.log.info(`isBroadcaster: ${chatUser.isBroadcaster}`);
+  api.log.info(`isMod: ${chatUser.isMod}`);
+  api.log.info(`isSubscriber: ${chatUser.isSubscriber}`);
+  api.log.info(`isFounder: ${chatUser.isFounder}`);
+  api.log.info(`isVip: ${chatUser.isVip}`);
+
+  // Display the badge information for the user that sent the
+  // This is a map where the key is a type of badge (like subscriber)
+  // and the value is information on that badge:
+  //     -> subscriber: "4"
+  api.log.info('===== Badge Information ===')
+  for (const [key, value] of chatUser.badgeInfo) {
+    api.log.info(` -> ${key}: ${JSON.stringify(value)}`);
+  }
+
+  // This is a map where the key is a type of badge and the value is
+  // whether or not it exists; the items here can sometimes overlap
+  // with the ones above. For example, the badge info might say
+  // you have a 10 months subbed, while the below will point out that
+  // the badge is a 9 month badge (because there is no 10 month).
+  //     -> moderator: "1"
+  //     -> partner: "1"
+  api.log.info('===== Badges ===')
+  for (const [key, value] of chatUser.badges) {
+    api.log.info(` -> ${key}: ${JSON.stringify(value)}`);
+  }
+
+  api.log.info('================');
+}
+
+
+// =============================================================================
+
+
 /* Create a Twurple authorization object that wraps the token with the local
  * name given. Details required to refresh the token will be queried from the
  * database.
@@ -152,92 +350,6 @@ function handleDeauthEvent(api, type) {
 // =============================================================================
 
 
-/* This will log information about a given parsed message details and the user
- * that sent it to the console. The information logs are detailed and contain
- * not only the information that we parsed out of the incoming message but also
- * the information that the chat library does as well. */
-function debugMessageDetails(api, details, userInfo) {
-  // Alias the raw message, which comes in the details. This makes the following
-  // code more concise.
-  const { rawMsg } = details;
-
-  const chatUser = rawMsg.userInfo;
-  const rawParts = rawMsg.parseEmotes();
-
-  // Display the details about the incoming message and how we parsed it.
-  api.log.info('===== Parse Details ===')
-  api.log.info(details);
-
-  // Display standard message fields from Twitch.
-  api.log.info('===== Standard Twitch Fields ===')
-  api.log.info(`bits: ${rawMsg.bits}`);
-  api.log.info(`channelId: ${rawMsg.channelId}`);
-  api.log.info(`id: ${rawMsg.id}`);
-  api.log.info(`isCheer: ${rawMsg.isCheer}`);
-  api.log.info(`emoteOffsets: ${rawMsg.emoteOffsets.size}`);
-
-  // For any message that contains emotes, the chat library parses them out for
-  // us. This gives us the positions and ID's of each emote used.
-  //
-  // For example:
-  //    -> 306898603: ["0-9","22-31"]
-  //    -> 307723742: ["11-20"]
-  api.log.info('===== Emote Offsets ===')
-  for (const [key, value] of rawMsg.emoteOffsets) {
-    api.log.info(` -> ${key}: ${JSON.stringify(value)}`);
-  }
-
-  // This splits the text out into emotes and text, splitting into
-  // objects that have a type of "text" or "emote" and other fields.
-  // This does not capture bits, though there is an API endpoint for that
-  // which is similar and requires an extra argument.
-  //
-  // Text in here is not stripped, so "!drop " would appear for the first
-  // item if there is an emote in the second position.
-  api.log.info('===== Raw Text Parts ===')
-  api.log.info(`${JSON.stringify(rawParts, null, 2)}`);
-
-  // Information on the user that invoked the command.
-  api.log.info('===== User Information ===')
-  api.log.info(`userId: ${chatUser.userId}`);
-  api.log.info(`userName: ${chatUser.userName}`);
-  api.log.info(`displayName: ${chatUser.displayName}`);
-  api.log.info(`userType: ${chatUser.userType}`);
-  api.log.info(`color: ${chatUser.color}`);
-  api.log.info(`isBroadcaster: ${chatUser.isBroadcaster}`);
-  api.log.info(`isMod: ${chatUser.isMod}`);
-  api.log.info(`isSubscriber: ${chatUser.isSubscriber}`);
-  api.log.info(`isFounder: ${chatUser.isFounder}`);
-  api.log.info(`isVip: ${chatUser.isVip}`);
-
-  // Display the badge information for the user that sent the
-  // This is a map where the key is a type of badge (like subscriber)
-  // and the value is information on that badge:
-  //     -> subscriber: "4"
-  api.log.info('===== Badge Information ===')
-  for (const [key, value] of chatUser.badgeInfo) {
-    api.log.info(` -> ${key}: ${JSON.stringify(value)}`);
-  }
-
-  // This is a map where the key is a type of badge and the value is
-  // whether or not it exists; the items here can sometimes overlap
-  // with the ones above. For example, the badge info might say
-  // you have a 10 months subbed, while the below will point out that
-  // the badge is a 9 month badge (because there is no 10 month).
-  //     -> moderator: "1"
-  //     -> partner: "1"
-  api.log.info('===== Badges ===')
-  for (const [key, value] of chatUser.badges) {
-    api.log.info(` -> ${key}: ${JSON.stringify(value)}`);
-  }
-
-  api.log.info('================');
-}
-
-
-// =============================================================================
-
-
 /* Attempt to join the Twitch chat based on the information we have on the
  * authorized accounts.
  *
@@ -279,54 +391,9 @@ async function joinTwitchChat(api) {
   // do that easier later.
   api.chat.listeners = [
     // Whenever a message appears in the chat, display it to the console.
-    chat.onMessage(async (channel, user, message, rawMsg) => {
+    chat.onMessage((channel, user, message, rawMsg) => {
       api.log.info(`${channel}:<${user}> ${message}`);
-
-      // Parse the incoming message to get details, and then check to see if
-      // there is any command with that name.
-      //
-      // In the case where the message contains no command, the command name
-      // would be the empty strin/g, which is never going to be found as a
-      // command.
-      const details = api.cmdParser.parse(message);
-      const cmd = api.commands.find(details.name);
-
-      // Set up information about parsed contents now; the information about
-      // this being a command alias is only possible if this is actually a
-      // command.
-      details.isAlias = (cmd !== null) ? (details.name !== cmd.name) : false;
-      details.channel = channel;
-      details.rawMsg = rawMsg;
-
-      // If debugging is turned on and the user that sent the message is in the
-      // list of users whose messages should be logged, then do so. If the list
-      // is empty, then messages from all users are logged, unless logging is
-      // not turned on.
-      if (api.debugMsgs !== 0 && (api.debugMsgsFrom.indexOf(user) !== -1 || api.debugMsgsFrom.length === 0)) {
-        debugMessageDetails(api, details, rawMsg.userInfo);
-      }
-
-      // If the input contained no command, then this is just a regular message
-      // so leave.
-      if (details.name === '') {
-        return;
-      }
-
-      // It seems like the line contains a command. If one was actually found
-      // then execute it. If not, check to see if it's a responder and trigger
-      // it.
-      //
-      // When there's no responder AND no command, log the missing command.
-      if (cmd === null) {
-        const responder = api.responders.find(details.name);
-        if (responder !== null) {
-          responder.execute(api, rawMsg.userInfo);
-        } else {
-          api.log.error(`Unknown command: ${details.name}`);
-        }
-      } else {
-        cmd.execute(api, details, rawMsg.userInfo);
-      }
+      handleChatMessage(api, channel, user, message, rawMsg);
     }),
 
     // Whenever we get a whispered message, log it.
