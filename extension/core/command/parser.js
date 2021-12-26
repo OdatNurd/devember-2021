@@ -1,3 +1,8 @@
+// =============================================================================
+
+
+const { isValidCmdName } = require('../../utils');
+
 
 // =============================================================================
 
@@ -83,10 +88,6 @@ class CommandDetails {
  * of text as well as that same text split into words, since this is a common
  * requirement of a command. */
 class CommandParser {
-    // To be considered a command, the first word in the incoming string must
-    // be prefixed by one of these characters.
-    static VALID_PREFIX_LIST = '!$%&|~';
-
     constructor() {
     }
 
@@ -107,7 +108,7 @@ class CommandParser {
       //
       // When the command has no valid prefix, put it back into the parts
       // array and turn it into the empty string.
-      if (name !== undefined && CommandParser.VALID_PREFIX_LIST.indexOf(name[0]) !== -1) {
+      if (name !== undefined && isValidCmdName(name) === true) {
         // As long as the first word in the parts list is a potential key/value
         // pair, remove it and add it to the parameter list.
         while (parts.length !== 0 && parts[0].indexOf('=') !== -1) {

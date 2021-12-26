@@ -40,6 +40,7 @@
     // at the same time. Roles allow commands to be directed to specific
     // instances of the bot.
     "role": null,               // TWITCHBOT_ROLE
+    "defaultPrefix": null,      // TWITCHBOT_DEFAULT_PREFIX
   },
 
   // The configuration options for the TTS system, which is powered by Google's

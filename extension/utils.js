@@ -43,6 +43,11 @@ const user_access_levels = [
   'everyone'
 ];
 
+/* The list of characters which are valid to start a command; these are the
+ * characters which are less likely to be used as the start of the first word
+ * in any message. */
+const command_prefix_list = '!$%&|~';
+
 
 // =============================================================================
 
@@ -176,11 +181,25 @@ function stringToUserLevel(input) {
 // =============================================================================
 
 
+/* Given a string name of something that could be considered the name of a
+ * command, alias or responder of some type (basically anything which, when
+ * entered into the chat, does something special), return an indication of
+ * whether that name is a valid name or not. */
+function isValidCmdName(name) {
+  return command_prefix_list.indexOf(name[0]) !== -1;
+}
+
+
+// =============================================================================
+
+
 module.exports = {
+  command_prefix_list,
   dedent,
   usage,
   cooldownToString,
   stringToCooldown,
   userLevelToString,
-  stringToUserLevel
+  stringToUserLevel,
+  isValidCmdName
 }

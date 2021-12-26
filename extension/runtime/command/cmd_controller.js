@@ -8,7 +8,8 @@ const { existsSync, copyFileSync, constants } = require('fs');
 
 const { CommandParser } = require('../../core/command');
 const { usage, cooldownToString, stringToCooldown,
-        userLevelToString, stringToUserLevel } = require('../../utils');
+        userLevelToString, stringToUserLevel,
+        command_prefix_list, isValidCmdName } = require('../../utils');
 
 
 // =============================================================================
@@ -301,9 +302,9 @@ function handle_alias_add(api, cmd, userInfo) {
 
   // The first character of the proposed new alias needs to be a valid prefix
   // character, or the alias will never be able to execute.
-  if (CommandParser.VALID_PREFIX_LIST.indexOf(alias[0]) === -1) {
+  if (isValidCmdName(alias[0]) === false) {
     api.chat.say(`${cmd.words[2]} cannot be used as an alias; it does not have a command prefix. ` +
-                 `Did you mean to include one of '${CommandParser.VALID_PREFIX_LIST}'`);
+                 `Did you mean to include one of '${command_prefix_list}'?`);
     return errReturn;
   }
 
@@ -466,7 +467,7 @@ async function add_new_command(api, cmd, userInfo) {
   // is a command, we need to strip the prefixes off the name first.
   if (newSrcFile === undefined) {
     newSrcFile = newCmdName;
-    while (CommandParser.VALID_PREFIX_LIST.indexOf(newSrcFile[0]) !== -1) {
+    while (isValidCmdName(newSrcFile[0]) === true) {
       newSrcFile = newSrcFile.substr(1);
     }
   }
@@ -485,8 +486,8 @@ async function add_new_command(api, cmd, userInfo) {
 
   // Make sure that the command name has a prefix; for brevity we allow the user
   // to not specify one, in which case a default will be used.
-  if (CommandParser.VALID_PREFIX_LIST.indexOf(newCmdName[0]) === -1) {
-    newCmdName = `${CommandParser.VALID_PREFIX_LIST[0]}${newCmdName}`;
+  if (isValidCmdName(newCmdName[0]) === false) {
+    newCmdName = `${api.config.get('bot.defaultPrefix')}${newCmdName}`;
   }
 
   // If this name already exists, we can't add it as a command.

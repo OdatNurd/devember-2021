@@ -2,6 +2,8 @@
 // =============================================================================
 
 
+const { command_prefix_list } = require('./utils');
+
 const convict = require('convict');
 const json5 = require('json5');
 const path = require('path');
@@ -111,6 +113,12 @@ const config = convict({
       format: '*',
       env: 'TWITCHBOT_ROLE',
       default: 'dev'
+    },
+    defaultPrefix: {
+      doc: 'The default character to use as a command prefix if none is provided',
+      format: command_prefix_list.split(''),
+      env: 'TWITCHBOT_DEFAULT_PREFIX',
+      default: '!'
     }
   },
 
