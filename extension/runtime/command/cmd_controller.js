@@ -1,17 +1,11 @@
 // =============================================================================
 
 
-const { dedent: _ } = require('../../utils')
-
-
-// =============================================================================
-
-
 const os = require('os');
 const path = require('path');
 const { existsSync, copyFileSync, constants } = require('fs');
 
-const { usage, cooldownToString, stringToCooldown,
+const { dedent: _, usage, cooldownToString, stringToCooldown,
         userLevelToString, stringToUserLevel, getDisplayAccessLevels,
         command_prefix_list, isValidCmdName, getValidCmdName,
         persistItemChanges } = require('../../utils');
