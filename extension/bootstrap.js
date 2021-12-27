@@ -261,14 +261,14 @@ async function bootstrap(api, modelName, items)
   api.log.info(`bootstrapping ${modelName}`);
 
   // Iterate over all items, and add them if they're missing
-  for (const item of items) {
+  await Promise.all(items.map(async (item) => {
     const record = await model.findOne( { name: item.name });
     if (record === undefined) {
       inserted++;
       api.log.info(`inserting: ${item.name}`);
       await model.create(item);
     }
-  }
+  }));
 
   // Only say a count if we did anything.
   if (inserted !== 0) {
