@@ -292,14 +292,13 @@ function handle_alias_add(api, cmd, userInfo) {
 
   // The last argument is the new alias text; this needs to be something that
   // doesn't already exist in the commands list at all.
-  const alias = getValidCmdName(api, aliasArg);
-  const checkCmd = api.commands.find(alias);
+  const checkCmd = api.commands.find(aliasArg);
   if (checkCmd !== null) {
-    api.chat.say(`${alias} cannot be used as an alias; it already resolves to ${checkCmd.name}`);
+    api.chat.say(`${aliasArg} cannot be used as an alias; it already resolves to ${checkCmd.name}`);
     return errReturn;
   }
 
-  return [target, alias, { aliases: [...target.aliases, alias] }];
+  return [target, aliasArg, { aliases: [...target.aliases, aliasArg] }];
 }
 
 
