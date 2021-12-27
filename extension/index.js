@@ -30,6 +30,7 @@ const setup_crypto = require('./crypto');
 const setup_db = require('./db/');
 const setup_file_server = require('./file_api');
 const { setup_auth } = require('./auth');
+const setup_twitch_eventsub = require('./eventsub');
 const setup_chat = require('./chat');
 const setup_tts = require('./google_tts');
 const bootstrap_core_data = require('./bootstrap');
@@ -149,6 +150,10 @@ module.exports = async function(nodecg) {
   // Now that the base core is set up, bootstrap any data in the database that
   // needs to be present.
   await bootstrap_core_data(api);
+
+  // Set up the Twitch EventSub mechanism that will deliver channel events to us
+  // as they occur.
+  await setup_twitch_eventsub(api);
 
   // We can now set up chat, which will take care of joining the bot to the chat
   // if it has the correct authorizations already, or the events that will cause
