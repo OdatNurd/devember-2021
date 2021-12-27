@@ -211,7 +211,7 @@ function getDisplayAccessLevels() {
  * entered into the chat, does something special), return an indication of
  * whether that name is a valid name or not. */
 function isValidCmdName(name) {
-  return command_prefix_list.indexOf(name[0]) !== -1;
+  return name !== undefined && command_prefix_list.indexOf(name[0]) !== -1;
 }
 
 
@@ -224,7 +224,7 @@ function isValidCmdName(name) {
  * The things that make a command name valid are:
  *    - starts with a valid prefix character. */
 function getValidCmdName(api, name) {
-  if (isValidCmdName(name) === false) {
+  if (name !== undefined && isValidCmdName(name) === false) {
     name = `${api.config.get('bot.defaultPrefix')}${name}`
   }
 
