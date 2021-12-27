@@ -29,6 +29,14 @@ const access_options = {
   rabble: 5
 };
 
+/* This is a similar list to the above, but contains on a single representative
+ * access level string for each item. This is for use in places where a list
+ * of possible options is desired without providuing the more massive list.
+ *
+ * This should of course be kept up to date with the above to stop user
+ * confusion. */
+const access_options_short = ['streamer', 'mods', 'vips', 'regs', 'subs', 'all'];
+
 /* This maps the various user levels that can be associated with features in
  * the bot such as command execution with a human displayable textual string.
  *
@@ -177,6 +185,16 @@ function stringToUserLevel(input) {
   return access_options[input.toLowerCase()];
 }
 
+// =============================================================================
+
+
+/* Fetch a short list of representative access levels for display in places in
+ * which we want to display access levels without using the larger, more
+ * expanded list that contains many entries for each level. */
+function getDisplayAccessLevels() {
+  return [...access_options_short];
+}
+
 
 // =============================================================================
 
@@ -189,6 +207,22 @@ function isValidCmdName(name) {
   return command_prefix_list.indexOf(name[0]) !== -1;
 }
 
+
+// =============================================================================
+
+
+/* Given the potential name for a command, check to see if the name is valid and
+ * if it's not, adjust it and return a version that is valid.
+ *
+ * The things that make a command name valid are:
+ *    - starts with a valid prefix character. */
+function getValidCmdName(api, name) {
+  if (isValidCmdName(name) === false) {
+    name = `${api.config.get('bot.defaultPrefix')}${name}`
+  }
+
+  return name;
+}
 
 // =============================================================================
 
@@ -222,6 +256,8 @@ module.exports = {
   stringToCooldown,
   userLevelToString,
   stringToUserLevel,
+  getDisplayAccessLevels,
   isValidCmdName,
+  getValidCmdName,
   persistItemChanges
 }
