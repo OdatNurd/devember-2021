@@ -10,6 +10,31 @@ const { v4: uuidv4 } = require('uuid');
 // =============================================================================
 
 
+/* When requesting authorization for the bot account, we are requesting the
+ * permission for the bot code to act as the specific bot account, such as being
+ * able to send chat messages or take actions that will appear to come from
+ * that user (e.g. banning someone).
+ *
+ * This specifies what specific permissions we're asking for. Anything not
+ * covered here will fail due to lack of proper authorization. */
+const bot_token_scopes = ['chat:read',  'chat:edit',
+                          'whispers:read', 'whispers:edit',
+                          'channel:moderate'];
+
+
+/* When requesting authorization for the bot to join a specific channel, we are
+ * requesting that the bot code can request informationan about that channel
+ * (e.g. viewing the stream title) as well as taking actions on behalf of the
+ * channel (e.g. changing the stream title).
+ *
+ * This specifies what specific permissions we're asking for. Anything not
+ * covered here will fail due to lack of proper authorization. */
+const user_token_scopes = ['user:read:email']
+
+
+// =============================================================================
+
+
 /* This sends an authorization state change event to any interested listeners to
  * let them know that the authorization state of one of the bot accounts has
  * changed, allowing them to take appropriate actions.
@@ -212,15 +237,14 @@ async function handleAuthCallback(api, state, name, req, res)  {
  * request comes back we can verify that it's valid and not a potential spoof
  * attempt. */
 function performTokenAuth(api, name, req, res) {
-  const bot_scopes = 'chat:read chat:edit whispers:read whispers:edit channel:moderate';
-  const user_scopes = 'user:read:email'
+  const scopes = (name == 'bot') ? bot_token_scopes : user_token_scopes;
 
   const params = {
     client_id: api.config.get('twitch.core.clientId'),
     redirect_uri: api.config.get(`twitch.core.${name}CallbackURL`),
     force_verify: true,
     response_type: 'code',
-    scope: (name == 'bot') ? bot_scopes : user_scopes,
+    scope: scopes.join(' '),
     state: uuidv4()
   };
 
