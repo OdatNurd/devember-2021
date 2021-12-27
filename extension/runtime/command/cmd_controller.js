@@ -368,7 +368,7 @@ function handle_alias_remove(api, cmd, userInfo) {
  * appropriate action by calling out to a helper. */
 async function modify_cmd_aliases(api, cmd, userInfo) {
   // At a minimum, we need to receive at least one argument, which will tell us
-  // what we;re trying to do.
+  // what we're trying to do.
   if (cmd.words.length < 1) {
     return usage(api, cmd, '[add|remove] <command> [alias]', `add or remove aliases
       for a command; specify only a command name to view the aliases for that
@@ -422,10 +422,9 @@ async function modify_cmd_aliases(api, cmd, userInfo) {
         return;
       }
 
-      const aliases = (target.aliases.length === 0) ? 'none': target.aliases.join(',');
-
       // Send out the display
-      api.chat.say(`aliases for the ${target.name} command : ${aliases}`);
+      api.chat.say(_(`aliases for the ${target.name} command :
+        ${(target.aliases.length === 0) ? 'none': target.aliases.join(',')}`));
       return;
   }
 
@@ -442,7 +441,7 @@ async function modify_cmd_aliases(api, cmd, userInfo) {
     postUpdate();
   }
 
-  api.chat.say(_(`aliases for the ${target.name} command are now:
+  api.chat.say(_(`aliases for the ${target.name} command are now :
                  ${(target.aliases.length === 0) ? 'none': target.aliases.join(',')}`));
 }
 
