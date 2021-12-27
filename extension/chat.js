@@ -266,19 +266,19 @@ async function getAuthProvider(api, name) {
  * accounts changes to be authorized. We use this to determine if it's time to
  * enter the chat with the bot or not, such as if we now have all of the
  * required authorizations. */
-async function handleAuthEvent(api, type) {
+async function handleAuthEvent(api, info) {
   // Get information about the account that was just authorized; we need to know
   // this to know how to get into the channel for either of these users.
-  const userInfo = await getUserInfo(api, type);
+  const userInfo = await getUserInfo(api, info.type);
   if (userInfo === null) {
-    api.log.warn(`unable to find ${type} information; cannot join chat`);
+    api.log.warn(`unable to find ${info.type} information; cannot join chat`);
     return;
   }
 
   // If the account that just authorized is the user account, then we need to
   // look up the information for that user in order to know what channel the
   // bot is supposed to join.
-  switch (type) {
+  switch (info.type) {
     case 'user':
       // The name of the channel to join is based on the username of the user
       // whose channel it is.
@@ -300,7 +300,7 @@ async function handleAuthEvent(api, type) {
       break;
 
     default:
-      api.log.error(`unhandled authorization event type ${type}`)
+      api.log.error(`unhandled authorization event type ${info.type}`)
       break;
   }
 
@@ -321,7 +321,7 @@ async function handleAuthEvent(api, type) {
  * accounts changes to be deauthorized. We use this to determine if it's time to
  * leave the chat with the bot or not, which we would do as soon as an auth
  * drops, since all are required for the chat to function. */
-function handleDeauthEvent(api, type) {
+function handleDeauthEvent(api, info) {
   // If we are currently in the chat, we need to leave it because the authorized
   // accounts are changing.
   if (api.chat.client !== undefined) {
@@ -329,7 +329,7 @@ function handleDeauthEvent(api, type) {
     leaveTwitchChat(api);
   }
 
-  switch (type) {
+  switch (info.type) {
     case 'user':
       api.log.warn(`Bot has been asked to leave ${api.chat.channel}`)
       api.chat.channel = undefined;
@@ -341,7 +341,7 @@ function handleDeauthEvent(api, type) {
       break;
 
     default:
-      api.log.error(`unhandled deauthorization event type ${type}`)
+      api.log.error(`unhandled deauthorization event type ${info.type}`)
       break;
   }
 }
@@ -534,8 +534,8 @@ async function setup_chat(api) {
 
   // Listen for events that tell us when the authorization state of the various
   // accounts has completed, which is our signal to join or leave the chat.
-  api.nodecg.listenFor('auth-complete',   type => handleAuthEvent(api, type));
-  api.nodecg.listenFor('deauth-complete', type => handleDeauthEvent(api, type));
+  api.nodecg.listenFor('auth-complete',   info => handleAuthEvent(api, info));
+  api.nodecg.listenFor('deauth-complete', info => handleDeauthEvent(api, info));
 
   // Other systems in the bot can ask us to say text in chat, so long as we
   // are connected. We do that by listening for a message that tells us to say

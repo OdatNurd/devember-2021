@@ -40,10 +40,11 @@ const user_token_scopes = ['user:read:email']
  * changed, allowing them to take appropriate actions.
  *
  * event is one of 'auth' or 'deauth' to indicate if the event being raised is
- * an authorization or deauthorization event, and type should be the type of
- * the authorization being altered (e.g. 'bot' or 'user') */
-function sendAuthStateEvent(api, event, type) {
-    api.nodecg.sendMessage(`${event}-complete`, type);
+ * an authorization or deauthorization event, type should be the type of
+ * the authorization being altered (e.g. 'bot' or 'user') and userId should
+ * be the Id of the user that is being authorized or deauthorized. */
+function sendAuthStateEvent(api, event, type, userId) {
+    api.nodecg.sendMessage(`${event}-complete`, { type , userId});
 }
 
 
@@ -145,7 +146,7 @@ async function getAccessToken(api, name, code) {
     // An authorization is now complete; send off a message to anyone that
     // is listening and wants to know; the type of the authorization will be
     // transmitted as a part of the message.
-    sendAuthStateEvent(api, 'auth', name);
+    sendAuthStateEvent(api, 'auth', name, tokenInfo.userId);
   }
 
   catch (error) {
@@ -274,23 +275,37 @@ async function performTokenDeauth(api, name, req, res) {
   // the token that we're going to be deauthorizing.
   const record = await api.db.getModel('tokens').findOne({ name })
 
+  // Get the user whose token we are deauthorizaing. This should always exist,
+  // as without it we can't propogate an appropriate deauthorization event.
+  // Here we let it roll anyway after logging it, because we may still have a
+  // token or such.
+  const userInfo = await api.db.getModel('users').findOne({ type: name });
+  if (userInfo === undefined) {
+    api.log.error(`during deauth of ${name}, unable to find a record`);
+  }
+
   // Remove the token and user record for this name, if any; these operations
   // may not do anything, such as for the user, who doesn't have a token in the
   // tokens table because their token is for authorization only. This is OK.
   await api.db.getModel('tokens').remove({ name });
   await api.db.getModel('users').remove({ type: name });
 
-  // If the token that's being deauthorized is the bot token, then decrupt the
-  // record we pulled above and revoke the token that it contains.
-  if (name === 'bot' && record !== undefined) {
-    api.log.warn(`deauthorizing the existing bot token`);
+  // When we deauthorize an account, if we have a token associated with it in
+  // the database we should revoke it now.
+  //
+  // Generally this only deauthorizes the bot because the user token isn't
+  // stored locally because the application takes actions for the user directly.
+  if (record !== undefined) {
+    api.log.warn(`deauthorizing the existing ${name} token`);
     const accessToken = api.crypto.decrypt(record.token);
     await revokeToken(api.config.get('twitch.core.clientId'), accessToken);
   }
 
   // An authorization was removed; so send a message that tells people who care
   // that this authorization is now no longer valid.
-  sendAuthStateEvent(api, 'deauth', name);
+  if (userInfo !== undefined) {
+    sendAuthStateEvent(api, 'deauth', name, userInfo.userId);
+  }
 
   // If we were called as a part of an express route handler, this operation was
   // done as part of a click in the user interface, so go back there.
@@ -407,7 +422,7 @@ async function setup_auth(api) {
   // drop and re-initiate their auth.
   const users = await api.db.getModel('users').find({});
   for (const user of users) {
-    sendAuthStateEvent(api, 'auth', user.type);
+    sendAuthStateEvent(api, 'auth', user.type, user.userId);
   }
 }
 
