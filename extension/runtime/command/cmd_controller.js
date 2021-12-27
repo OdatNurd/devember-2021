@@ -11,10 +11,9 @@ const os = require('os');
 const path = require('path');
 const { existsSync, copyFileSync, constants } = require('fs');
 
-const { CommandParser } = require('../../core/command');
 const { usage, cooldownToString, stringToCooldown,
-        userLevelToString, stringToUserLevel,
-        command_prefix_list, isValidCmdName,
+        userLevelToString, stringToUserLevel, getDisplayAccessLevels,
+        command_prefix_list, isValidCmdName, getValidCmdName,
         persistItemChanges } = require('../../utils');
 
 
@@ -68,8 +67,11 @@ function get_command_info(api, cmd, userInfo) {
       command or alias`);
   }
 
+  // Gather all arguments.
+  const nameArg = getValidCmdName(api, cmd.words[0]);
+
   // Get the target command or leave; on error, this displays an error for us.
-  const target = getCmdTarget(api, cmd, cmd.words[0], true, true);
+  const target = getCmdTarget(api, cmd, nameArg, true, true);
   if (target === null) {
     return;
   }
@@ -104,11 +106,14 @@ function get_command_info(api, cmd, userInfo) {
  *
  * This function serves both the enable and disable option and can determine
  * which of the two it's supposed to do based on the name that it's invoked
- * with. */
+ * with. It will however work with any command prefix. */
 async function change_enabled_state(api, cmd, userInfo) {
   // The command can either enable or disable a command; how this works depends
   // on the name that it's invoked with.
   const enabled = (cmd.name.endsWith('enable'));
+
+  // Gather all arguments.
+  const nameArg = getValidCmdName(api, cmd.words[0]);
 
   // As a sanity check, if the command name is not enable, it has to be disable
   // or someone somehow set up an alias when they should not have been allowed
@@ -126,7 +131,7 @@ async function change_enabled_state(api, cmd, userInfo) {
   }
 
   // Get the target command or leave; on error, this displays an error for us.
-  const target = getCmdTarget(api, cmd, cmd.words[0], false, false);
+  const target = getCmdTarget(api, cmd, nameArg, false, false);
   if (target === null) {
     return;
   }
@@ -153,16 +158,20 @@ async function change_enabled_state(api, cmd, userInfo) {
 async function change_access_level(api, cmd, userInfo) {
   // The levels we use in our display here; the actual values supported is a
   // much larger list, to make commands more natural.
-  const levels = ['streamer', 'mods', 'vips', 'regs', 'subs', 'all'];
+  const levels = getDisplayAccessLevels();
 
   // We need to be given a command name.
   if (cmd.words.length < 1) {
-    return usage(api, cmd, `<command> <${levels.join('|')}>`, `change the access
-      level required to execute a command`);
+    return usage(api, cmd, `<command> [${levels.join('|')}]`, `change the access
+      level required to execute a command or view the current access level`);
   }
 
+  // Gather all arguments.
+  const nameArg = getValidCmdName(api, cmd.words[0]);
+  const levelArg = cmd.words[1];
+
   // Get the target command or leave; on error, this displays an error for us.
-  const target = getCmdTarget(api, cmd, cmd.words[0], false, false);
+  const target = getCmdTarget(api, cmd, nameArg, false, false);
   if (target === null) {
     return;
   }
@@ -174,9 +183,9 @@ async function change_access_level(api, cmd, userInfo) {
   }
 
   // Look up the appropriate user level based on the argument provided.
-  const userLevel = stringToUserLevel(cmd.words[1]);
+  const userLevel = stringToUserLevel(levelArg);
   if (userLevel === undefined) {
-    api.chat.say(`${cmd.words[1]} is not a valid access level; valid levels are: ${levels.join(',')}`);
+    api.chat.say(`${levelArg} is not a valid access level; valid levels are: ${levels.join(',')}`);
     return;
   }
 
@@ -203,17 +212,22 @@ async function change_cmd_cooldown(api, cmd, userInfo) {
   // We need to be given a command name.
   if (cmd.words.length < 1) {
     return usage(api, cmd, `<command> <${specs.join('|')}>`, `specify the time
-      required between invocations of a command. The broadcaster and mods are
-      exempt from the cooldown restructions`);
+      required between invocations of a command or view the current cooldown.
+      The broadcaster and mods are exempt from the cooldown restrictions`);
   }
 
+  // Gather all arguments.
+  const nameArg = getValidCmdName(api, cmd.words[0]);
+  const intervalArg = cmd.words[1];
+
   // Get the target command or leave; on error, this displays an error for us.
-  const target = getCmdTarget(api, cmd, cmd.words[0], false, false);
+  const target = getCmdTarget(api, cmd, nameArg, false, false);
   if (target === null) {
     return;
   }
 
-  // If we only got a command name, then display the current cooldown and leave.
+  // If there is only a command name provided, then display the current
+  // cooldown for this item and we can leave.
   if (cmd.words.length === 1) {
     const curCool = (target.cooldown === 0) ? 'no cool down' :
                      `a cool down of ${cooldownToString(target.cooldown)}`;
@@ -222,10 +236,10 @@ async function change_cmd_cooldown(api, cmd, userInfo) {
     return;
   }
 
-  // Look up the appropriate user level based on the argument provided.
-  const cooldown = stringToCooldown(api, cmd.words[1]);
+  // Parse the given cooldown time specification.
+  const cooldown = stringToCooldown(api, intervalArg);
   if (cooldown === undefined) {
-    api.chat.say(`${cmd.words[1]} is not a valid cool down specification; valid formats are: ${specs.join(',')}`);
+    api.chat.say(`${intervalArg} is not a valid cool down specification; valid formats are: ${specs.join(',')}`);
     return;
   }
 
@@ -262,9 +276,13 @@ function handle_alias_add(api, cmd, userInfo) {
     return errReturn;
   }
 
+  // Gather all arguments.
+  const nameArg = getValidCmdName(api, cmd.words[1]);
+  const aliasArg = getValidCmdName(api, cmd.words[2]);
+
   // We already know this is an add, so fetch the command that we want to set
   // the alias on.
-  const target = getCmdTarget(api, cmd, cmd.words[1], false, true);
+  const target = getCmdTarget(api, cmd, nameArg, false, true);
   if (target === null) {
     return errReturn;
   }
@@ -280,18 +298,10 @@ function handle_alias_add(api, cmd, userInfo) {
 
   // The last argument is the new alias text; this needs to be something that
   // doesn't already exist in the commands list at all.
-  const alias = cmd.words[2];
+  const alias = getValidCmdName(api, aliasArg);
   const checkCmd = api.commands.find(alias);
   if (checkCmd !== null) {
     api.chat.say(`${alias} cannot be used as an alias; it already resolves to ${checkCmd.name}`);
-    return errReturn;
-  }
-
-  // The first character of the proposed new alias needs to be a valid prefix
-  // character, or the alias will never be able to execute.
-  if (isValidCmdName(alias[0]) === false) {
-    api.chat.say(_(`${cmd.words[2]} cannot be used as an alias; it does not have a command prefix.
-                     Did you mean to include one of '${command_prefix_list}'?`));
     return errReturn;
   }
 
@@ -323,10 +333,13 @@ function handle_alias_remove(api, cmd, userInfo) {
     return errReturn;
   }
 
+  // Gather all arguments.
+  const nameArg = getValidCmdName(api, cmd.words[1]);
+
   // We already know this is a remove, so fetch the command that represents the
   // alias that we want to remove. Here we want to make sure that aliases are
   // allowed, since they are in fact required.
-  const alias = getCmdTarget(api, cmd, cmd.words[1], true, true);
+  const alias = getCmdTarget(api, cmd, nameArg, true, true);
   if (alias === null) {
     return errReturn;
   }
@@ -342,19 +355,24 @@ function handle_alias_remove(api, cmd, userInfo) {
 
   // The command that we got needs to be an alias; otherwise someone is trying
   // to remove a command, which is not allowed here.
-  if (alias.name === cmd.words[1]) {
+  if (alias.name === nameArg) {
     api.chat.say(`${alias.name} is not an alias; it cannot be removed by this command`);
     return errReturn;
   }
 
-  return [alias, cmd.words[1], { aliases: alias.aliases.filter(name => name !== cmd.words[1])}];
+  return [alias, nameArg, { aliases: alias.aliases.filter(name => name !== nameArg)}];
 }
 
 
 // =============================================================================
 
 
-//   $alias command
+/* This command allows you to add or remove aliases for commands, which allows
+ * you to execute the same command via multiple names, such as to use a shorter
+ * version or to make a command known by more than one obvious name.
+ *
+ * The code here determines what action is being requested and then takes the
+ * appropriate action by calling out to a helper. */
 async function modify_cmd_aliases(api, cmd, userInfo) {
   // At a minimum, we need to receive at least one argument, which will tell us
   // what we;re trying to do.
@@ -369,7 +387,9 @@ async function modify_cmd_aliases(api, cmd, userInfo) {
   let update = undefined;
   let postUpdate = undefined;
 
-  switch(cmd.words[0]) {
+  // Gather all arguments.
+  const opOrNameArg = cmd.words[0];
+  switch(opOrNameArg) {
     case 'add':
       // Use the sub handler to get the aliased command and the new alias; this
       // will do error checking and return a null command on error.
@@ -382,6 +402,10 @@ async function modify_cmd_aliases(api, cmd, userInfo) {
       }
       break;
 
+    // Deletes are known by more than one name as a fun easter egg, since there
+    // are a few potential ways you might expect it to work.
+    case 'rm':
+    case 'delete':
     case 'remove':
       // Use the sub handler to get the aliased command and the alias to remove;
       // this will do error checking and return a null command on error.
@@ -399,7 +423,8 @@ async function modify_cmd_aliases(api, cmd, userInfo) {
     // displays based on the native command.
     default:
       // Get the target command or leave; on error, this displays an error for us.
-      target = getCmdTarget(api, cmd, cmd.words[0], true, true);
+      opOrNameArg = getValidCmdName(api, opOrNameArg)
+      target = getCmdTarget(api, cmd, opOrNameArg, true, true);
       if (target === null) {
         return;
       }
@@ -423,7 +448,9 @@ async function modify_cmd_aliases(api, cmd, userInfo) {
   if (postUpdate !== undefined) {
     postUpdate();
   }
-  api.chat.say(`aliases for the ${target.name} command are now: ${target.aliases}`);
+
+  api.chat.say(_(`aliases for the ${target.name} command are now:
+                 ${(target.aliases.length === 0) ? 'none': target.aliases.join(',')}`));
 }
 
 
@@ -445,41 +472,33 @@ async function add_new_command(api, cmd, userInfo) {
       optionally specifying the source file it lives in`);
   }
 
-  // Get the name of the new item and the file it should be implemented in.
-  // The source file is optional and will be inferred from the item name if
-  // it's not provided.
-  let [newCmdName, newSrcFile] = cmd.words;
+  // Gather all arguments.
+  const nameArg = getValidCmdName(api, cmd.words[0]);
+  const newFileArg = cmd.words[1] || nameArg;
 
-  // Infer a missing file from the name of the item being added; if the name
-  // is a command, we need to strip the prefixes off the name first.
-  if (newSrcFile === undefined) {
-    newSrcFile = newCmdName;
-    while (isValidCmdName(newSrcFile[0]) === true) {
-      newSrcFile = newSrcFile.substr(1);
-    }
+  // Ensure that the command has a valid prefix; there's no helper call here. We
+  // can leave immediately if such a command already exists.
+  if (api.commands.find(nameArg) !== null) {
+    api.chat.say(`unable to add new command ${nameArg}; a command by this name already exists`);
+    return;
+  }
+
+  // The filename argument will be inferred from the new command name if it's
+  // not given, but we need to make sure that the name doesn't have the command
+  // prefix on it.
+  while (isValidCmdName(newFileArg[0]) === true) {
+    newFileArg = newFileArg.substr(1);
   }
 
   // Include an extension on the file if one is missing.
-  if (path.extname(newSrcFile) === '') {
-    newSrcFile = `${newSrcFile}.js`;
+  if (path.extname(newFileArg) === '') {
+    newFileArg = `${newFileArg}.js`;
   }
 
   // If a path separator appears anywhere in the new source file, that's going
   // to be an issue, so kick it out.
-  if (newSrcFile.includes('/') || newSrcFile.includes('\\')) {
-    api.chat.say(`unable to add new command ${newCmdName}; the implementation file must not have a path`);
-    return;
-  }
-
-  // Make sure that the command name has a prefix; for brevity we allow the user
-  // to not specify one, in which case a default will be used.
-  if (isValidCmdName(newCmdName[0]) === false) {
-    newCmdName = `${api.config.get('bot.defaultPrefix')}${newCmdName}`;
-  }
-
-  // If this name already exists, we can't add it as a command.
-  if (api.commands.find(newCmdName) !== null) {
-    api.chat.say(`unable to add new command ${newCmdName}; a command by this name already exists`);
+  if (newFileArg.includes('/') || newFileArg.includes('\\')) {
+    api.chat.say(`unable to add new command ${nameArg}; the implementation file must not have a path`);
     return;
   }
 
@@ -487,23 +506,23 @@ async function add_new_command(api, cmd, userInfo) {
   // where we should get a stub from if we need to. The file has two names,
   // the one that's physical on the disk and the one that's relative and in
   // the database.
-  const implFile = `command/${newSrcFile}`;
+  const implFile = `command/${newFileArg}`;
   const srcFile = path.resolve(api.baseDir, 'extension/runtime/stubs/command.js');
   const dstFile = path.resolve(api.baseDir, `extension/runtime/${implFile}`);
 
-  api.chat.say(`creating a new command ${newCmdName} in ${implFile}`);
+  api.chat.say(`creating a new command ${nameArg} in ${implFile}`);
 
   // Start by adding a new entry to the database for this command and then add
   // a stub entry for it in the handler list so that we can get it to reload.
   await api.db.getModel('commands').create({
-    name: newCmdName,
+    name: nameArg,
     aliases: [],
     sourceFile: implFile,
     core: false,
     enabled: true,
     hidden: false
   });
-  await api.commands.addItemStub(newCmdName);
+  await api.commands.addItemStub(nameArg);
 
   // If the file already exists, then we can just get the handler list to
   // reload it; otherwise, we need to take extra steps to get the initial load
@@ -551,31 +570,32 @@ async function remove_existing_command(api, cmd, userInfo) {
     return usage(api, cmd, '<oldname>', `dynamically remove an existing command`);
   }
 
-  // Get the name of the command that we're removing.
-  let [oldCmdName] = cmd.words;
+  // Gather all arguments.
+  const nameArg = getValidCmdName(api, cmd.words[0]);
 
-  // If this name doesn't exist, then it can't be removed.
-  const oldCmd = api.commands.find(oldCmdName);
+  // Ensure that the command has a valid prefix; there's no helper call here. We
+  // can leave immediately if the command doesn't already exist.
+  const oldCmd = api.commands.find(nameArg);
   if (oldCmd === null) {
-    api.chat.say(`unable to remove command ${oldCmdName} because it does not exist`);
+    api.chat.say(`unable to remove command ${nameArg} because it does not exist`);
     return;
   }
 
   // We don't want to allow removing an alias using this, so the command that's
   // looked up has to have the same name as the one the user specified.
-  if (oldCmd.name !== oldCmdName) {
-    api.chat.say(`unable to remove command ${oldCmdName} because it is an alias; did you mean ${oldCmd.name}?`);
+  if (oldCmd.name !== nameArg) {
+    api.chat.say(`unable to remove command ${nameArg} because it is an alias; did you mean ${oldCmd.name}?`);
     return;
   }
 
   // Make sure that we don't let anyone remove a core command, because that is a
   // recipe for disaster.
   if (oldCmd.core === true) {
-    api.chat.say(`unable to remove command ${oldCmdName} because core commands can't be removed`);
+    api.chat.say(`unable to remove command ${nameArg} because core commands can't be removed`);
     return;
   }
 
-  api.chat.say(`removing command ${oldCmdName}`);
+  api.chat.say(`removing command ${nameArg}`);
 
   // To get rid of the command, we need to remove it from the database; we can
   // then tell the reloader to reload the file that it's contained inside of,

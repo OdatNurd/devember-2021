@@ -2,7 +2,7 @@
 // =============================================================================
 
 
-const { usage } = require('../../utils');
+const { usage, getValidCmdName } = require('../../utils');
 
 
 // =============================================================================
@@ -31,8 +31,17 @@ async function reload_items(api, cmd, userInfo) {
     return;
   }
 
+  // Get the list of things that we're going to try to reload.
+  let reloadTargets = [...cmd.words];
+
+  // If the reload is happening by name, infer a default command prefix on any
+  // of the arguments that we get.
+  if (mode === 'name') {
+    reloadTargets = reloadTargets.map(item => getValidCmdName(api, item));
+  }
+
   // Ask the command handler to reload based on the information provided.
-  const result = await api.commands.reload(cmd.words, mode === 'name');
+  const result = await api.commands.reload(reloadTargets, mode === 'name');
   switch (result) {
     case true:
       api.chat.say(`reload operation completed`);
