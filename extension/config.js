@@ -122,6 +122,35 @@ const config = convict({
     }
   },
 
+  // These options relate to the configuration of the Twitch event system; in
+  // this system we set up for listening for twitch to tell us when specific
+  // things happen (such as a new follow or a subscription, etc).
+  //
+  // These are optional; if notificationUri or signingSecret are not
+  // provided, then the server will not be started and no events will be
+  // listened for.
+  events: {
+    notificationUri: {
+      doc: 'The URI to provide to Twitch to deliver event notifications',
+      format: '*',
+      env: 'TWITCHBOT_NOTIFICATION_URI',
+      default: ''
+    },
+    serverPort: {
+      doc: 'The port that the internal notification event server should listen on',
+      format: 'port',
+      env: 'TWITCHBOT_NOTIFICATION_PORT',
+      default: 3000
+    },
+    signingSecret: {
+      doc: 'Signing secret to use when setting up notifications',
+      format: '*',
+      env: 'TWITCHBOT_SIGNING_SECRET',
+      default: '',
+      sensitive: true
+    }
+  },
+
   // These items relate to the configuration of the TTS system (powered by
   // Google's TTS API). They specify the different parameters that can be used
   // to select the voice that is used.

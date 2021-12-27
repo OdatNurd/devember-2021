@@ -43,6 +43,12 @@
     "defaultPrefix": null,      // TWITCHBOT_DEFAULT_PREFIX
   },
 
+  "events": {
+    "notificationUri": null,
+    "serverPort": null,
+    "signingSecret": null
+  },
+
   // The configuration options for the TTS system, which is powered by Google's
   // TTS API. The settings here control the voice used and it's parameters. For
   // details on what can be used here, see:
