@@ -193,6 +193,27 @@ function isValidCmdName(name) {
 // =============================================================================
 
 
+/* This takes an object that contains field changes that should be applied to
+ * the item provided, and updates the record in the database using the model
+ * provided and those changes.
+ *
+ * This only touches the fields provided and leaves everything else alone. It
+ * also updates the passed in item to have the changes, so that keeping sync
+ * with the database is easier. */
+async function persistItemChanges(api, modelName, item, changes) {
+  // Get the appropriate model and then perform the update
+  const model = api.db.getModel(modelName);
+  await model.update({ id: item.id }, changes);
+
+  // Apply the same changes directly to the item so that the caller doesn't
+  // need to refresh or reload to see them.
+  Object.keys(changes).forEach(key => item[key] = changes[key]);
+}
+
+
+// =============================================================================
+
+
 module.exports = {
   command_prefix_list,
   dedent,
@@ -201,5 +222,6 @@ module.exports = {
   stringToCooldown,
   userLevelToString,
   stringToUserLevel,
-  isValidCmdName
+  isValidCmdName,
+  persistItemChanges
 }

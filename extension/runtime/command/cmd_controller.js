@@ -14,7 +14,8 @@ const { existsSync, copyFileSync, constants } = require('fs');
 const { CommandParser } = require('../../core/command');
 const { usage, cooldownToString, stringToCooldown,
         userLevelToString, stringToUserLevel,
-        command_prefix_list, isValidCmdName } = require('../../utils');
+        command_prefix_list, isValidCmdName,
+        persistItemChanges } = require('../../utils');
 
 
 // =============================================================================
@@ -30,7 +31,7 @@ const { usage, cooldownToString, stringToCooldown,
  *
  * When this returns null, it generates a message to the chat that indicates
  * that the command being executed cannot be executed. */
-function getCommand(api, cmd, name, allowAlias, allowCore) {
+function getCmdTarget(api, cmd, name, allowAlias, allowCore) {
   // Find the command named in the command list; if this is null we can
   // immediately generate an error and return back.
   const target = api.commands.find(name);
@@ -57,25 +58,6 @@ function getCommand(api, cmd, name, allowAlias, allowCore) {
 // =============================================================================
 
 
-/* This takes a dictionary that contains field changes that should be applied to
- * the command provided and update the record in the database using them, based
- * on the id of the command that is provided.
- *
- * This only touches the fields provided and leaves everything else alone. */
-async function storeCmdChanges(api, command, changes) {
-  // Get the database model for commands and perform the update.
-  const model = api.db.getModel('commands');
-  await model.update({ id: command.id }, changes);
-
-  // We also need to apply the changes directly to the command, or they won't
-  // be seen until it reloads and refreshes its information from the database.
-  Object.keys(changes).forEach(key => command[key] = changes[key]);
-}
-
-
-// =============================================================================
-
-
 /* This command allows you to see a visualization of all of the information that
  * is currently known about a specific command, including its aliases and the
  * implementation file it's stored in. */
@@ -87,7 +69,7 @@ function get_command_info(api, cmd, userInfo) {
   }
 
   // Get the target command or leave; on error, this displays an error for us.
-  const target = getCommand(api, cmd, cmd.words[0], true, true);
+  const target = getCmdTarget(api, cmd, cmd.words[0], true, true);
   if (target === null) {
     return;
   }
@@ -144,7 +126,7 @@ async function change_enabled_state(api, cmd, userInfo) {
   }
 
   // Get the target command or leave; on error, this displays an error for us.
-  const target = getCommand(api, cmd, cmd.words[0], false, false);
+  const target = getCmdTarget(api, cmd, cmd.words[0], false, false);
   if (target === null) {
     return;
   }
@@ -156,7 +138,7 @@ async function change_enabled_state(api, cmd, userInfo) {
   }
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, target, { enabled });
+  await persistItemChanges(api, 'commands', target, { enabled });
   api.chat.say(`the ${target.name} command status has been set to ${enabled === true ? 'enabled' : 'disabled'}`);
 }
 
@@ -180,7 +162,7 @@ async function change_access_level(api, cmd, userInfo) {
   }
 
   // Get the target command or leave; on error, this displays an error for us.
-  const target = getCommand(api, cmd, cmd.words[0], false, false);
+  const target = getCmdTarget(api, cmd, cmd.words[0], false, false);
   if (target === null) {
     return;
   }
@@ -199,7 +181,7 @@ async function change_access_level(api, cmd, userInfo) {
   }
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, target, { userLevel });
+  await persistItemChanges(api, 'commands', target, { userLevel });
   api.chat.say(`the access level for ${target.name} has been set to ${userLevelToString(userLevel)}`);
 }
 
@@ -226,7 +208,7 @@ async function change_cmd_cooldown(api, cmd, userInfo) {
   }
 
   // Get the target command or leave; on error, this displays an error for us.
-  const target = getCommand(api, cmd, cmd.words[0], false, false);
+  const target = getCmdTarget(api, cmd, cmd.words[0], false, false);
   if (target === null) {
     return;
   }
@@ -251,7 +233,7 @@ async function change_cmd_cooldown(api, cmd, userInfo) {
                    `a cool down of ${cooldownToString(cooldown)}`;
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, target, { cooldown });
+  await persistItemChanges(api, 'commands', target, { cooldown });
   api.chat.say(`the cool down time for ${target.name} has been set to ${newCool}`);
 }
 
@@ -282,7 +264,7 @@ function handle_alias_add(api, cmd, userInfo) {
 
   // We already know this is an add, so fetch the command that we want to set
   // the alias on.
-  const target = getCommand(api, cmd, cmd.words[1], false, true);
+  const target = getCmdTarget(api, cmd, cmd.words[1], false, true);
   if (target === null) {
     return errReturn;
   }
@@ -344,7 +326,7 @@ function handle_alias_remove(api, cmd, userInfo) {
   // We already know this is a remove, so fetch the command that represents the
   // alias that we want to remove. Here we want to make sure that aliases are
   // allowed, since they are in fact required.
-  const alias = getCommand(api, cmd, cmd.words[1], true, true);
+  const alias = getCmdTarget(api, cmd, cmd.words[1], true, true);
   if (alias === null) {
     return errReturn;
   }
@@ -417,7 +399,7 @@ async function modify_cmd_aliases(api, cmd, userInfo) {
     // displays based on the native command.
     default:
       // Get the target command or leave; on error, this displays an error for us.
-      target = getCommand(api, cmd, cmd.words[0], true, true);
+      target = getCmdTarget(api, cmd, cmd.words[0], true, true);
       if (target === null) {
         return;
       }
@@ -437,7 +419,7 @@ async function modify_cmd_aliases(api, cmd, userInfo) {
   }
 
   // Update the command with the changes, then report them.
-  await storeCmdChanges(api, target, update);
+  await persistItemChanges(api, 'commands', target, update);
   if (postUpdate !== undefined) {
     postUpdate();
   }
