@@ -125,9 +125,16 @@ function cooldownToString(cooldown) {
  * milliseconds to represent that number of seconds, minutes or hours;
  * fractional numbers are allowed.
  *
- * If the incoming string is not in a recognized format, undefined will be
- * returned; otherwise the time in milliseconds is returned. */
+ * Strings with no suffix are assumed to be in seconds. If the incoming string
+ * is not in a recognized format, undefined will be returned; otherwise the time
+ * in milliseconds is returned. */
 function stringToCooldown(api, spec) {
+  // If the last character of the spec isn't one of the ones we know about,
+  // then assume that it's 's'.
+  if (['s', 'h', 'm'].indexOf(spec[spec.length - 1]) === -1) {
+    spec = `${spec}s`;
+  }
+
   // The last character is the time specifier, and the remainder of the string
   // is the time in that unit; grab them both out.
   const value = spec.substr(0, spec.length - 1);
