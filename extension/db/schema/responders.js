@@ -35,7 +35,7 @@ const ResponderSchema = {
   //    3: isRegular
   //    4: isSubscriber
   //    5: isEveryone
-  userLevel: { type: Number, defaultsTo: 0 },
+  userLevel: { type: Number, defaultsTo: 5 },
 
   // When non zero, this is the amount of time in milliseconds that must elapsed
   // between invocations of this responder. Within the cooldown period, the
@@ -43,7 +43,7 @@ const ResponderSchema = {
   //
   // Moderators and the Broadcaster are exempt from the cooldown period and may
   // always trigger a responder even if it's in cooldown.
-  cooldown: { type: Number, defaultsTo: 0 }
+  cooldown: { type: Number, defaultsTo: 10000 }
 };
 
 
