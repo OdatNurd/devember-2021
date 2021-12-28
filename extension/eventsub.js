@@ -39,7 +39,7 @@ const eventHandlers = {
   // twitch event trigger stream-change -s channel.update.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.update.$TWITCH_USERID
   update: 'subscribeToChannelUpdateEvents',
 
-  // twitch event trigger raid -s channel.raid.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.raid.$TWITCH_USERID
+  // twitch event trigger raid -s channel.raid.from.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.raid.from.$TWITCH_USERID
   raid: 'subscribeToChannelRaidEventsFrom',
 
   //------------------//
@@ -105,10 +105,10 @@ const eventHandlers = {
   // twitch event trigger add-reward -s channel.channel_points_custom_reward.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.channel_points_custom_reward.add.$TWITCH_USERID
   channelpoint_add: 'subscribeToChannelRewardAddEvents',
 
-  // twitch event trigger update-reward -s channel.channel_points_custom_reward.update.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.channel_points_custom_reward.remove.$TWITCH_USERID
+  // twitch event trigger update-reward -s channel.channel_points_custom_reward.remove.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.channel_points_custom_reward.remove.$TWITCH_USERID
   channelpoint_remove: 'subscribeToChannelRewardRemoveEvents',
 
-  // twitch event trigger remove-reward -s channel.channel_points_custom_reward.remove.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.channel_points_custom_reward.update.$TWITCH_USERID
+  // twitch event trigger remove-reward -s channel.channel_points_custom_reward.update.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.channel_points_custom_reward.update.$TWITCH_USERID
   channelpoint_update: 'subscribeToChannelRewardUpdateEvents',
 
   // twitch event trigger add-redemption -s channel.channel_points_custom_reward_redemption.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.channel_points_custom_reward_redemption.add.$TWITCH_USERID
@@ -205,18 +205,18 @@ async function handleAuthEvent(api, info) {
   // finalize, we let them all run simultaneously and wait for them all to
   // finish.
   Promise.all(Object.entries(eventHandlers).map(async ([name, handler]) => {
-    api.log.info(`Setting up handler for event: ${name}`);
+    api.log.info(`Listening for event: ${name}`);
     try {
       // The EventSubListener object contains a series of methods that allow you
       // to listen for specific incoming events. Look that up by indexing the
       // object directly.
       await api.eventSub.listener[handler](info.userId, event => {
-        const eventHandler = api.eventSub.find(name);
+        api.log.info(`received event ${name}`);
+        const eventHandler = api.events.find(name);
         if (eventHandler !== null) {
-          api.log.info(`Dispatching event ${name}`);
           eventHandler.execute(api, name, event);
         } else {
-          api.log.error(`Unknown event: ${name}`);
+          api.log.error(`unable to find handler for event: ${name}`);
         }
       });
     } catch (e) {
