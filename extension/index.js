@@ -36,7 +36,8 @@ const setup_tts = require('./google_tts');
 const bootstrap_core_data = require('./bootstrap');
 
 
-const { CommandParser, CodeHandlerMap, StaticHandlerMap, BotCommand, TextResponder } = require('./core/');
+const { CommandParser, CodeHandlerMap, StaticHandlerMap,
+        BotCommand, BotEvent, TextResponder } = require('./core/');
 
 
 // =============================================================================
@@ -178,15 +179,15 @@ module.exports = async function(nodecg) {
   // contents of files for online editing.
   await setup_file_server(api);
 
-  // Create a code handler that associates the commands in the database with
-  // the classes that know how to execute them as appropriate based on the
-  // command metadata.
+  // Create a code handler that associates the commands and events in the
+  // database with the classes that know how to execute them as appropriate.
   //
   // The arguments to the handler tell it what database it needs to pull data
   // from and how to wrap each entry in an appropriate class.
   //
-  // This is in the API so that all code in the bot can access it as needed. */
+  // This is in the API so that all code in the bot can access them as needed.
   api.commands = new CodeHandlerMap(api, 'commands', data => new BotCommand(data));
+  api.events = new CodeHandlerMap(api, 'events', data => new BotEvent(data));
 
   // The above code creates the handler maps that are required, but in order to
   // make the code available we need to tell them to initialize themselves, which
@@ -199,6 +200,11 @@ module.exports = async function(nodecg) {
                             ? 'All commands loaded successfuly'
                             : cmdResult.map(err => `${err}\n${err.stack}`).join("\n");
 
+  const evtResult = await api.events.initialize();
+  const initialEvtLog = evtResult.length === 0
+                            ? 'All events loaded successfuly'
+                            : evtResult.map(err => `${err}\n${err.stack}`).join("\n");
+
   // Create a static handler that associates the text responders in the database
   // with available responders that can be triggered at runtime.
   //
@@ -208,7 +214,7 @@ module.exports = async function(nodecg) {
   api.responders = new StaticHandlerMap(api, 'responders', data => new TextResponder(data));
   api.responders.initialize();
 
-  // When requested by the front end, send the initial log to them.
+  // When requested by the front end, send the initial logs to them.
   api.nodecg.listenFor('get-initial-cmd-log', () => api.nodecg.sendMessage('set-cmd-log', initialCmdLog));
   api.nodecg.listenFor('get-initial-evt-log', () => api.nodecg.sendMessage('set-evt-log', initialEvtLog));
 };

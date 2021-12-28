@@ -3,6 +3,7 @@
 
 
 const { CommandParser, CommandDetails, BotCommand } = require('./command/');
+const { BotEvent } = require('./event/')
 const { TextResponder } = require('./responder/')
 const { CodeHandler } = require('./handler');
 const { CodeHandlerMap } = require('./handler_map');
@@ -18,6 +19,7 @@ module.exports = {
   CodeHandlerMap,
   CodeHandler,
   BotCommand,
+  BotEvent,
   TextResponder,
   StaticHandlerMap
 };
