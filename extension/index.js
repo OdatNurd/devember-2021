@@ -210,8 +210,7 @@ module.exports = async function(nodecg) {
 
   // When requested by the front end, send the initial log to them.
   api.nodecg.listenFor('get-initial-cmd-log', () => api.nodecg.sendMessage('set-cmd-log', initialCmdLog));
-
-
+  api.nodecg.listenFor('get-initial-evt-log', () => api.nodecg.sendMessage('set-evt-log', initialEvtLog));
 };
 
 

@@ -62,6 +62,14 @@
         "workspace": "Logs"
       },
       {
+        "name": "reload-evt",
+        "width": 6,
+        "title": "Dynamic Event Loader",
+        "file": "reload_evt.html",
+        "headerColor": "#525F78",
+        "workspace": "Logs"
+      },
+      {
         "name": "editor",
         "title": "File Editor",
         "fullbleed": true,
