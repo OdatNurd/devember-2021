@@ -222,6 +222,139 @@ const commands = [
   },
 ];
 
+/* This is the list of core events that ship with the bot and make up the whole
+ * of the event system. Although events are based on the same dynamic system
+ * as commands and can be hot reloaded and dynamically added and removed at
+ * runtime, the actual list of events is fixed and as such, this just provides
+ * the total list of all known events. */
+const events = [
+  {
+      name: "moderator_add",
+      aliases: ["moderator_remove"],
+      enabled: 1,
+      sourceFile: "event/moderate.js",
+  },  {
+      name: "ban",
+      aliases: ["unban"],
+      enabled: 1,
+      sourceFile: "event/ban.js",
+  },  {
+      name: "hypeBegin",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/hypetrain.js",
+  },  {
+      name: "hypeUpdate",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/hypetrain.js",
+  },  {
+      name: "hypeEnd",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/hypetrain.js",
+  },  {
+      name: "cheer",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/bits.js",
+  },  {
+      name: "follow",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/follow_sub.js",
+  },  {
+      name: "subscribe",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/follow_sub.js",
+  },  {
+      name: "unsubscribe",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/follow_sub.js",
+  },  {
+      name: "gift",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/follow_sub.js",
+  },  {
+      name: "subcribe_message",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/follow_sub.js",
+  },  {
+      name: "streamOnline",
+      aliases: ["streamOffline"],
+      enabled: 1,
+      sourceFile: "event/streamstatus.js",
+  },  {
+      name: "update",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/streamstatus.js",
+  },  {
+      name: "raid",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/raid.js",
+  },  {
+      name: "channelpoint_add",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/channelpoint.js",
+  },  {
+      name: "channelpoint_remove",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/channelpoint.js",
+  },  {
+      name: "channelpoint_update",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/channelpoint.js",
+  },  {
+      name: "channelpoint_redeem",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/channelpoint.js",
+  },  {
+      name: "pollBegin",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/polling.js",
+  },  {
+      name: "pollEnd",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/polling.js",
+  },  {
+      name: "pollUpdate",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/polling.js",
+  },  {
+      name: "predictionBegin",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/predictions.js",
+  },  {
+      name: "predictionEnd",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/predictions.js",
+  },  {
+      name: "predictionLock",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/predictions.js",
+  },  {
+      name: "predictionUpdate",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/predictions.js",
+  },
+];
 
 /* This is the list of responders that come packed in out of the box as examples
  * for the command system to work with. These are not necessarily expected to
@@ -292,6 +425,7 @@ async function bootstrap(api, modelName, items)
 async function bootstrap_core_data(api) {
   // Bootstrap all missing core items in turn.
   await bootstrap(api, 'commands', commands);
+  await bootstrap(api, 'events', events);
   await bootstrap(api, 'responders', responders);
 }
 
