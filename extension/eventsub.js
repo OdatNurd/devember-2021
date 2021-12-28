@@ -19,128 +19,128 @@ const { ReverseProxyAdapter, ConnectionAdapter, EventSubListener } = require('@t
  * invocation that allows you to simulate that event.
  *
  * To use that, install the Twitch CLI and make sure that there are environment
- * variables TWITCHBOT_SIGNING_SECRET and TWITCH_USERID that specify the
- * signing secret you're using for the bot and the userID of your channel
- * respectively. */
+ * variables TWITCHBOT_SIGNING_SECRET, TWITCH_USERID and TWITCH_URI are set,
+ * which specify the signing secret you're using for the bot, and the userID of
+ * your channel and the reverse proxy URI you're using respectively. */
 const eventHandlers = {
   //----------------------------//
   // No special scopes required //
   //----------------------------//
 
-  // twitch event trigger follow -s channel.follow.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.follow.$TWITCH_USERID
+  // twitch event trigger follow -s channel.follow.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.follow.$TWITCH_USERID
   follow: 'subscribeToChannelFollowEvents',
 
-  // twitch event trigger streamup -s stream.online.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/stream.online.$TWITCH_USERID
+  // twitch event trigger streamup -s stream.online.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/stream.online.$TWITCH_USERID
   streamOnline: 'subscribeToStreamOnlineEvents',
 
-  // twitch event trigger streamdown -s stream.offline.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/stream.offline.$TWITCH_USERID
+  // twitch event trigger streamdown -s stream.offline.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/stream.offline.$TWITCH_USERID
   streamOffline: 'subscribeToStreamOfflineEvents',
 
-  // twitch event trigger stream-change -s channel.update.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.update.$TWITCH_USERID
+  // twitch event trigger stream-change -s channel.update.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.update.$TWITCH_USERID
   update: 'subscribeToChannelUpdateEvents',
 
-  // twitch event trigger raid -s channel.raid.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.raid.$TWITCH_USERID
+  // twitch event trigger raid -s channel.raid.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.raid.$TWITCH_USERID
   raid: 'subscribeToChannelRaidEventsFrom',
 
   //------------------//
   // Scope: bits:read //
   //------------------//
 
-  // twitch event trigger cheer -s channel.cheer.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.cheer.$TWITCH_USERID
+  // twitch event trigger cheer -s channel.cheer.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.cheer.$TWITCH_USERID
   cheer: 'subscribeToChannelCheerEvents',
 
   //-------------------------//
   // Scope: channel:moderate //
   //-------------------------//
 
-  // twitch event trigger ban -s channel.ban.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.ban.$TWITCH_USERID
+  // twitch event trigger ban -s channel.ban.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.ban.$TWITCH_USERID
   ban: 'subscribeToChannelBanEvents',
 
-  // twitch event trigger unban -s channel.unban.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.unban.$TWITCH_USERID
+  // twitch event trigger unban -s channel.unban.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.unban.$TWITCH_USERID
   unban: 'subscribeToChannelUnbanEvents', // scope: moderation:read
 
   //------------------------//
   // Scope: moderation:read //
   //------------------------//
 
-  // twitch event trigger add-moderator -s channel.moderator.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.moderator.add.$TWITCH_USERID
+  // twitch event trigger add-moderator -s channel.moderator.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.moderator.add.$TWITCH_USERID
   moderator_add: 'subscribeToChannelModeratorAddEvents',
 
-  // twitch event trigger remove-moderator -s channel.moderator.remove.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.moderator.remove.$TWITCH_USERID
+  // twitch event trigger remove-moderator -s channel.moderator.remove.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.moderator.remove.$TWITCH_USERID
   moderator_remove: 'subscribeToChannelModeratorRemoveEvents',
 
   //-----------------------------------//
   // Scope: channel:read:subscriptions //
   //-----------------------------------//
 
-  // twitch event trigger subscribe -s channel.subscribe.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.subscribe.$TWITCH_USERID
+  // twitch event trigger subscribe -s channel.subscribe.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.subscribe.$TWITCH_USERID
   subscribe: 'subscribeToChannelSubscriptionEvents',
 
-  // twitch event trigger unsubscribe -s channel.subscription.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.subscription.end.$TWITCH_USERID
+  // twitch event trigger unsubscribe -s channel.subscription.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.subscription.end.$TWITCH_USERID
   unsubscribe: 'subscribeToChannelSubscriptionEndEvents',
 
-  // twitch event trigger gift -s channel.subscription.gift.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.subscription.gift.$TWITCH_USERID
+  // twitch event trigger gift -s channel.subscription.gift.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.subscription.gift.$TWITCH_USERID
   gift: 'subscribeToChannelSubscriptionGiftEvents',
 
-  // twitch event trigger subscribe-message -s channel.subscription.message.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.subscription.message.$TWITCH_USERID
+  // twitch event trigger subscribe-message -s channel.subscription.message.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.subscription.message.$TWITCH_USERID
   subcribe_message: 'subscribeToChannelSubscriptionMessageEvents',
 
   //--------------------------------//
   // Scope: channel:read:hype_train //
   //--------------------------------//
 
-  // twitch event trigger hype-train-begin -s channel.hype_train.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.hype_train.begin.$TWITCH_USERID
+  // twitch event trigger hype-train-begin -s channel.hype_train.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.hype_train.begin.$TWITCH_USERID
   hypeBegin: 'subscribeToChannelHypeTrainBeginEvents',
 
-  // twitch event trigger hype-train-progress -s channel.hype_train.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.hype_train.end.$TWITCH_USERID
+  // twitch event trigger hype-train-progress -s channel.hype_train.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.hype_train.end.$TWITCH_USERID
   hypeUpdate: 'subscribeToChannelHypeTrainProgressEvents',
 
-  // twitch event trigger hype-train-end -s channel.hype_train.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.hype_train.progress.$TWITCH_USERID
+  // twitch event trigger hype-train-end -s channel.hype_train.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.hype_train.progress.$TWITCH_USERID
   hypeEnd: 'subscribeToChannelHypeTrainEndEvents',
 
   //-----------------------------------------------------------------//
   // Scope: channel:read:redemptions (or channel:manage:redemptions) //
   //-----------------------------------------------------------------//
 
-  // twitch event trigger add-reward -s channel.channel_points_custom_reward.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.channel_points_custom_reward.add.$TWITCH_USERID
+  // twitch event trigger add-reward -s channel.channel_points_custom_reward.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.channel_points_custom_reward.add.$TWITCH_USERID
   channelpoint_add: 'subscribeToChannelRewardAddEvents',
 
-  // twitch event trigger update-reward -s channel.channel_points_custom_reward.update.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.channel_points_custom_reward.remove.$TWITCH_USERID
+  // twitch event trigger update-reward -s channel.channel_points_custom_reward.update.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.channel_points_custom_reward.remove.$TWITCH_USERID
   channelpoint_remove: 'subscribeToChannelRewardRemoveEvents',
 
-  // twitch event trigger remove-reward -s channel.channel_points_custom_reward.remove.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.channel_points_custom_reward.update.$TWITCH_USERID
+  // twitch event trigger remove-reward -s channel.channel_points_custom_reward.remove.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.channel_points_custom_reward.update.$TWITCH_USERID
   channelpoint_update: 'subscribeToChannelRewardUpdateEvents',
 
-  // twitch event trigger add-redemption -s channel.channel_points_custom_reward_redemption.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.channel_points_custom_reward_redemption.add.$TWITCH_USERID
+  // twitch event trigger add-redemption -s channel.channel_points_custom_reward_redemption.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.channel_points_custom_reward_redemption.add.$TWITCH_USERID
   channelpoint_redeem: 'subscribeToChannelRedemptionAddEvents',
 
   //-----------------------------------------------------//
   // Scope: channel:read:polls (or channel:manage:polls) //
   //-----------------------------------------------------//
 
-  // twitch event trigger poll-begin -s channel.poll.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.poll.begin.$TWITCH_USERID
+  // twitch event trigger poll-begin -s channel.poll.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.poll.begin.$TWITCH_USERID
   pollBegin: 'subscribeToChannelPollBeginEvents',
 
-  // twitch event trigger poll-end -s channel.poll.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.poll.end.$TWITCH_USERID
+  // twitch event trigger poll-end -s channel.poll.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.poll.end.$TWITCH_USERID
   pollEnd: 'subscribeToChannelPollEndEvents',
 
-  // twitch event trigger poll-progress -s channel.poll.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.poll.progress.$TWITCH_USERID
+  // twitch event trigger poll-progress -s channel.poll.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.poll.progress.$TWITCH_USERID
   pollUpdate: 'subscribeToChannelPollProgressEvents',
 
   //-----------------------------------------------------------------//
   // Scope: channel:read:predictions (or channel:manage:predictions) //
   //-----------------------------------------------------------------//
 
-  // twitch event trigger prediction-begin -s channel.prediction.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.prediction.begin.$TWITCH_USERID
+  // twitch event trigger prediction-begin -s channel.prediction.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.prediction.begin.$TWITCH_USERID
   predictionBegin: 'subscribeToChannelPredictionBeginEvents',
 
-  // twitch event trigger prediction-end -s channel.prediction.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.prediction.end.$TWITCH_USERID
+  // twitch event trigger prediction-end -s channel.prediction.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.prediction.end.$TWITCH_USERID
   predictionEnd: 'subscribeToChannelPredictionEndEvents',
 
-  // twitch event trigger prediction-lock -s channel.prediction.lock.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.prediction.lock.$TWITCH_USERID
+  // twitch event trigger prediction-lock -s channel.prediction.lock.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.prediction.lock.$TWITCH_USERID
   predictionLock: 'subscribeToChannelPredictionLockEvents',
 
-  // twitch event trigger prediction-progress -s channel.prediction.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.prediction.progress.$TWITCH_USERID
+  // twitch event trigger prediction-progress -s channel.prediction.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.prediction.progress.$TWITCH_USERID
   predictionUpdate: 'subscribeToChannelPredictionProgressEvents'
 };
 
