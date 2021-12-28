@@ -156,42 +156,60 @@ const eventHandlers = {
  * account, since EventSub works at the channel level and will work even if
  * there is no authorized bot account for chat purposes. */
 async function handleAuthEvent(api, info) {
-  // If the event is a bot event, we don't care; we need the authorization of
-  // the user's account to set up events in their channel.
+  // If the event is a bot event, we don't care; we only need the authorization
+  // of the user's account to set up events in their channel.
   if (info.type !== 'user') {
     return;
   }
 
   // Set up an EventSub listener that we will use to listen for all of our
-  // incoming events. As we listen for new events, this will do all of the work
-  // needed to either add a new event subscription for this channel or reuse the
-  // existing one.
+  // incoming events.
+  //
+  // To set up an event, we need to make a request to Twitch to turn it on,
+  // and then respond to a request that verifies that we have access to the URI
+  // we provide.
+  //
+  // The EventSubListener does that for us, and will also first check Twitch to
+  // see if we've previously set up a listener or not; if so, it don't need to
+  // try to add it again.
   api.eventSub.listener = new EventSubListener({
     apiClient: api.twitch,
     secret: api.eventSub.secret,
     adapter: new ReverseProxyAdapter({hostName: api.eventSub.uri, port: api.eventSub.port}),
   });
 
-  // Set up all of the Twitch EventSub events.
+  // The EventSubListener starts an internal web server on the port that we
+  // configured to listen for the incoming events from Twitch. It's also
+  // possible via Twurple MiddleWare to use this directly with an existing
+  // express server if desired.
   //
-  // Each one uses the same handler function, which uses the name of any given
-  // event to look up in the event handlers list the event that should be
-  // trigger, and then if found executes the handler.
+  // This sets the server listening for incoming events that have been
+  // registered with it. This needs to be done first because setting up a
+  // listener for the first time requires Twitch to send us a verification that
+  // we need to respond to.
   api.log.info(`Setting up for incoming Twitch events`);
   await api.eventSub.listener.listen();
 
-  // Enable all handlers; this uses the same handler for everything, which uses
-  // the name of any given event to look up the handler, and if found execute
-  // it.
-  for (const [name, handler] of Object.entries(eventHandlers)) {
+
+  // The eventHandlers object maps our internal name for an event with the
+  // method in the EventSubListener class that sets it up.
+  //
+  // To set up all of the listeners, we loop over all of the items and call the
+  // method to set things up.
+  //
+  // Every handler has an identical method, which responds to the event by
+  // looking up the event name in our internal event handler list and invoking
+  // the defined function if it's found.
+  //
+  // Since each setup requires a potentially costly series of web requests to
+  // finalize, we let them all run simultaneously and wait for them all to
+  // finish.
+  Promise.all(Object.entries(eventHandlers).map(async ([name, handler]) => {
+    api.log.info(`Setting up handler for event: ${name}`);
     try {
       // The EventSubListener object contains a series of methods that allow you
-      // to listen for specific incoming events. Our event map maps those to the
-      // associated events, so we can associate things easier.
-      //
-      // Each event uses the same listener thatt checks the event list to see if
-      // it can find an item with the name provided, and if so it will dispatch
-      // the event by executing it. Otherwise, it logs an error.
+      // to listen for specific incoming events. Look that up by indexing the
+      // object directly.
       await api.eventSub.listener[handler](info.userId, event => {
         const eventHandler = api.eventSub.find(name);
         if (eventHandler !== null) {
@@ -204,7 +222,7 @@ async function handleAuthEvent(api, info) {
     } catch (e) {
       api.log.error(`Unable to set up handler for event ${name}: ${e}`);
     }
-  }
+  }));
 }
 
 
