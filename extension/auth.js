@@ -29,7 +29,14 @@ const bot_token_scopes = ['chat:read',  'chat:edit',
  *
  * This specifies what specific permissions we're asking for. Anything not
  * covered here will fail due to lack of proper authorization. */
-const user_token_scopes = ['user:read:email']
+const user_token_scopes = ['channel:moderate',
+                           'channel:read:hype_train',
+                           'bits:read',
+                           'channel:read:subscriptions',
+                           'channel:read:redemptions',
+                           'channel:read:polls',
+                           'channel:read:predictions'
+                           ];
 
 
 // =============================================================================

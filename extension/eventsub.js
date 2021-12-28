@@ -2,6 +2,139 @@
 
 
 const { getUserInfo } = require('./auth');
+const { dedent: _ } = require('./utils');
+
+const { ReverseProxyAdapter, ConnectionAdapter, EventSubListener } = require('@twurple/eventsub');
+
+
+// =============================================================================
+
+
+/* This associates a list of events that we know how to handle with the EventSub
+ * endpoint that knows how to handle them. In this mapping, the key is the
+ * event name given in the events table and the value is the name of a method
+ * in the Twurple EventSubListener class that sets up a listener for that event.
+ *
+ * Each item is annotated with a comment that contains an example Twitch CLI
+ * invocation that allows you to simulate that event.
+ *
+ * To use that, install the Twitch CLI and make sure that there are environment
+ * variables TWITCHBOT_SIGNING_SECRET and TWITCH_USERID that specify the
+ * signing secret you're using for the bot and the userID of your channel
+ * respectively. */
+const eventHandlers = {
+  // twitch event trigger ban -s channel.ban.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.ban.$TWITCH_USERID
+  // scope: channel:moderate
+  ban: 'subscribeToChannelBanEvents',
+
+  // twitch event trigger unban -s channel.unban.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.unban.$TWITCH_USERID
+  // scope: channel:moderate
+  unban: 'subscribeToChannelUnbanEvents', // scope: moderation:read
+
+  // twitch event trigger hype-train-begin -s channel.hype_train.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.hype_train.begin.$TWITCH_USERID
+  // scope: channel:read:hype_train
+  hypeBegin: 'subscribeToChannelHypeTrainBeginEvents',
+
+  // twitch event trigger hype-train-progress -s channel.hype_train.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.hype_train.end.$TWITCH_USERID
+  // scope: channel:read:hype_train
+  hypeUpdate: 'subscribeToChannelHypeTrainProgressEvents',
+
+  // twitch event trigger hype-train-end -s channel.hype_train.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.hype_train.progress.$TWITCH_USERID
+  // scope: channel:read:hype_train
+  hypeEnd: 'subscribeToChannelHypeTrainEndEvents',
+
+  // twitch event trigger cheer -s channel.cheer.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.cheer.$TWITCH_USERID
+  // scope: bits:read
+  cheer: 'subscribeToChannelCheerEvents',
+
+  // twitch event trigger follow -s channel.follow.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.follow.$TWITCH_USERID
+  // scope: none needed
+  follow: 'subscribeToChannelFollowEvents',
+
+  // twitch event trigger subscribe -s channel.subscribe.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.subscribe.$TWITCH_USERID
+  // scope: channel:read:subscriptions
+  subscribe: 'subscribeToChannelSubscriptionEvents',
+
+  // twitch event trigger unsubscribe -s channel.subscription.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.subscription.end.$TWITCH_USERID
+  // scope: channel:read:subscriptions
+  unsubscribe: 'subscribeToChannelSubscriptionEndEvents',
+
+  // twitch event trigger gift -s channel.subscription.gift.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.subscription.gift.$TWITCH_USERID
+  // scope: channel:read:subscriptions
+  gift: 'subscribeToChannelSubscriptionGiftEvents',
+
+  // twitch event trigger subscribe-message -s channel.subscription.message.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.subscription.message.$TWITCH_USERID
+  // scope: channel:read:subscriptions
+  subcribe_message: 'subscribeToChannelSubscriptionMessageEvents',
+
+  // twitch event trigger streamup -s stream.online.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/stream.online.$TWITCH_USERID
+  // scope: none needed
+  streamOnline: 'subscribeToStreamOnlineEvents',
+
+  // twitch event trigger streamdown -s stream.offline.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/stream.offline.$TWITCH_USERID
+  // scope: none needed
+  streamOffline: 'subscribeToStreamOfflineEvents',
+
+  // twitch event trigger stream-change -s channel.update.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.update.$TWITCH_USERID
+  // scope: none needed
+  update: 'subscribeToChannelUpdateEvents',
+
+  // twitch event trigger raid -s channel.raid.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.raid.$TWITCH_USERID
+  // scope: none needed
+  raid: 'subscribeToChannelRaidEventsFrom',
+
+  // twitch event trigger add-reward -s channel.channel_points_custom_reward.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.channel_points_custom_reward.add.$TWITCH_USERID
+  // scope: channel:read:redemptions (or channel:manage:redemptions)
+  channelpoint_add: 'subscribeToChannelRewardAddEvents',
+
+  // twitch event trigger update-reward -s channel.channel_points_custom_reward.update.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.channel_points_custom_reward.remove.$TWITCH_USERID
+  // scope: channel:read:redemptions (or channel:manage:redemptions)
+  channelpoint_remove: 'subscribeToChannelRewardRemoveEvents',
+
+  // twitch event trigger remove-reward -s channel.channel_points_custom_reward.remove.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.channel_points_custom_reward.update.$TWITCH_USERID
+  // scope: channel:read:redemptions (or channel:manage:redemptions)
+  channelpoint_update: 'subscribeToChannelRewardUpdateEvents',
+
+  // twitch event trigger add-redemption -s channel.channel_points_custom_reward_redemption.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.channel_points_custom_reward_redemption.add.$TWITCH_USERID
+  // scope: channel:read:redemptions (or channel:manage:redemptions)
+  channelpoint_redeem: 'subscribeToChannelRedemptionAddEvents',
+
+  // twitch event trigger add-moderator -s channel.moderator.add.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.moderator.add.$TWITCH_USERID
+  // scope: moderation:read
+  moderator_add: 'subscribeToChannelModeratorAddEvents',
+
+  // twitch event trigger remove-moderator -s channel.moderator.remove.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.moderator.remove.$TWITCH_USERID
+  // scope: moderation:read
+  moderator_remove: 'subscribeToChannelModeratorRemoveEvents',
+
+  // twitch event trigger poll-begin -s channel.poll.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.poll.begin.$TWITCH_USERID
+  // scope: channel:read:polls (or channel:manage:polls)
+  pollBegin: 'subscribeToChannelPollBeginEvents',
+
+  // twitch event trigger poll-end -s channel.poll.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.poll.end.$TWITCH_USERID
+  // scope: channel:read:polls (or channel:manage:polls)
+  pollEnd: 'subscribeToChannelPollEndEvents',
+
+  // twitch event trigger poll-progress -s channel.poll.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.poll.progress.$TWITCH_USERID
+  // scope: channel:read:polls (or channel:manage:polls)
+  pollUpdate: 'subscribeToChannelPollProgressEvents',
+
+  // twitch event trigger prediction-begin -s channel.prediction.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.prediction.begin.$TWITCH_USERID
+  // scope: channel:read:predictions (or channel:manage:predictions)
+  predictionBegin: 'subscribeToChannelPredictionBeginEvents',
+
+  // twitch event trigger prediction-end -s channel.prediction.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.prediction.end.$TWITCH_USERID
+  // scope: channel:read:predictions (or channel:manage:predictions)
+  predictionEnd: 'subscribeToChannelPredictionEndEvents',
+
+  // twitch event trigger prediction-lock -s channel.prediction.lock.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.prediction.lock.$TWITCH_USERID
+  // scope: channel:read:predictions (or channel:manage:predictions)
+  predictionLock: 'subscribeToChannelPredictionLockEvents',
+
+  // twitch event trigger prediction-progress -s channel.prediction.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://obotnurd.ngrok.io/event/channel.prediction.progress.$TWITCH_USERID
+  // scope: channel:read:predictions (or channel:manage:predictions)
+  predictionUpdate: 'subscribeToChannelPredictionProgressEvents'
+};
 
 
 // =============================================================================
@@ -21,7 +154,51 @@ async function handleAuthEvent(api, info) {
     return;
   }
 
-  api.log.info(`Setting up Twitch events for user ${info.userId}`)
+  // Set up an EventSub listener that we will use to listen for all of our
+  // incoming events. As we listen for new events, this will do all of the work
+  // needed to either add a new event subscription for this channel or reuse the
+  // existing one.
+  api.eventSub.listener = new EventSubListener({
+    apiClient: api.twitch,
+    secret: api.eventSub.secret,
+    adapter: new ReverseProxyAdapter({hostName: api.eventSub.uri, port: api.eventSub.port}),
+  });
+
+  // Set up all of the Twitch EventSub events.
+  //
+  // Each one uses the same handler function, which uses the name of any given
+  // event to look up in the event handlers list the event that should be
+  // trigger, and then if found executes the handler.
+  api.log.info(`Setting up for incoming Twitch events`);
+  await api.eventSub.listener.listen();
+
+  // Enable all handlers; this uses the same handler for everything, which uses
+  // the name of any given event to look up the handler, and if found execute
+  // it.
+  for (const [name, handler] of Object.entries(eventHandlers)) {
+    api.log.info(`Setting up handler for ${handler}`);
+    try {
+      // The EventSubListener object contains a series of methods that allow you
+      // to listen for specific incoming events. Our event map maps those to the
+      // associated events, so we can associate things easier.
+      //
+      // Each event uses the same listener thatt checks the event list to see if
+      // it can find an item with the name provided, and if so it will dispatch
+      // the event by executing it. Otherwise, it logs an error.
+      await api.eventSub.listener[handler](info.userId, event => {
+        const eventHandler = api.eventSub.find(name);
+        if (eventHandler !== null) {
+          api.log.info(`Dispatching event ${name}`);
+          eventHandler.execute(api, name, event);
+        } else {
+          api.log.error(`Unknown event: ${name}`);
+        }
+      });
+    } catch (e) {
+      api.log.error(`Unable to set up handler for ${name}: ${e}`);
+    }
+  }
+
 }
 
 
@@ -42,7 +219,8 @@ async function handleDeauthEvent(api, info) {
     return;
   }
 
-  api.log.info(`Removing Twitch events for user ${info.userId}`)
+  api.log.info(`Shutting down Twitch event system`)
+  await api.eventSub.listener.unlisten();
 }
 
 // =============================================================================
@@ -61,27 +239,31 @@ async function handleDeauthEvent(api, info) {
  *
  * This includes elements in the API structure that is passed in to include the
  * Twitch API endpoint that we need:
- *    - api.events.listener */
+ *    - api.eventSub.listener
+ *    - api.eventSub.uri
+ *    - api.eventSub.port
+ *    - api.eventSub.secret */
 async function setup_twitch_eventsub(api) {
-  // Set up the top level namespace that we will store our event API in. By
-  // default, the listener is undefined; it will only be set up while we're
-  // actually listening for events.
-  api.events = {
-    listener: undefined
+  // Set up the top level namespace that we will store our event API in. This
+  // will store our event listener object when we create it, and it also stores
+  // the static event config so that it can be easily accessed at runtime as
+  // needed.
+  api.eventSub = {
+    listener: undefined,
+    uri: api.config.get('events.notificationUri'),
+    port: api.config.get('events.serverPort'),
+    secret: api.config.get('events.signingSecret'),
   }
 
   // These values must be configured for the event system to listen for
   // events; if they're not present, then we should leave.
-  const notificationUri = api.config.get('events.notificationUri');
-  const serverPort = api.config.get('events.serverPort');
-  const signingSecret = api.config.get('events.signingSecret');
-
-  if (notificationUri === '' || serverPort === '' || signingSecret === '') {
+  if (api.eventSub.uri === '' || api.eventSub.port === '' || api.eventSub.secret === '') {
     api.log.warn('Twitch EventSub is turned off; configure events to enable it');
     return;
   }
 
-  api.log.info(`Twitch EventSub enabled; delivering from https://${notificationUri} to http://localhost:${serverPort}`);
+  api.log.info(_(`Twitch EventSub enabled; delivering from https://${api.eventSub.uri}
+                  to http://localhost:${api.eventSub.port}`));
 
   // Listen for events that tell us when the authorization state of the various
   // accounts has completed, which is our signal to either set up or revoke our

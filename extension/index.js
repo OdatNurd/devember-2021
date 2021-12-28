@@ -154,7 +154,7 @@ module.exports = async function(nodecg) {
 
   // Set up the Twitch EventSub mechanism that will deliver channel events to us
   // as they occur.
-  await setup_twitch_eventsub(api);
+  await setup_twitch_eventsub(api); // under api.eventSub: listener uri, port, secret
 
   // We can now set up chat, which will take care of joining the bot to the chat
   // if it has the correct authorizations already, or the events that will cause
