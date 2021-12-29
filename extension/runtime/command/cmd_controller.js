@@ -3,7 +3,9 @@
 
 const os = require('os');
 const path = require('path');
-const { existsSync, copyFileSync, constants } = require('fs');
+const { existsSync, writeFileSync } = require('fs');
+
+const { renderFile } = require('template-file');
 
 const { dedent: _, usage, cooldownToString, stringToCooldown,
         userLevelToString, stringToUserLevel, getDisplayAccessLevels,
@@ -466,7 +468,12 @@ async function add_new_command(api, cmd, userInfo) {
 
   // Gather all arguments.
   const nameArg = getValidCmdName(api, cmd.words[0]);
-  const newFileArg = cmd.words[1] || nameArg;
+  let newFileArg = cmd.words[1] || nameArg;
+
+  // Set up the name of the handler in the template file that we will be
+  // generating (if adding to a brand new file). This is based on the name of
+  // the command, with or without a prefix. It will be fixed below.
+  let newHanderArg = `${nameArg}_command`;
 
   // Ensure that the command has a valid prefix; there's no helper call here. We
   // can leave immediately if such a command already exists.
@@ -480,6 +487,12 @@ async function add_new_command(api, cmd, userInfo) {
   // prefix on it.
   while (isValidCmdName(newFileArg[0]) === true) {
     newFileArg = newFileArg.substr(1);
+  }
+
+  // Make sure that the name of the handler function that we came up with is a
+  // valid identifier by removing any command prefix that it might have.
+  while (isValidCmdName(newHanderArg[0]) === true) {
+    newHanderArg = newHanderArg.substr(1);
   }
 
   // Include an extension on the file if one is missing.
@@ -530,11 +543,16 @@ async function add_new_command(api, cmd, userInfo) {
     }
   } else {
     try {
-      // Use COPYFILE_EXCL so that if the destination file exists, the operation
-      // fails. This makes sure that when adding a new item using an existing
-      // file, we don't clobber over anything.
-      api.log.info(`copyFileSync(${srcFile}, ${dstFile}) impl: ${implFile}`);
-      copyFileSync(srcFile, dstFile, constants.COPYFILE_EXCL);
+      // Using the incoming source file as a template, expand out the variables
+      // in it to provide a directly usable stub for the new command.
+      const templateData = await renderFile(srcFile, { command: {name: nameArg, handler: newHanderArg }});
+
+      // Write the file to disk. The flag indicates that we should open the file
+      // for appending, but fail if it already exists. This makes sure that when
+      // adding a new item using an existing file, we don't clobber over
+      // anything.
+      api.log.info(`writeFileSync(${dstFile}, templateData, {flag: 'ax'})`);
+      writeFileSync(dstFile, templateData, {flag: 'ax'});
 
       // Tell the command system to load a new file
       api.commands.loadNewFile(implFile);

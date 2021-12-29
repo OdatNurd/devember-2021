@@ -8,16 +8,18 @@ const { usage } = require('../../utils');
 // =============================================================================
 
 
-/* This function implements the stub command. The bot API is available via api,
- * cmd is the details of the parsed command that is being executed, and userInfo
- * is the user that executed the command. */
-function stub_cmd(api, cmd, userInfo) {
+/* This function implements the {{ command.name }} command.
+ *
+ * The bot API is available via api, cmd is the details of the parsed command
+ * that is being executed, and userInfo is the user that executed it. */
+function {{ command.handler }}(api, cmd, userInfo) {
+  // Show usage if the appropriate arguments are not provided.
   if (cmd.words.length === 0) {
     return usage(api, cmd, '<arg1> [arg2]', `does something with the two
       given arguments, which is probably quite intereting.`);
   }
 
-  api.log.info('I am a stub command');
+  api.log.info('I am the {{ command.name }} command');
 }
 
 
@@ -38,7 +40,7 @@ module.exports = {
     //
     // api.shared.mydata = {}
     return {
-      '$stub': stub_cmd
+      '{{ command.name }}': {{ command.handler }}
     };
   },
 
