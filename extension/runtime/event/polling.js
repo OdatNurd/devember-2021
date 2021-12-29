@@ -1,7 +1,7 @@
 // =============================================================================
 
 
-const { displayEventDetails } = require('../../utils');
+const { displayEventDetails } = require('../../event_list');
 
 
 // =============================================================================
@@ -28,24 +28,7 @@ const { displayEventDetails } = require('../../utils');
  * config info, if extra votes are allowed and so on. */
 function poll_begin(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelPollBeginEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelpollbegin
-  displayEventDetails(api, name, event, [
-    'bitsPerVote',
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'channelPointsPerVote',
-    'choices',
-    'endDate',
-    'id',
-    'isBitsVotingEnabled',
-    'isChannelPointsVotingEnabled',
-    'startDate',
-    'title',
-  ], [
-    '[A] getBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -57,24 +40,7 @@ function poll_begin(api, name, event) {
  * and how many votes have been received, among other info. */
 function poll_update(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelPollProgressEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelpollprogress
-  displayEventDetails(api, name, event, [
-    'bitsPerVote',
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'channelPointsPerVote',
-    'choices',
-    'endDate',
-    'id',
-    'isBitsVotingEnabled',
-    'isChannelPointsVotingEnabled',
-    'startDate',
-    'title',
-  ], [
-    '[A] getBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -86,25 +52,7 @@ function poll_update(api, name, event) {
  * poll, among other things. */
 function poll_end(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelPollEndEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelpollend
-  displayEventDetails(api, name, event, [
-    'bitsPerVote',
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'channelPointsPerVote',
-    'choices',
-    'endDate',
-    'id',
-    'isBitsVotingEnabled',
-    'isChannelPointsVotingEnabled',
-    'startDate',
-    'status',
-    'title',
-  ], [
-    '[A] getBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 

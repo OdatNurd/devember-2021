@@ -1,7 +1,7 @@
 // =============================================================================
 
 
-const { displayEventDetails } = require('../../utils');
+const { displayEventDetails } = require('../../event_list');
 
 
 // =============================================================================
@@ -11,22 +11,7 @@ const { displayEventDetails } = require('../../utils');
  * in the channel. */
 function bit_donation(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelCheerEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelcheer
-  displayEventDetails(api, name, event, [
-    'bits',
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'isAnonymous',
-    'message',
-    'userDisplayName',
-    'userId',
-    'userName',
-  ], [
-    '[A] getBroadcaster',
-    '[A] getUser',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 

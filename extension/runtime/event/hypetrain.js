@@ -1,7 +1,7 @@
 // =============================================================================
 
 
-const { displayEventDetails } = require('../../utils');
+const { displayEventDetails } = require('../../event_list');
 
 
 // =============================================================================
@@ -28,23 +28,7 @@ const { displayEventDetails } = require('../../utils');
  * contributors so far and the time the train started, among other info. */
 function hype_train_begin(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelHypeTrainBeginEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelhype_trainbegin
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'expiryDate',
-    'goal',
-    'id',
-    'lastContribution',
-    'progress',
-    'startDate',
-    'topContributors',
-    'total',
-  ], [
-    '[A] getBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -56,24 +40,7 @@ function hype_train_begin(api, name, event) {
  * such as the new level, last contribution and the new top contributors. */
 function hype_train_update(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelHypeTrainProgressEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelhype_trainprogress
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'expiryDate',
-    'goal',
-    'id',
-    'lastContribution',
-    'level',
-    'progress',
-    'startDate',
-    'topContributors',
-    'total',
-  ], [
-    '[A] getBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -84,22 +51,7 @@ function hype_train_update(api, name, event) {
  * such as when the train ended and who the top contributors overall were. */
 function hype_train_end(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelHypeTrainEndEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelhype_trainend
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'cooldownEndDate',
-    'endDate',
-    'id',
-    'level',
-    'startDate',
-    'topContributors',
-    'total',
-  ], [
-    '[A] getBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 

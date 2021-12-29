@@ -1,7 +1,7 @@
 // =============================================================================
 
 
-const { displayEventDetails } = require('../../utils');
+const { displayEventDetails } = require('../../event_list');
 
 
 // =============================================================================
@@ -17,20 +17,7 @@ const { displayEventDetails } = require('../../utils');
  * to distinguish, use the name. */
 function stream_online_status(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubStreamOnlineEvent.html
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubStreamOfflineEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#streamonline
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#streamoffline
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'startDate',
-    'streamType',
-  ], [
-    '[A] getBroadcaster',
-    '[A] getStream',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -41,21 +28,7 @@ function stream_online_status(api, name, event) {
  * stream is being modified, such as the title changing. */
 function stream_update(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelUpdateEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelupdate
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'categoryId',
-    'categoryName',
-    'isMature',
-    'streamLanguage',
-    'streamTitle '   ,
-  ], [
-    '[A] getBroadcaster',
-    '[A] getGame',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 

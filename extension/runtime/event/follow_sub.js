@@ -1,7 +1,7 @@
 // =============================================================================
 
 
-const { displayEventDetails } = require('../../utils');
+const { displayEventDetails } = require('../../event_list');
 
 
 // =============================================================================
@@ -12,20 +12,7 @@ const { displayEventDetails } = require('../../utils');
  * doing the follow. */
 function user_follow(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelFollowEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelfollow
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'followDate',
-    'userDisplayName',
-    'userId',
-    'userName',
-  ], [
-    '[A] getBroadcaster',
-    '[A] getUser',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -40,21 +27,7 @@ function user_follow(api, name, event) {
  * the subscribe_messge event. */
 function user_sub(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelSubscriptionEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelsubscribe
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'isGift',
-    'tier',
-    'userDisplayName',
-    'userId',
-    'userName',
-  ], [
-    '[A] getBroadcaster',
-    '[A] getUser',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -66,21 +39,7 @@ function user_sub(api, name, event) {
  * information such as the tier and whether or not it was a gift. */
 function user_unsub(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelSubscriptionEndEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelsubscriptionend
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'isGift',
-    'tier',
-    'userDisplayName',
-    'userId',
-    'userName',
-  ], [
-    '[A] getBroadcaster',
-    '[A] getUser',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -93,23 +52,7 @@ function user_unsub(api, name, event) {
  * anonymous or not. */
 function user_gift_sub(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelSubscriptionGiftEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelsubscriptiongift
-  displayEventDetails(api, name, event, [
-    'amount',
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'cumulativeAmount',
-    'gifterDisplayName',
-    'gifterId',
-    'gifterName',
-    'isAnonymous',
-    'tier',
-  ], [
-    '[A] getBroadcaster',
-    '[A] getGifter',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -122,25 +65,7 @@ function user_gift_sub(api, name, event) {
  * as the cumulative months subscribed and the streak, among other things/ */
 function user_sub_message(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelSubscriptionMessageEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelsubscriptionmessage
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'cumulativeMonths',
-    'durationMonths',
-    'messageText',
-    'streakMonths',
-    'tier',
-    'userDisplayName',
-    'userId',
-    'userName    ',
-  ], [
-    '[A] getBroadcaster',
-    '[A] getUser',
-    'parseEmotes',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 

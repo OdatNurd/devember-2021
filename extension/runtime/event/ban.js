@@ -1,7 +1,7 @@
 // =============================================================================
 
 
-const { displayEventDetails } = require('../../utils');
+const { displayEventDetails } = require('../../event_list');
 
 
 // =============================================================================
@@ -16,27 +16,7 @@ const { displayEventDetails } = require('../../utils');
  * distinguish, use the name.  */
 function ban_unban(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelBanEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelban
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelunban
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'endDate',
-    'isPermanent',
-    'moderatorDisplayName',
-    'moderatorId',
-    'moderatorName',
-    'reason',
-    'userDisplayName',
-    'userId',
-    'userName',
-  ], [
-    '[A] getBroadcaster',
-    '[A] getModerator',
-    '[A] getUser',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 

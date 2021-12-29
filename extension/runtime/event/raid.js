@@ -1,7 +1,7 @@
 // =============================================================================
 
 
-const { displayEventDetails } = require('../../utils');
+const { displayEventDetails } = require('../../event_list');
 
 
 // =============================================================================
@@ -12,20 +12,7 @@ const { displayEventDetails } = require('../../utils');
  * the raid. */
 function incoming_raid(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelRaidEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelraid
-  displayEventDetails(api, name, event, [
-    'raidedBroadcasterDisplayName',
-    'raidedBroadcasterId',
-    'raidedBroadcasterName',
-    'raidingBroadcasterDisplayName',
-    'raidingBroadcasterId',
-    'raidingBroadcasterName',
-    'viewers',
-  ], [
-    '[A] getRaidedBroadcaster',
-    '[A] getRaidingBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -37,20 +24,7 @@ function incoming_raid(api, name, event) {
  * is being raided and how many people are going along as part of the raid. */
 function outgoing_raid(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelRaidEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelraid
-  displayEventDetails(api, name, event, [
-    'raidedBroadcasterDisplayName',
-    'raidedBroadcasterId',
-    'raidedBroadcasterName',
-    'raidingBroadcasterDisplayName',
-    'raidingBroadcasterId',
-    'raidingBroadcasterName',
-    'viewers',
-  ], [
-    '[A] getRaidedBroadcaster',
-    '[A] getRaidingBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 

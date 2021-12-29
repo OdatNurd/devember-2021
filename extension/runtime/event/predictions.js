@@ -1,7 +1,7 @@
 // =============================================================================
 
 
-const { displayEventDetails } = require('../../utils');
+const { displayEventDetails } = require('../../event_list');
 
 
 // =============================================================================
@@ -33,20 +33,7 @@ const { displayEventDetails } = require('../../utils');
  * winning outcome. */
 function prediction_begin(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelPredictionBeginEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelpredictionbegin
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'id',
-    'lockDate',
-    'outcomes',
-    'startDate',
-    'title',
-  ], [
-    '[A] getBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -63,20 +50,7 @@ function prediction_begin(api, name, event) {
  * waits for the broadcaster to end the prediction by choosing the winner. */
 function prediction_update(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelPredictionProgressEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelpredictionprogress
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'id',
-    'lockDate',
-    'outcomes',
-    'startDate',
-    'title',
-  ], [
-    '[A] getBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -90,20 +64,7 @@ function prediction_update(api, name, event) {
  * The prediction ends when the broadcaster chooses the winning outcome. */
 function prediction_lock(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  // - https://twurple.js.org/reference/eventsub/classes/EventSubChannelPredictionLockEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelpredictionlock
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'id',
-    'lockDate',
-    'outcomes',
-    'startDate',
-    'title',
-  ], [
-    '[A] getBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
@@ -117,23 +78,7 @@ function prediction_lock(api, name, event) {
  * The prediction ends when the broadcaster chooses the winning outcome. */
 function prediction_end(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelPredictionEndEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelpredictionend
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'endDate',
-    'id',
-    'outcomes',
-    'startDate',
-    'status',
-    'title',
-    'winningOutcome',
-    'winningOutcomeId',
-  ], [
-    '[A] getBroadcaster',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 

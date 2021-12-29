@@ -1,7 +1,7 @@
 // =============================================================================
 
 
-const { displayEventDetails } = require('../../utils');
+const { displayEventDetails } = require('../../event_list');
 
 
 // =============================================================================
@@ -15,20 +15,7 @@ const { displayEventDetails } = require('../../utils');
  * distinguish, use the name.  */
 function moderator_update(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelModeratorEvent.html
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelmoderatoradd
-  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelmoderatorremove
-  displayEventDetails(api, name, event, [
-    'broadcasterDisplayName',
-    'broadcasterId',
-    'broadcasterName',
-    'userDisplayName',
-    'userId',
-    'userName',
-  ], [
-    '[A] getBroadcaster',
-    '[A] getUser',
-  ]);
+  displayEventDetails(api, name, event);
 }
 
 
