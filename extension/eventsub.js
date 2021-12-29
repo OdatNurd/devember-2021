@@ -95,10 +95,10 @@ const eventHandlers = {
   // twitch event trigger hype-train-begin -s channel.hype_train.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.hype_train.begin.$TWITCH_USERID
   hypeBegin: 'subscribeToChannelHypeTrainBeginEvents',
 
-  // twitch event trigger hype-train-progress -s channel.hype_train.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.hype_train.end.$TWITCH_USERID
+  // twitch event trigger hype-train-progress -s channel.hype_train.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.hype_train.progress.$TWITCH_USERID
   hypeUpdate: 'subscribeToChannelHypeTrainProgressEvents',
 
-  // twitch event trigger hype-train-end -s channel.hype_train.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.hype_train.progress.$TWITCH_USERID
+  // twitch event trigger hype-train-end -s channel.hype_train.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.hype_train.end.$TWITCH_USERID
   hypeEnd: 'subscribeToChannelHypeTrainEndEvents',
 
   //-----------------------------------------------------------------//
