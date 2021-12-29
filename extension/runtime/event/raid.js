@@ -34,8 +34,8 @@ function outgoing_raid(api, name, event) {
 module.exports = {
   load: async api => {
     return {
-      raidIn: incoming_raid,
-      raidOut: outgoing_raid,
+      raid_in: incoming_raid,
+      raid_out: outgoing_raid,
     };
   },
 

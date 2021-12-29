@@ -61,9 +61,9 @@ function hype_train_end(api, name, event) {
 module.exports = {
   load: async api => {
     return {
-      hypeBegin: hype_train_begin,
-      hypeUpdate: hype_train_update,
-      hypeEnd: hype_train_end
+      hype_begin: hype_train_begin,
+      hype_update: hype_train_update,
+      hype_end: hype_train_end
     };
   },
 

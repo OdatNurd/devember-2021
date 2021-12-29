@@ -88,10 +88,10 @@ function prediction_end(api, name, event) {
 module.exports = {
   load: async api => {
     return {
-      predictionBegin: prediction_begin,
-      predictionUpdate: prediction_update,
-      predictionLock: prediction_lock,
-      predictionEnd: prediction_end
+      prediction_begin: prediction_begin,
+      prediction_update: prediction_update,
+      prediction_lock: prediction_lock,
+      prediction_end: prediction_end
     };
   },
 

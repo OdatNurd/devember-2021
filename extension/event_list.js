@@ -203,7 +203,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'hypeBegin',
+    internalName: 'hype_begin',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/hypetrain.js",
@@ -245,7 +245,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'hypeUpdate',
+    internalName: 'hype_update',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/hypetrain.js",
@@ -288,7 +288,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'hypeEnd',
+    internalName: 'hype_end',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/hypetrain.js",
@@ -594,7 +594,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'streamOnline',
+    internalName: 'stream_online',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/streamstatus.js",
@@ -632,7 +632,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'streamOffline',
+    internalName: 'stream_offline',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/streamstatus.js",
@@ -717,7 +717,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'raidIn',
+    internalName: 'raid_in',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/raid.js",
@@ -757,7 +757,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'raidOut',
+    internalName: 'raid_out',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/raid.js",
@@ -1005,7 +1005,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'pollBegin',
+    internalName: 'poll_begin',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/polling.js",
@@ -1048,7 +1048,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'pollUpdate',
+    internalName: 'poll_update',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/polling.js",
@@ -1091,7 +1091,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'pollEnd',
+    internalName: 'poll_end',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/polling.js",
@@ -1140,7 +1140,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'predictionBegin',
+    internalName: 'prediction_begin',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/predictions.js",
@@ -1179,7 +1179,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'predictionUpdate',
+    internalName: 'prediction_update',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/predictions.js",
@@ -1218,7 +1218,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'predictionLock',
+    internalName: 'prediction_lock',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/predictions.js",
@@ -1257,7 +1257,7 @@ const twitch_event_list = [
 
     // Our name for this event internally; this is the handler that will be
     // invoked when this event is received.
-    internalName: 'predictionEnd',
+    internalName: 'prediction_end',
 
     // The internal source file that contains the handler for this event
     sourceFile: "event/predictions.js",

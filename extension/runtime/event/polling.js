@@ -62,9 +62,9 @@ function poll_end(api, name, event) {
 module.exports = {
   load: async api => {
     return {
-      pollBegin: poll_begin,
-      pollUpdate: poll_update,
-      pollEnd: poll_end
+      poll_begin: poll_begin,
+      poll_update: poll_update,
+      poll_end: poll_end
     };
   },
 

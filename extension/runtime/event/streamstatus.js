@@ -47,8 +47,8 @@ function stream_update(api, name, event) {
 module.exports = {
   load: async api => {
     return {
-      streamOnline: stream_online_status,
-      streamOffline: stream_offline_status,
+      stream_online: stream_online_status,
+      stream_offline: stream_offline_status,
       update: stream_update
     };
   },
