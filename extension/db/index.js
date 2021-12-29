@@ -5,7 +5,7 @@
 const trilogy = require('trilogy');
 const path = require('path');
 
-const { TokenSchema, UserSchema, CommandSchema, EventSchema,
+const { TokenSchema, UserSchema, CommandSchema, EventSchema, ChannelPointSchema,
         RegularUserSchema, ResponderSchema } = require('./schema/');
 
 
@@ -43,6 +43,7 @@ async function setup_db(api) {
     db.model('users', UserSchema),
     db.model('commands', CommandSchema),
     db.model('events', EventSchema),
+    db.model('channelpoints', ChannelPointSchema),
     db.model('regulars', RegularUserSchema),
     db.model('responders', ResponderSchema),
   ];
