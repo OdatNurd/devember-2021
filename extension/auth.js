@@ -61,7 +61,7 @@ const user_token_scopes = [...Object.keys(event_scopes)];
  * the authorization being altered (e.g. 'bot' or 'user') and userId should
  * be the Id of the user that is being authorized or deauthorized. */
 function sendAuthStateEvent(api, event, type, userId) {
-    api.nodecg.sendMessage(`${event}-complete`, { type , userId});
+  api.nodecg.sendMessage(`${event}-complete`, { type , userId});
 }
 
 
@@ -206,24 +206,19 @@ async function handleAuthCallback(api, state, name, req, res)  {
   const code = req.query.code;
   const inState = req.query.state;
 
-  // If no code comes back, it's because the user decided not to authorize.
-  // We should respond to this by removing any tokens that we currently have.
-  if (code === undefined) {
-    // If getting the token fails, make sure that we get rid of any existing
-    // token.
-    await performTokenDeauth(api, name);
-
-    api.log.warn(`User did not confirm authorization`);
+  // If the incoming state value doesn't match the one we used when we started
+  // the authorization, then someone may be trying to spoof us.
+  if (req.query.state !== state) {
+    api.log.warn(`auth callback got out of date authorization code; potential spoof?`);
   } else {
-    // There is a code; if the state is not the same as the one that we gave
-    // to Twitch when the authorization started, don't trust anything in this
-    // response.
-    if (inState !== state) {
+    // If no code comes back, it's because the user decided not to authorize. We
+    // should respond to this by removing any tokens that we currently have
+    // because they don't want us to have access.
+    if (code === undefined) {
       // If getting the token fails, make sure that we get rid of any existing
       // token.
       await performTokenDeauth(api, name);
-
-      api.log.error(`auth callback got out of date authorization code; potential spoof?`);
+      api.log.warn(`User did not confirm authorization`);
     } else {
       // The code is non-empty and matches what we expect, so we can fetch the
       // access token now.
