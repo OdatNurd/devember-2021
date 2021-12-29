@@ -1332,8 +1332,6 @@ function displayEventDetails(api, name, event) {
 // =============================================================================
 
 
-
-
 module.exports = {
   displayEventDetails,
   twitch_event_list

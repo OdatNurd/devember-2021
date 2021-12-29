@@ -2,6 +2,7 @@
 
 
 const { dedent:_ } = require('./utils');
+const { twitch_event_list } = require('./event_list');
 
 
 // =============================================================================
@@ -225,188 +226,6 @@ const commands = [
   },
 ];
 
-/* This is the list of core events that ship with the bot and make up the whole
- * of the event system. Although events are based on the same dynamic system
- * as commands and can be hot reloaded and dynamically added and removed at
- * runtime, the actual list of events is fixed and as such, this just provides
- * the total list of all known events. */
-const events = [
-  {
-      name: "moderator_add",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/moderate.js",
-  },
-  {
-      name: "moderator_remove",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/moderate.js",
-  },
-  {
-      name: "ban",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/ban.js",
-  },
-  {
-      name: "unban",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/ban.js",
-  },
-  {
-      name: "hype_begin",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/hypetrain.js",
-  },
-  {
-      name: "hype_update",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/hypetrain.js",
-  },
-  {
-      name: "hype_end",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/hypetrain.js",
-  },
-  {
-      name: "cheer",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/bits.js",
-  },
-  {
-      name: "follow",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/follow_sub.js",
-  },
-  {
-      name: "subscribe",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/follow_sub.js",
-  },
-  {
-      name: "unsubscribe",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/follow_sub.js",
-  },
-  {
-      name: "gift",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/follow_sub.js",
-  },
-  {
-      name: "subcribe_message",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/follow_sub.js",
-  },
-  {
-      name: "stream_online",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/streamstatus.js",
-  },
-  {
-      name: "stream_offline",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/streamstatus.js",
-  },
-  {
-      name: "update",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/streamstatus.js",
-  },
-  {
-      name: "raid_in",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/raid.js",
-  },
-  {
-      name: "raid_out",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/raid.js",
-  },
-  {
-      name: "channelpoint_add",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/channelpoint.js",
-  },
-  {
-      name: "channelpoint_remove",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/channelpoint.js",
-  },
-  {
-      name: "channelpoint_update",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/channelpoint.js",
-  },
-  {
-      name: "channelpoint_redeem",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/channelpoint.js",
-  },
-  {
-      name: "poll_begin",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/polling.js",
-  },
-  {
-      name: "poll_end",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/polling.js",
-  },
-  {
-      name: "poll_update",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/polling.js",
-  },
-  {
-      name: "prediction_begin",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/predictions.js",
-  },
-  {
-      name: "prediction_end",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/predictions.js",
-  },
-  {
-      name: "prediction_lock",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/predictions.js",
-  },
-  {
-      name: "prediction_update",
-      aliases: [],
-      enabled: 1,
-      sourceFile: "event/predictions.js",
-  },
-];
-
 /* This is the list of responders that come packed in out of the box as examples
  * for the command system to work with. These are not necessarily expected to
  * always exist, but for the purposes of the demo they should.
@@ -474,6 +293,17 @@ async function bootstrap(api, modelName, items)
  * This *SHOULD NOT* modify any data that already exists; the user should remove
  * records that they want reverted and not rely on this to put it back. */
 async function bootstrap_core_data(api) {
+  // From the list of events that we know about, synthesize the records that we
+  // need to bootstrap into the events table to fill it out.
+  const events = twitch_event_list.map(evt => {
+    return {
+      name: evt.internalName,
+      aliases: [],
+      enabled: 1,
+      sourceFile: evt.sourceFile
+    }
+  });
+
   // Bootstrap all missing core items in turn.
   await bootstrap(api, 'commands', commands);
   await bootstrap(api, 'events', events);
