@@ -71,7 +71,8 @@ const commands = [
       hidden: 0,
       userLevel: 1,
       cooldown: 0
-  },  {
+  },
+  {
       name: "$cooldown",
       aliases: [],
       enabled: 1,
@@ -80,7 +81,8 @@ const commands = [
       hidden: 0,
       userLevel: 1,
       cooldown: 0
-  },  {
+  },
+  {
       name: "$alias",
       aliases: ["$aliases"],
       enabled: 1,
@@ -89,7 +91,8 @@ const commands = [
       hidden: 0,
       userLevel: 1,
       cooldown: 0
-  },  {
+  },
+  {
       name: "$cmdinfo",
       aliases: ["$info"],
       enabled: 1,
@@ -233,122 +236,152 @@ const events = [
       aliases: ["moderator_remove"],
       enabled: 1,
       sourceFile: "event/moderate.js",
-  },  {
+  },
+  {
       name: "ban",
       aliases: ["unban"],
       enabled: 1,
       sourceFile: "event/ban.js",
-  },  {
+  },
+  {
       name: "hypeBegin",
       aliases: [],
       enabled: 1,
       sourceFile: "event/hypetrain.js",
-  },  {
+  },
+  {
       name: "hypeUpdate",
       aliases: [],
       enabled: 1,
       sourceFile: "event/hypetrain.js",
-  },  {
+  },
+  {
       name: "hypeEnd",
       aliases: [],
       enabled: 1,
       sourceFile: "event/hypetrain.js",
-  },  {
+  },
+  {
       name: "cheer",
       aliases: [],
       enabled: 1,
       sourceFile: "event/bits.js",
-  },  {
+  },
+  {
       name: "follow",
       aliases: [],
       enabled: 1,
       sourceFile: "event/follow_sub.js",
-  },  {
+  },
+  {
       name: "subscribe",
       aliases: [],
       enabled: 1,
       sourceFile: "event/follow_sub.js",
-  },  {
+  },
+  {
       name: "unsubscribe",
       aliases: [],
       enabled: 1,
       sourceFile: "event/follow_sub.js",
-  },  {
+  },
+  {
       name: "gift",
       aliases: [],
       enabled: 1,
       sourceFile: "event/follow_sub.js",
-  },  {
+  },
+  {
       name: "subcribe_message",
       aliases: [],
       enabled: 1,
       sourceFile: "event/follow_sub.js",
-  },  {
+  },
+  {
       name: "streamOnline",
       aliases: ["streamOffline"],
       enabled: 1,
       sourceFile: "event/streamstatus.js",
-  },  {
+  },
+  {
       name: "update",
       aliases: [],
       enabled: 1,
       sourceFile: "event/streamstatus.js",
-  },  {
-      name: "raid",
+  },
+  {
+      name: "raidIn",
       aliases: [],
       enabled: 1,
       sourceFile: "event/raid.js",
-  },  {
+  },
+  {
+      name: "raidOut",
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/raid.js",
+  },
+  {
       name: "channelpoint_add",
       aliases: [],
       enabled: 1,
       sourceFile: "event/channelpoint.js",
-  },  {
+  },
+  {
       name: "channelpoint_remove",
       aliases: [],
       enabled: 1,
       sourceFile: "event/channelpoint.js",
-  },  {
+  },
+  {
       name: "channelpoint_update",
       aliases: [],
       enabled: 1,
       sourceFile: "event/channelpoint.js",
-  },  {
+  },
+  {
       name: "channelpoint_redeem",
       aliases: [],
       enabled: 1,
       sourceFile: "event/channelpoint.js",
-  },  {
+  },
+  {
       name: "pollBegin",
       aliases: [],
       enabled: 1,
       sourceFile: "event/polling.js",
-  },  {
+  },
+  {
       name: "pollEnd",
       aliases: [],
       enabled: 1,
       sourceFile: "event/polling.js",
-  },  {
+  },
+  {
       name: "pollUpdate",
       aliases: [],
       enabled: 1,
       sourceFile: "event/polling.js",
-  },  {
+  },
+  {
       name: "predictionBegin",
       aliases: [],
       enabled: 1,
       sourceFile: "event/predictions.js",
-  },  {
+  },
+  {
       name: "predictionEnd",
       aliases: [],
       enabled: 1,
       sourceFile: "event/predictions.js",
-  },  {
+  },
+  {
       name: "predictionLock",
       aliases: [],
       enabled: 1,
       sourceFile: "event/predictions.js",
-  },  {
+  },
+  {
       name: "predictionUpdate",
       aliases: [],
       enabled: 1,

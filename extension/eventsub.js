@@ -39,8 +39,11 @@ const eventHandlers = {
   // twitch event trigger stream-change -s channel.update.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.update.$TWITCH_USERID
   update: 'subscribeToChannelUpdateEvents',
 
+  // twitch event trigger raid -s channel.raid.to.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.raid.to.$TWITCH_USERID
+  raidIn: 'subscribeToChannelRaidEventsTo',
+
   // twitch event trigger raid -s channel.raid.from.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.raid.from.$TWITCH_USERID
-  raid: 'subscribeToChannelRaidEventsFrom',
+  raidOut: 'subscribeToChannelRaidEventsFrom',
 
   //------------------//
   // Scope: bits:read //
@@ -190,7 +193,6 @@ async function handleAuthEvent(api, info) {
   api.log.info(`Setting up for incoming Twitch events`);
   await api.eventSub.listener.listen();
 
-
   // The eventHandlers object maps our internal name for an event with the
   // method in the EventSubListener class that sets it up.
   //
@@ -211,7 +213,7 @@ async function handleAuthEvent(api, info) {
       // to listen for specific incoming events. Look that up by indexing the
       // object directly.
       await api.eventSub.listener[handler](info.userId, event => {
-        api.log.info(`received event ${name}`);
+        api.log.info(`received event: ${name}`);
         const eventHandler = api.events.find(name);
         if (eventHandler !== null) {
           eventHandler.execute(api, name, event);
