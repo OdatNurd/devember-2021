@@ -2,6 +2,8 @@
 // =============================================================================
 
 
+const { twitch_event_list } = require('./event_list');
+
 const { getTokenInfo, revokeToken } = require('@twurple/auth');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
@@ -22,21 +24,29 @@ const bot_token_scopes = ['chat:read',  'chat:edit',
                           'channel:moderate'];
 
 
+/* Each of the events in the twitch_event_list contains a field which indicates
+ * the scopes (if any) which need to be authorized for our bot's clientId in
+ * order for us to be able to set up listeners for those events and receive the
+ * actual events when they trigger.
+ *
+ * This dynamically sets up the list of scopes that are needed for those events
+ * so that the list of scopes needed can keep itself up to date with little to
+ * no work. */
+const event_scopes = {}
+twitch_event_list.forEach(e => e.scope ? event_scopes[e.scope] = true : 0);
+
 /* When requesting authorization for the bot to join a specific channel, we are
  * requesting that the bot code can request informationan about that channel
  * (e.g. viewing the stream title) as well as taking actions on behalf of the
  * channel (e.g. changing the stream title).
  *
  * This specifies what specific permissions we're asking for. Anything not
- * covered here will fail due to lack of proper authorization. */
-const user_token_scopes = ['channel:moderate',
-                           'channel:read:hype_train',
-                           'bits:read',
-                           'channel:read:subscriptions',
-                           'channel:read:redemptions',
-                           'channel:read:polls',
-                           'channel:read:predictions'
-                           ];
+ * covered here will fail due to lack of proper authorization.
+ *
+ * This list of scopes is made up of all of the scopes that are required for
+ * the events in the event list, but can also be augmented to include
+ * additional scopes by adding them to this list manually. */
+const user_token_scopes = [...Object.keys(event_scopes)];
 
 
 // =============================================================================
