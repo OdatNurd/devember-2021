@@ -1,36 +1,110 @@
 // =============================================================================
 
 
-/* This event triggers whenever a poll is started in the channel; this includes
- * information on the items that were added to the poll, along with it's
- * configuration, such as whether you can vote with bits and/or channel
- * points. */
+const { displayEventDetails } = require('../../utils');
+
+
+// =============================================================================
+
+
+/*******************************************************************************
+ * NOTE: Twitch does not guarantee that events are triggered in any given order
+ *       (and may in fact trigger the same event more than once, if it thinks
+ *       you never got it).
+ *
+ *       The implications for that here is that it's entirely possible to
+ *       receive a progress event for a train before ever being told that it is
+ *       actually beginning.
+ *
+ *       As such, code to handle these needs to be smart enough to know when
+ *       this might be occurring. */
+
+
+// =============================================================================
+
+
+/* This event triggers to provide information about a poll starting in a channel
+ * and includes information on the items that were added to the poll, other
+ * config info, if extra votes are allowed and so on. */
 function poll_begin(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('A poll is beginning in the channel');
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelPollBeginEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelpollbegin
+  displayEventDetails(api, name, event, [
+    'bitsPerVote',
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'channelPointsPerVote',
+    'choices',
+    'endDate',
+    'id',
+    'isBitsVotingEnabled',
+    'isChannelPointsVotingEnabled',
+    'startDate',
+    'title',
+  ], [
+    '[A] getBroadcaster',
+  ]);
 }
 
 
 // =============================================================================
 
 
-/* This event triggers whenever a poll is concluded in the channel; the message
- * includes the underlying poll information and also indicates the votes for
- * each item. */
-function poll_end(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('A poll is ending in the channel');
-}
-
-
-// =============================================================================
-
-
-/* This event triggers while a poll is running and someone votes; the data
- * provided indicates the new state of things. */
+/* This event triggers while a poll is in progress and provides a status update
+ * on how the poll is progressing, including such things as the current choices
+ * and how many votes have been received, among other info. */
 function poll_update(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('Someone has voted on a poll in the channel');
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelPollProgressEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelpollprogress
+  displayEventDetails(api, name, event, [
+    'bitsPerVote',
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'channelPointsPerVote',
+    'choices',
+    'endDate',
+    'id',
+    'isBitsVotingEnabled',
+    'isChannelPointsVotingEnabled',
+    'startDate',
+    'title',
+  ], [
+    '[A] getBroadcaster',
+  ]);
+}
+
+
+// =============================================================================
+
+
+/* This event triggers when a poll in a channel has concluded, and provides
+ * information about the poll such as the options and the final results of the
+ * poll, among other things. */
+function poll_end(api, name, event) {
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelPollEndEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelpollend
+  displayEventDetails(api, name, event, [
+    'bitsPerVote',
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'channelPointsPerVote',
+    'choices',
+    'endDate',
+    'id',
+    'isBitsVotingEnabled',
+    'isChannelPointsVotingEnabled',
+    'startDate',
+    'status',
+    'title',
+  ], [
+    '[A] getBroadcaster',
+  ]);
 }
 
 
@@ -41,8 +115,8 @@ module.exports = {
   load: async api => {
     return {
       pollBegin: poll_begin,
-      pollEnd: poll_end,
-      pollUpdate: poll_update
+      pollUpdate: poll_update,
+      pollEnd: poll_end
     };
   },
 

@@ -1,7 +1,13 @@
 // =============================================================================
 
 
-/** *****************************************************************************
+const { displayEventDetails } = require('../../utils');
+
+
+// =============================================================================
+
+
+/*******************************************************************************
  * NOTE: Twitch does not guarantee that events are triggered in any given order
  *       (and may in fact trigger the same event more than once, if it thinks
  *       you never got it).
@@ -13,37 +19,87 @@
  *       As such, code to handle these needs to be smart enough to know when
  *       this might be occurring. */
 
-/* This event triggers when a hype train is initially starting, providing
- * information on some of the events that triggered the train to begin. */
+
+// =============================================================================
+
+
+/* This event triggers to indicate that a hype train is starting within a given
+ * channel, and provides information such as the current progress, the top
+ * contributors so far and the time the train started, among other info. */
 function hype_train_begin(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('A hype train is starting');
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelHypeTrainBeginEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelhype_trainbegin
+  displayEventDetails(api, name, event, [
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'expiryDate',
+    'goal',
+    'id',
+    'lastContribution',
+    'progress',
+    'startDate',
+    'topContributors',
+    'total',
+  ], [
+    '[A] getBroadcaster',
+  ]);
 }
 
 
 // =============================================================================
 
 
-/* This event triggers when a hype train is in progress and someone does
- * something that increases the progress of the train. */
+/* This event triggers to provide information on the progress of an ongoing hype
+ * train in a channel, and provides updated status information about the train
+ * such as the new level, last contribution and the new top contributors. */
 function hype_train_update(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('Status of the hype train changed');
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelHypeTrainProgressEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelhype_trainprogress
+  displayEventDetails(api, name, event, [
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'expiryDate',
+    'goal',
+    'id',
+    'lastContribution',
+    'level',
+    'progress',
+    'startDate',
+    'topContributors',
+    'total',
+  ], [
+    '[A] getBroadcaster',
+  ]);
 }
 
 
 // =============================================================================
 
 
-/* This event triggers when a hype train is finalized, providing information on
- * the last items that contributed to the train before it ended.
- *
- * From appearances in the event object, nothing in here indicates the overall
- * train level other than knowing a set list of "points" that were being worked
- * toward. */
+/* This event triggers when a hype train finishes in a channel, and provides info
+ * such as when the train ended and who the top contributors overall were. */
 function hype_train_end(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('A hype train just ended');
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelHypeTrainEndEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelhype_trainend
+  displayEventDetails(api, name, event, [
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'cooldownEndDate',
+    'endDate',
+    'id',
+    'level',
+    'startDate',
+    'topContributors',
+    'total',
+  ], [
+    '[A] getBroadcaster',
+  ]);
 }
 
 

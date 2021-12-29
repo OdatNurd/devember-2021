@@ -255,6 +255,29 @@ async function persistItemChanges(api, modelName, item, changes) {
 // =============================================================================
 
 
+/* This is useful for displaying information about incoming events that are
+ * delivered to the event system via the Twurple libraries. Each such event has
+ * a list of properies (fields) that comes from Twitch, as well as a potential
+ * set of methods that can be invoked to get extra information.
+ *
+ * In use, this will output informtion on the named event, and display the
+ * values of the event fields as well as the list of methods. The methods are
+ * not actually invoked here, since they could conceivably return anything. */
+function displayEventDetails(api, name, event, fields, methods) {
+  api.log.info(`=== event: ${name} ===`);
+  fields.forEach(field => api.log.info(`  \`- ${field}: ${event[field]}`));
+  if (methods !== undefined && methods.length !== 0) {
+    api.log.info(`=== event methods ==`)
+    api.log.info(`  ${methods.join(', ')}`)
+  }
+
+  api.log.info(`======================`);
+}
+
+
+// =============================================================================
+
+
 module.exports = {
   command_prefix_list,
   dedent,
@@ -266,5 +289,6 @@ module.exports = {
   getDisplayAccessLevels,
   isValidCmdName,
   getValidCmdName,
-  persistItemChanges
+  persistItemChanges,
+  displayEventDetails
 }

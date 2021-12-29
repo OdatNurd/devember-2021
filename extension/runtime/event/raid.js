@@ -1,23 +1,56 @@
 // =============================================================================
 
 
-/* This event handler tracks an incoming raid event, telling us who is raiding
- * and how many viewers they brought with them on the raid. */
+const { displayEventDetails } = require('../../utils');
+
+
+// =============================================================================
+
+
+/* This event handler tracks an incoming raid event, which tells you when the
+ * channel is being raided, by whom, and how many people came in as a part of
+ * the raid. */
 function incoming_raid(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info(`${event.raidingBroadcasterDisplayName} is raiding with a party of ${event.viewers}`);
-  api.chat.say(`Thanks so much @${event.raidingBroadcasterDisplayName} for bringing in ${event.viewers} new victims.. err.. visitors!`);
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelRaidEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelraid
+  displayEventDetails(api, name, event, [
+    'raidedBroadcasterDisplayName',
+    'raidedBroadcasterId',
+    'raidedBroadcasterName',
+    'raidingBroadcasterDisplayName',
+    'raidingBroadcasterId',
+    'raidingBroadcasterName',
+    'viewers',
+  ], [
+    '[A] getRaidedBroadcaster',
+    '[A] getRaidingBroadcaster',
+  ]);
 }
 
 
 // =============================================================================
 
 
-/* This event handler tracks an outgoing raid, telling us who is iniitated the
- * raid, who is being raided, and how many people are going in the raid. */
+/* This event handler tracks an outgoing raid event, which tells you when the
+ * broadcaster of the channel raids out to some other channel, and indicates who
+ * is being raided and how many people are going along as part of the raid. */
 function outgoing_raid(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info(`${event.raidingBroadcasterDisplayName} is raiding out to ${event.raidedBroadcasterName} with a party of ${event.viewers}`);
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelRaidEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelraid
+  displayEventDetails(api, name, event, [
+    'raidedBroadcasterDisplayName',
+    'raidedBroadcasterId',
+    'raidedBroadcasterName',
+    'raidingBroadcasterDisplayName',
+    'raidingBroadcasterId',
+    'raidingBroadcasterName',
+    'viewers',
+  ], [
+    '[A] getRaidedBroadcaster',
+    '[A] getRaidingBroadcaster',
+  ]);
 }
 
 

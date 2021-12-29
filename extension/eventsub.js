@@ -124,11 +124,11 @@ const eventHandlers = {
   // twitch event trigger poll-begin -s channel.poll.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.poll.begin.$TWITCH_USERID
   pollBegin: 'subscribeToChannelPollBeginEvents',
 
-  // twitch event trigger poll-end -s channel.poll.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.poll.end.$TWITCH_USERID
-  pollEnd: 'subscribeToChannelPollEndEvents',
-
   // twitch event trigger poll-progress -s channel.poll.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.poll.progress.$TWITCH_USERID
   pollUpdate: 'subscribeToChannelPollProgressEvents',
+
+  // twitch event trigger poll-end -s channel.poll.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.poll.end.$TWITCH_USERID
+  pollEnd: 'subscribeToChannelPollEndEvents',
 
   //-----------------------------------------------------------------//
   // Scope: channel:read:predictions (or channel:manage:predictions) //
@@ -137,14 +137,14 @@ const eventHandlers = {
   // twitch event trigger prediction-begin -s channel.prediction.begin.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.prediction.begin.$TWITCH_USERID
   predictionBegin: 'subscribeToChannelPredictionBeginEvents',
 
-  // twitch event trigger prediction-end -s channel.prediction.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.prediction.end.$TWITCH_USERID
-  predictionEnd: 'subscribeToChannelPredictionEndEvents',
+  // twitch event trigger prediction-progress -s channel.prediction.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.prediction.progress.$TWITCH_USERID
+  predictionUpdate: 'subscribeToChannelPredictionProgressEvents',
 
   // twitch event trigger prediction-lock -s channel.prediction.lock.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.prediction.lock.$TWITCH_USERID
   predictionLock: 'subscribeToChannelPredictionLockEvents',
 
-  // twitch event trigger prediction-progress -s channel.prediction.progress.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.prediction.progress.$TWITCH_USERID
-  predictionUpdate: 'subscribeToChannelPredictionProgressEvents'
+  // twitch event trigger prediction-end -s channel.prediction.end.$TWITCH_USERID.$TWITCHBOT_SIGNING_SECRET -F https://$TWITCH_URI/event/channel.prediction.end.$TWITCH_USERID
+  predictionEnd: 'subscribeToChannelPredictionEndEvents',
 };
 
 

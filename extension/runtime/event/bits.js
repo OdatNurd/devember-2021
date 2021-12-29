@@ -1,12 +1,32 @@
 // =============================================================================
 
 
+const { displayEventDetails } = require('../../utils');
+
+
+// =============================================================================
+
+
 /* This is the event handler for a cheer, indicating that someone is using bits
  * in the channel. */
 function bit_donation(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info(`${event.userName || 'Anonymous'} just cheered ${event.bits} bits!`);
-  api.log.info(`${event.message}`);
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelCheerEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelcheer
+  displayEventDetails(api, name, event, [
+    'bits',
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'isAnonymous',
+    'message',
+    'userDisplayName',
+    'userId',
+    'userName',
+  ], [
+    '[A] getBroadcaster',
+    '[A] getUser',
+  ]);
 }
 
 

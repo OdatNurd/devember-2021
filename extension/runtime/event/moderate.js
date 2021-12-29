@@ -1,14 +1,34 @@
 // =============================================================================
 
 
-/* This event triggers whenever a moderator is added to or removed from the
- * channel. The same handler is used for both, with only an aliased name being
- * used to ponit the removal here.
+const { displayEventDetails } = require('../../utils');
+
+
+// =============================================================================
+
+
+/* This event handler tracks both moderator add and remove events, and indicates
+ * information about users being made moderators or being removed as moderators
+ * in the channel.
  *
- * To know which of the two operations is being undertaken, checkl the name. */
+ * This handler triggers for both a add and remove events; if you would like to
+ * distinguish, use the name.  */
 function moderator_update(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('A moderator is being added or removed');
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelModeratorEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelmoderatoradd
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelmoderatorremove
+  displayEventDetails(api, name, event, [
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'userDisplayName',
+    'userId',
+    'userName',
+  ], [
+    '[A] getBroadcaster',
+    '[A] getUser',
+  ]);
 }
 
 

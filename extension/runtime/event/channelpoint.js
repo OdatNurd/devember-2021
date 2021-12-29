@@ -1,51 +1,153 @@
 // =============================================================================
 
 
-/* This is the event handler for knowing when a brand new channel point
- * redemption item has been added to the channel. The event that comes in
- * indicates the key details of the new redeemable item. */
+const { displayEventDetails } = require('../../utils');
+
+
+// =============================================================================
+
+
+/* This event handler tracks events that tells you when a brand new custom
+ * channel point redemption has been added to the channel. The event details
+ * provide information about the new redeem that has been added. */
 function channel_point_add_new(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('Added a new channel point redemption to the channel');
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelRewardEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelchannel_points_custom_rewardadd
+  displayEventDetails(api, name, event, [
+    'autoApproved',
+    'backgroundColor',
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'cooldownExpiryDate',
+    'cost',
+    'globalCooldown',
+    'id',
+    'isEnabled',
+    'isInStock',
+    'isPaused',
+    'maxRedemptionsPerStream',
+    'maxRedemptionsPerUserPerStream',
+    'prompt',
+    'redemptionsThisStream',
+    'title',
+    'userInputRequired',
+  ], [
+    '[A] getBroadcaster',
+    'getImageUrl',
+  ]);
 }
 
 
 // =============================================================================
 
 
-/* This is the event handler for knowing when an existing channel point
- * redemption item is being removed from the channel. */
+/* This event handler tracks events that tells you when an existing custom
+ * channel point redemption has been removed from the channel. The event details
+ * provide information about the redeem that has been removed. */
 function channel_point_remove_existing(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('Removed a channel point redemption from the channel');
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelRewardEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelchannel_points_custom_rewardremove
+  displayEventDetails(api, name, event, [
+    'autoApproved',
+    'backgroundColor',
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'cooldownExpiryDate',
+    'cost',
+    'globalCooldown',
+    'id',
+    'isEnabled',
+    'isInStock',
+    'isPaused',
+    'maxRedemptionsPerStream',
+    'maxRedemptionsPerUserPerStream',
+    'prompt',
+    'redemptionsThisStream',
+    'title',
+    'userInputRequired',
+  ], [
+    '[A] getBroadcaster',
+    'getImageUrl',
+  ]);
 }
 
 
 // =============================================================================
 
 
-/* This is the event handler for knowing when the details of an existing channel
- * point redemption item have been updated in some manner. */
+/* This event handler tracks events that tells you when an existing custom
+ * channel point redemption has had its details updated. The event details
+ * provide information about the redeem that has been updated and what the new
+ * redeem information is. */
 function channel_point_update_details(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('Update the details for a channel point redemption');
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelRewardEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelchannel_points_custom_rewardupdate
+  displayEventDetails(api, name, event, [
+    'autoApproved',
+    'backgroundColor',
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'cooldownExpiryDate',
+    'cost',
+    'globalCooldown',
+    'id',
+    'isEnabled',
+    'isInStock',
+    'isPaused',
+    'maxRedemptionsPerStream',
+    'maxRedemptionsPerUserPerStream',
+    'prompt',
+    'redemptionsThisStream',
+    'title',
+    'userInputRequired',
+  ], [
+    '[A] getBroadcaster',
+    'getImageUrl',
+  ]);
 }
 
 
 // =============================================================================
 
 
-/* This is the event handler for knowing when someone is redeeming a channel
- * point redemption item.
+/* This event handler tracks events that tells you when an custom channel point
+ * redemptions in the channel have actually been redeemed by users in the
+ * channel. The event details provide information about the redeem that has been
+ * redeemed as well as who has done the redemption.
  *
- * These are only triggered for custom redemption items, never for items that
- * are built into twitch.
- *
- * This handler defers the incoming redemption to the list of configured items
- * for channel point redeems, to allow for redemptions to be fully dynamic. */
+ * Events of of this type are only triggered for custom redemption items,
+ * never for items that are built into twitch. */
 function channel_point_redemption(api, name, event) {
-  api.log.info(`${name} = ${JSON.stringify(event, null, 2)}`);
-  api.log.info('Redeeming a channel point item in the channel');
+  // Display the properties of the event, for debug purposes.
+  //  - https://twurple.js.org/reference/eventsub/classes/EventSubChannelRedemptionAddEvent.html
+  //  - https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types#channelchannel_points_custom_reward_redemptionadd
+  displayEventDetails(api, name, event, [
+    'broadcasterDisplayName',
+    'broadcasterId',
+    'broadcasterName',
+    'id',
+    'input',
+    'redeemedAt',
+    'rewardCost',
+    'rewardId',
+    'rewardPrompt',
+    'rewardTitle',
+    'status',
+    'userDisplayName',
+    'userId',
+    'userName',
+  ], [
+    '[A] getBroadcaster',
+    '[A] getReward',
+    '[A] getUser',
+    '[A] updateStatus',
+  ]);
 }
 
 
