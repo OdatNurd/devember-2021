@@ -70,6 +70,14 @@
         "workspace": "Logs"
       },
       {
+        "name": "reload-chan",
+        "width": 6,
+        "title": "Dynamic Channel Point Redeem Loader",
+        "file": "reload_chan.html",
+        "headerColor": "#525F78",
+        "workspace": "Logs"
+      },
+      {
         "name": "editor",
         "title": "File Editor",
         "fullbleed": true,

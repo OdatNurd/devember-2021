@@ -37,7 +37,8 @@ const bootstrap_core_data = require('./bootstrap');
 
 
 const { CommandParser, CodeHandlerMap, StaticHandlerMap,
-        BotCommand, BotEvent, TextResponder } = require('./core/');
+        BotCommand, BotEvent, BotChannelRedemption,
+        TextResponder } = require('./core/');
 
 
 // =============================================================================
@@ -188,6 +189,7 @@ module.exports = async function(nodecg) {
   // This is in the API so that all code in the bot can access them as needed.
   api.commands = new CodeHandlerMap(api, 'commands', data => new BotCommand(data));
   api.events = new CodeHandlerMap(api, 'events', data => new BotEvent(data));
+  api.channelpoints = new CodeHandlerMap(api, 'channelpoints', data => new BotChannelRedemption(data));
 
   // The above code creates the handler maps that are required, but in order to
   // make the code available we need to tell them to initialize themselves, which
@@ -205,6 +207,11 @@ module.exports = async function(nodecg) {
                             ? 'All events loaded successfuly'
                             : evtResult.map(err => `${err}\n${err.stack}`).join("\n");
 
+  const chanResult = await api.channelpoints.initialize();
+  const initialChanLog = chanResult.length === 0
+                            ? 'All channel point redeems loaded successfuly'
+                            : chanResult.map(err => `${err}\n${err.stack}`).join("\n");
+
   // Create a static handler that associates the text responders in the database
   // with available responders that can be triggered at runtime.
   //
@@ -217,6 +224,7 @@ module.exports = async function(nodecg) {
   // When requested by the front end, send the initial logs to them.
   api.nodecg.listenFor('get-initial-cmd-log', () => api.nodecg.sendMessage('set-cmd-log', initialCmdLog));
   api.nodecg.listenFor('get-initial-evt-log', () => api.nodecg.sendMessage('set-evt-log', initialEvtLog));
+  api.nodecg.listenFor('get-initial-chan-log', () => api.nodecg.sendMessage('set-chan-log', initialChanLog));
 };
 
 

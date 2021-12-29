@@ -101,6 +101,7 @@ async function setup_file_server(api) {
   // the database; this pre-fetches them all before we enter.
   const commands = api.db.getModel('commands');
   const events = api.db.getModel('events');
+  const channelpoints = api.db.getModel('channelpoints');
 
 
   // One of the things the API can do is serve up and receive changes for
@@ -119,18 +120,21 @@ async function setup_file_server(api) {
   //
   // /commands                  <- get whole list, post to add a new one (return :id)
   // /events                    <- get whole list, post to add a new one (return :id)
+  // /channelpoints             <- get whole list, post to add a new one (return :id)
   //
   // These can be hit with PUT to specifically update a particular item
   // with new information
   //
   // /commands/:id              <- put to update specifics
   // /events/:id                <- put to update specifics
+  // /channelpoints/:id         <- put to update specifics
   //
   // These can be with GET or PUT to fetch the contents of a file associated
   // with a particular item (GET) or store changes back (PUT).
   //
   // /files/commands/:id        <- get the file, put changes back
   // /files/events/:id          <- get the file, put changes back
+  // /files/channelpoints/:id   <- get the file, put changes back
 
   // --------------------------------------------------------------------------
   // GET information on existing commands
@@ -159,6 +163,14 @@ async function setup_file_server(api) {
     res.json(result);
   });
 
+  runtime.get('/channelpoints', async (req, res) => {
+    const query = queryFilter(req.query, ['id', 'name', 'enabled', 'sourceFile']);
+    const result = await channelpoints.find(query);
+
+    api.log.info(`GET /channelpoints -> ${result.length} for ${JSON.stringify(query)}`);
+    res.json(result);
+  });
+
   //--------------------------------------------------------------------------
   // GET the file content of the file that implements commands
   //
@@ -176,6 +188,13 @@ async function setup_file_server(api) {
   runtime.get('/files/events/:id', async (req, res) => {
     api.log.info(`GET /files/events/${req.params.id}`);
     const item = await events.findOne({ id: req.params.id });
+
+    sendItemFile(api, runtimePath, item, res);
+  });
+
+  runtime.get('/files/channelpoints/:id', async (req, res) => {
+    api.log.info(`GET /files/channelpoints/${req.params.id}`);
+    const item = await channelpoints.findOne({ id: req.params.id });
 
     sendItemFile(api, runtimePath, item, res);
   });
@@ -201,6 +220,12 @@ async function setup_file_server(api) {
     storeItemFile(api, runtimePath, item, req.body, res);
   });
 
+  runtime.put('/files/channelpoints/:id', parser, async (req, res) => {
+    api.log.info(`PUT /files/channelpoints/${req.params.id}`);
+    const item = await channelpoints.findOne({ id: req.params.id });
+
+    storeItemFile(api, runtimePath, item, req.body, res);
+  });
 
   //--------------------------------------------------------------------------
   // POST a request to reload a specific command
@@ -248,6 +273,28 @@ async function setup_file_server(api) {
     // If we get here, the reload resulted in a failure of some sort; turn the
     // error objects into a block of text and transmit it.
     api.nodecg.sendMessage('set-evt-log', result.map(err => `${err}\n${err.stack}`).join("\n"))
+  });
+
+  runtime.post('/files/channelpoints/:id/reload', async (req, res) => {
+    api.log.info(`POST /files/channelpoints/${req.params.id}/reload`);
+    const item = await channelpoints.findOne({ id: req.params.id });
+
+    // Reload based on the name of the item
+    const result = await api.channelpoints.reload([item.name], true);
+
+    switch (result) {
+      case true:
+        api.nodecg.sendMessage('set-chan-log', 'The last reload command completed successfully');
+        return;
+
+      case false:
+        api.nodecg.sendMessage('set-chan-log', 'The last reload command did not find anything to reload');
+        return;
+    }
+
+    // If we get here, the reload resulted in a failure of some sort; turn the
+    // error objects into a block of text and transmit it.
+    api.nodecg.sendMessage('set-chan-log', result.map(err => `${err}\n${err.stack}`).join("\n"))
   });
 
   api.nodecg.mount(runtime);
