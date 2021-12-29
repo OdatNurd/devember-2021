@@ -7,17 +7,22 @@ const { displayEventDetails } = require('../../event_list');
 // =============================================================================
 
 
-/* This event handler tracks both moderator add and remove events, and indicates
- * information about users being made moderators or being removed as moderators
- * in the channel.
- *
- * This handler triggers for both a add and remove events; if you would like to
- * distinguish, use the name.  */
-function moderator_update(api, name, event) {
+/* This event handler is used to indicate that a new user has been given the
+ * status of moderator in the channel. */
+function moderator_add(api, name, event) {
   // Display the properties of the event, for debug purposes.
   displayEventDetails(api, name, event);
 }
 
+// =============================================================================
+
+
+/* This event handler is used to indicate that a user has had their status of
+ * moderator revoked in the channel. */
+function moderator_remove(api, name, event) {
+  // Display the properties of the event, for debug purposes.
+  displayEventDetails(api, name, event);
+}
 
 // =============================================================================
 
@@ -25,7 +30,8 @@ function moderator_update(api, name, event) {
 module.exports = {
   load: async api => {
     return {
-      moderator_add: moderator_update
+      moderator_add: moderator_add,
+      moderator_remove: moderator_remove
     };
   },
 

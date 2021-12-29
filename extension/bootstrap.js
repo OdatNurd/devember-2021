@@ -233,13 +233,25 @@ const commands = [
 const events = [
   {
       name: "moderator_add",
-      aliases: ["moderator_remove"],
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/moderate.js",
+  },
+  {
+      name: "moderator_remove",
+      aliases: [],
       enabled: 1,
       sourceFile: "event/moderate.js",
   },
   {
       name: "ban",
-      aliases: ["unban"],
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/ban.js",
+  },
+  {
+      name: "unban",
+      aliases: [],
       enabled: 1,
       sourceFile: "event/ban.js",
   },
@@ -299,7 +311,13 @@ const events = [
   },
   {
       name: "streamOnline",
-      aliases: ["streamOffline"],
+      aliases: [],
+      enabled: 1,
+      sourceFile: "event/streamstatus.js",
+  },
+  {
+      name: "streamOffline",
+      aliases: [],
       enabled: 1,
       sourceFile: "event/streamstatus.js",
   },
