@@ -3,9 +3,9 @@
 
 
 const { ChatClient } = require('@twurple/chat');
-const { RefreshingAuthProvider } = require('@twurple/auth');
 
 const { getUserInfo } = require('./auth');
+const { getAuthProvider } = require('./utils');
 
 
 // =============================================================================
@@ -203,59 +203,6 @@ function debugMessageDetails(api, details, userInfo) {
   }
 
   api.log.info('================');
-}
-
-
-// =============================================================================
-
-
-/* Create a Twurple authorization object that wraps the token with the local
- * name given. Details required to refresh the token will be queried from the
- * database.
- *
- * The Twurple Auth provider is for using the Twurple libraries to do operations
- * on Twitch and it's API's, and they ensure that there is a token and that it
- * will refresh itself as needed if the app is long running. */
-async function getAuthProvider(api, name) {
-  api.log.info(`Fetching ${name} access token`);
-
-  // If there is no record found for this token, we can't set up an Auth
-  // provider for it.
-  const model = api.db.getModel('tokens');
-  const record = await model.findOne({ name });
-  if (record === undefined) {
-    return null;
-  }
-
-  // The Twurple library has an authorization object that can ensure that the
-  // token is valid and up to date. Set up an appropriately shaped object from
-  // the stored token data.
-  const tokenData = {
-    accessToken: api.crypto.decrypt(record.token),
-    refreshToken: api.crypto.decrypt(record.refreshToken),
-    scope: record.scopes,
-    expiresIn: record.expiration,
-    obtainmentTimestamp: record.obtained
-  };
-
-  // Create and return the auth provider.
-  return new RefreshingAuthProvider(
-    {
-      clientId: api.config.get('twitch.core.clientId'),
-      clientSecret: api.config.get('twitch.core.clientSecret'),
-      onRefresh: async newData => {
-        api.log.info(`Refreshing the ${name} token`);
-        await model.update({ name }, {
-          token: api.crypto.encrypt(newData.accessToken),
-          refreshToken: api.crypto.encrypt(newData.refreshToken),
-          scopes: newData.scopes,
-          obtained: newData.obtainmentTimestamp,
-          expiration: newData.expiresIn
-        });
-      }
-    },
-    tokenData
-  );
 }
 
 
