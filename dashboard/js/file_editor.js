@@ -341,10 +341,21 @@ const setItems = async (selectTag, itemType) => {
     selectTag.append(group);
   });
 
-  // If we loaded anything, fill the buffer with the contents of the
-  // file associated with that item.
+  // If we loaded anything, fill the buffer with the contents of the file
+  // associated with that item.
+  //
+  // This block of code also makes sure that the discard button is entire
+  // enabled or disabled as required by state; this is the only place in the
+  // code where such a change should be required.
   if (firstID !== null) {
+    // Make sure the user can potentially discard or reload this file, then load
+    // the content.
+    discardBtn.disabled = false;
     loadEditorText(itemType, firstID);
+  } else {
+    // There are no items, so disable the reload button and empty the editor
+    discardBtn.disabled = true;
+    setEditorText(editor, 'no file loaded', '', true);
   }
 };
 
