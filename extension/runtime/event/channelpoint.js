@@ -67,7 +67,7 @@ function channel_point_update_details(api, name, event) {
  * never for items that are built into twitch. */
 function channel_point_redemption(api, name, event) {
   // Display the properties of the event, for debug purposes.
-  displayEventDetails(api, name, event);
+  // displayEventDetails(api, name, event);
 
   // Check in the list of known channel point redemptions to find an entry that
   // matches the channel point reward id. The main name for each item is the
