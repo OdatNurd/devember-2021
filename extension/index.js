@@ -31,6 +31,7 @@ const setup_db = require('./db/');
 const setup_file_server = require('./file_api');
 const { setup_auth } = require('./auth');
 const setup_twitch_eventsub = require('./eventsub');
+const setup_point_redeems = require('./point_redeem');
 const setup_chat = require('./chat');
 const setup_tts = require('./google_tts');
 const bootstrap_core_data = require('./bootstrap');
@@ -145,9 +146,10 @@ module.exports = async function(nodecg) {
   //
   // This includes setting up a variable or removing it, depending on the
   // status of things.
-  setup_twitch_api(api);  // api.twitch (and api.twitchUser after user Auth)
-  setup_crypto(api);      // api.crypto.encrypt and api.crypto.decrypt
-  await setup_db(api);    // api.db
+  setup_twitch_api(api);    // api.twitch (and api.twitchUser after user Auth)
+  setup_point_redeems(api);
+  setup_crypto(api);        // api.crypto.encrypt and api.crypto.decrypt
+  await setup_db(api);      // api.db
 
   // Now that the base core is set up, bootstrap any data in the database that
   // needs to be present.

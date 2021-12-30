@@ -61,7 +61,7 @@ const user_token_scopes = [...Object.keys(event_scopes)];
  * the authorization being altered (e.g. 'bot' or 'user') and userId should
  * be the Id of the user that is being authorized or deauthorized. */
 function sendAuthStateEvent(api, event, type, userId) {
-  api.nodecg.sendMessage(`${event}-complete`, { type , userId});
+  api.nodecg.sendMessage(`${event}-complete`, { type , userId });
 }
 
 
