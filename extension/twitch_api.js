@@ -11,6 +11,22 @@ const { getAuthProvider } = require('./utils');
 // =============================================================================
 
 
+/* This sends a user API state change event to any interested listeners to let
+ * them know that the Twitch API endpoint for the user of the channel has either
+ * just been established or is going away, allowing them to take appropriate
+ * actions.
+ *
+ * Event is one of 'setup` or 'shutdown' to indicate if the event being raised
+ * is to set up or shut down the API endpoint and userID is the user whose API
+ * is being altered. */
+function sendAuthStateEvent(api, event, userId) {
+  api.nodecg.sendMessage(`${event}-api-complete`, { userId });
+}
+
+
+// =============================================================================
+
+
 /* This handler gets called whenever the authorization state of one of the bot
  * accounts changes to be authorized. We use this to determine if it's time to
  * set up the API endpoint that represents the user in the channel so that we
@@ -31,6 +47,9 @@ async function handleAuthEvent(api, info) {
   // authorized).
   const authProvider = await getAuthProvider(api, 'user');
   api.userTwitch = new ApiClient({ authProvider });
+
+  // Let outside code know that the API is ready.
+  sendAuthStateEvent(api, 'setup', info.userId );
 }
 
 
@@ -51,9 +70,12 @@ function handleDeauthEvent(api, info) {
   api.log.info('removing Twitch API endpoint for user requests');
 
   // Get rid of the twitch user API endpoint by getting rid of the reference to
-  // it; external code needs to check that this exists in order to make user
-  // facing requests.
+  // it and then notify listeners that it is no longer available.
+  //
+  // external code needs to check that this exists in order to make user facing
+  // requests.
   api.twitchUser = undefined;
+  sendAuthStateEvent(api, 'shutdown', info.userId);
 }
 
 
