@@ -119,5 +119,7 @@ function setup_point_redeems(api) {
 
 module.exports = {
   setup_point_redeems,
-  dispatchRedeemOperation
+  addNewCustomRedeemHandler,
+  removeOldCustomRedeemHandler,
+  renameExistingRedeemHandler
 }
