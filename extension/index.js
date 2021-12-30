@@ -144,7 +144,7 @@ module.exports = async function(nodecg) {
   //
   // This includes setting up a variable or removing it, depending on the
   // status of things.
-  setup_twitch_api(api);  // api.twitch
+  setup_twitch_api(api);  // api.twitch (and api.twitchUser after user Auth)
   setup_crypto(api);      // api.crypto.encrypt and api.crypto.decrypt
   await setup_db(api);    // api.db
 
