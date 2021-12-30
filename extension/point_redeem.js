@@ -155,15 +155,41 @@ async function addNewCustomRedeemHandler(api, broadcasterId, title, redeemId) {
 // =============================================================================
 
 
+/* This helper handles the case where there's potentially an old channel point
+ * redeem in the database but it's not in the channel that the bot is currently
+ * connect to, and can be called either at startup while the list of redeems
+ * is being synced or at runtime in response to an event telling us that an
+ * existing redeem has been removed.
+ *
+ * This will ensure that an item with the ID passed in actually exists, and will
+ * remove it from the database if so. The file that contains the handler will
+ * be left alone so that it can be reconnected later as desired. */
 async function removeOldCustomRedeemHandler(api, broadcasterId, title, redeemId) {
-  // This does the work of examining the list of existing redeems to find the
-  // one that has the redeemId provided as an alias, and then removes it from
-  // the list of redeems. This would remove the entry but leave the
-  // implementation file alone.
-  //
-  // This should verify (but not require) that the title is the name of the
-  // event.
   api.log.info(`removing a defunct redeem: '${redeemId}' / '${title}'`);
+
+  // Try to find an entry in the channel points list for this particular ID. If
+  // there isn't one found, then we don't need to do anything because the entry
+  // is already gone.
+  const redeem = api.channelpoints.find(redeemId);
+  if (redeem === null) {
+    api.log.warn(`an entry for '${redeemId}' does not exist; cannot remove`);
+    return;
+  }
+
+  // We found an item; if it's name is not the ID value that we looked it up as,
+  // then somehow while deleting we got a redeem ID that was aliased to some
+  // other one. In that case do nothing because we would be removing the wrong
+  // entry.
+  if (redeem.name !== redeemId) {
+    api.log.warn(`the found entry for '${redeemId}' is an alias for '${redeem.name}' ; cannot remove`);
+    return;
+  }
+
+  // To get rid of the redeem, we need to remove it from the database; we can
+  // then tell the reloader to reload the file that it's contained inside of,
+  // and it will notice that the entry is gone and remove it from the lists.
+  await api.db.getModel('channelpoints').remove({ id: redeem.id });
+  api.channelpoints.reload([redeem.name], true);
 }
 
 
