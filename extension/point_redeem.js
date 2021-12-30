@@ -6,7 +6,7 @@ async function addNewCustomRedeemHandler(api, title, redeemId) {
   // will associate a redeem with the given title with a new handler, and set
   // as an alias the redeemId so that we can cross-examine and know which of
   // the custom redeems is which.
-  api.log.info(`adding in a new redeem for '${redeemId}' as ${title}`);
+  api.log.info(`adding a new redeem: '${redeemId}' / '${title}'`);
 }
 
 
@@ -21,7 +21,7 @@ async function removeOldCustomRedeemHandler(api, title, redeemId) {
   //
   // This should verify (but not require) that the title is the name of the
   // event.
-  api.log.info(`removing the redeem for '${redeemId}' / ${title}`);
+  api.log.info(`removing a defunct redeem: '${redeemId}' / '${title}'`);
 }
 
 
@@ -36,7 +36,7 @@ async function renameExistingRedeemHandler(api, title, redeemId) {
   // In doing this, the implementation file will no longer be set up to provide
   // the appropriate handler, so it will be up to the user to manually fix the
   // file in the online editor and then do a reload.
-  api.log.info(`renaming the redeem of '${redeemId}' to ${title}`);
+  api.log.info(`updating a redeem: '${redeemId}' / '${title}'`);
 }
 
 
@@ -62,19 +62,49 @@ async function handleAuthEvent(api, info) {
   api.log.info('synchronizing channel point redemptions with Twitch');
 
   // Using the Twitch API for the channel's user, request a list of all of the
-  // known channel point redeems so that we can compare them with the list of
-  // redeems that we currently know about.
-  const result = await api.userTwitch.channelPoints.getCustomRewards(info.userId);
-  if (result === null) {
+  // known channel point redeems that are currently available.
+  const twitchItems = await api.userTwitch.channelPoints.getCustomRewards(info.userId);
+  // twitchItems.forEach(redeem => dispatchRedeemOperation(api, redeem.title, redeem.id));
+  if (twitchItems === null) {
     api.log.warn(`unable to collect the list of custom channel point rewards`);
     return;
   }
 
-  // For each of the found redeems, check to see if an item already exists with
-  // that redeem ID. If there is no such item, then we can add. If there is an
-  // item, check to see if this is a rename operation, and if there isn't an
-  // item, perform an add.
-  result.forEach(redeem => dispatchRedeemOperation(api, redeem.title, redeem.id));
+  // Collect the list of known redeems from the database and normalize it into
+  // objects with a title and id key, so that below regardless of where a record
+  // came from, it will have the fields that we expect it to have.
+  let dbItems = await api.db.getModel('channelpoints').find({});
+  dbItems = dbItems.map(item => item ? { title: item.aliases[0], id: item.name} : {});
+  // dbItems.forEach(redeem => dispatchRedeemOperation(api, redeem.title, redeem.id));
+
+  // Compare the two lists to see which items appear in one but not in the
+  // other. Array.some() will indicate if there's at least one item in the array
+  // that matches, so combined with a filter we can grab any items out of one
+  // list that don't appear in the other.
+  //
+  // Items that exist in the database but not on twitch are redeems that should
+  // be removed from our records, while items that exist on twitch but not in
+  // the database are items that we should be adding in.
+  //
+  // Any items that appear in both lists won't appear in either of these two
+  // arrays when the filters are complete.
+  const itemsToDelete = dbItems.filter(({ id: id1 }) => twitchItems.some(({ id: id2 }) => id2 === id1) === false);
+  const itemsToAdd = twitchItems.filter(({ id: id1 }) => dbItems.some(({ id: id2 }) => id2 === id1) === false);
+
+  // The inverse of the above, this finds items that exist with the same id in
+  // both lists, which  becomes the list of items that may potentially have
+  // different names and thus may require a rename to keep themselves in sync
+  // with Twitch.
+  const itemsToModify = dbItems.filter(({ id: id1 }) => twitchItems.some(({ id: id2 }) => id2 === id1) === true);
+
+  // Trigger the addition and removal of channel point redeems as appropriate.
+  // For items that are already in both, ensure that the names are up to date.
+  //
+  // The only information needed is the human readable title and the unique
+  // twitch redeem ID.
+  itemsToAdd.forEach(redeem => addNewCustomRedeemHandler(api, redeem.title, redeem.id))
+  itemsToDelete.forEach(redeem => removeOldCustomRedeemHandler(api, redeem.title, redeem.id))
+  itemsToModify.forEach(redeem => renameExistingRedeemHandler(api, redeem.title, redeem.id))
 }
 
 
