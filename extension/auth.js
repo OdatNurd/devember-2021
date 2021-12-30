@@ -304,13 +304,15 @@ async function performTokenDeauth(api, name, req, res) {
 
   // When we deauthorize an account, if we have a token associated with it in
   // the database we should revoke it now.
-  //
-  // Generally this only deauthorizes the bot because the user token isn't
-  // stored locally because the application takes actions for the user directly.
   if (record !== undefined) {
     api.log.warn(`deauthorizing the existing ${name} token`);
-    const accessToken = api.crypto.decrypt(record.token);
-    await revokeToken(api.config.get('twitch.core.clientId'), accessToken);
+    try {
+      const accessToken = api.crypto.decrypt(record.token);
+      await revokeToken(api.config.get('twitch.core.clientId'), accessToken);
+    }
+    catch (e) {
+      api.log.warn(`unable to deauthorize token: ${e}`);
+    }
   }
 
   // An authorization was removed; so send a message that tells people who care
