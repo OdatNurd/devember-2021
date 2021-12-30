@@ -54,6 +54,16 @@ function channel_point_update_details(api, name, event) {
 function channel_point_redemption(api, name, event) {
   // Display the properties of the event, for debug purposes.
   displayEventDetails(api, name, event);
+
+  // Check in the list of known channel point redemptions to find an entry that
+  // matches the channel point reward id. The main name for each item is the
+  // human readable title, each has an alias on the unique reward id.
+  const redeemHandler = api.channelpoints.find(event.rewardId);
+  if (redeemHandler !== null) {
+    redeemHandler.execute(api, event);
+  } else {
+    api.log.warn(`unknown channel point redeem: ${event.rewardId} (${event.rewardTitle})`);
+  }
 }
 
 
