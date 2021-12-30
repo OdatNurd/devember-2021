@@ -136,29 +136,19 @@ async function getAccessToken(api, name, code) {
       userId: result.id
     });
 
-    // If the token is for the bot, then we want to store it in the tokens table
-    // since it will be used later to connect the bot to chat. All of the token
-    // information is persisted so that it can be pulled out and used in a
-    // future run without having to authorize again.
-    if (name != 'user') {
-      // The token and refresh token are encrypted when we put them into the
-      // database to keep them safe from casual inspection.
-      await api.db.getModel('tokens').updateOrCreate({ name }, {
-        name: name,
-        type: response.data.token_type,
-        token: api.crypto.encrypt(response.data.access_token),
-        refreshToken: api.crypto.encrypt(response.data.refresh_token),
-        scopes: response.data.scope,
-        obtained: Date.now(),
-        expiration: response.data.expires_in,
-      });
-    } else {
-      // When we get an access token for the user account, it's purely for
-      // authorizing the bot to take actions on our user data. So we don't
-      // actually want to keep the token around; it's not persisted above and
-      // here we revoke it to make sure that it doesn't leak.
-      await revokeToken(clientId, response.data.access_token);
-    }
+    // Store the token into the database so that we can retreive it later as
+    // needed.
+    // The token and refresh token are encrypted when we put them into the
+    // database to keep them safe from casual inspection.
+    await api.db.getModel('tokens').updateOrCreate({ name }, {
+      name: name,
+      type: response.data.token_type,
+      token: api.crypto.encrypt(response.data.access_token),
+      refreshToken: api.crypto.encrypt(response.data.refresh_token),
+      scopes: response.data.scope,
+      obtained: Date.now(),
+      expiration: response.data.expires_in,
+    });
 
     // An authorization is now complete; send off a message to anyone that
     // is listening and wants to know; the type of the authorization will be
