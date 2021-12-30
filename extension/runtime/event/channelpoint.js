@@ -18,7 +18,7 @@ function channel_point_add_new(api, name, event) {
 
   // Dispatch this record to the redeem handler, which will update the database
   // to include a new stub redeem entry.
-  addNewCustomRedeemHandler(api, event.title, event.id);
+  addNewCustomRedeemHandler(api, event.broadcasterId, event.title, event.id);
 }
 
 
@@ -34,7 +34,7 @@ function channel_point_remove_existing(api, name, event) {
 
   // Dispatch this record to the redeem handler, which will update the database
   // and runtime to remove this redeem from consideration.
-  removeOldCustomRedeemHandler(api, event.title, event.id);
+  removeOldCustomRedeemHandler(api, event.broadcasterId, event.title, event.id);
 }
 
 
@@ -51,7 +51,7 @@ function channel_point_update_details(api, name, event) {
 
   // Dispatch this record to the redeem handler, which will update the database
   // and runtime if the title of the redeem has changed from what it used to be.
-  renameExistingRedeemHandler(api, event.title, event.id);
+  renameExistingRedeemHandler(api, event.broadcasterId, event.title, event.id);
 }
 
 

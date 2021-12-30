@@ -1,19 +1,161 @@
 // =============================================================================
 
 
-async function addNewCustomRedeemHandler(api, title, redeemId) {
-  // This does the work of adding a new entry into the channel point table that
-  // will associate a redeem with the given title with a new handler, and set
-  // as an alias the redeemId so that we can cross-examine and know which of
-  // the custom redeems is which.
-  api.log.info(`adding a new redeem: '${redeemId}' / '${title}'`);
+const os = require('os');
+const path = require('path');
+const { existsSync, writeFileSync } = require('fs');
+
+const { renderFile } = require('template-file');
+const sanitize = require('sanitize-filename');
+
+
+// =============================================================================
+
+
+/* This will use the information passed in to come up with a unique name for a
+ * particular redeem that combines all of the given information.
+ *
+ * This is required because although Twitch ensures that no two redeems can
+ * share a name in a channel, it's possible for channels to share names.
+ *
+ * Since the bot can run in potentially more than one channel, this is needed to
+ * ensure that there is never a collision in names. */
+function makeEntryTitle(title, userId) {
+  return `${title} [${userId}]`;
 }
 
 
 // =============================================================================
 
 
-async function removeOldCustomRedeemHandler(api, title, redeemId) {
+/* This gets the human readable name for a channel point redeem item that has
+ * come from the database.
+ *
+ * Unlike commands and events where the main name field in the record is the
+ * name, for channel point redeems the main name is the UUID of the redeem, and
+ * the human name is actually the first alias.
+ *
+ * Given a database record for a channel point redeem, this will return the
+ * name of that item. */
+function getHumanName(item) {
+  return (item.aliases.length === 0) ? 'unknown' : item.aliases[0];
+}
+
+
+// =============================================================================
+
+
+/* This helper handles the case where there's a potential new addition of a
+ * channel point redeem on the channel that the bot is currently connected to,
+ * and can be called either at startup while the list of redeems is being synced
+ * or at runtime in response to an event telling us that a new redeem is being
+ * added.
+ *
+ * This will ensure that there is no collision with any existing items and will
+ * generate a stub file, update the database and make the new entry immediately
+ * reload the new file to bring the change into effect. */
+async function addNewCustomRedeemHandler(api, broadcasterId, title, redeemId) {
+  api.log.info(`adding a new channel point redeem: '${redeemId}' / '${title}'`);
+
+  // Get the entry title that we'll be putting into the database.
+  const entryTitle = makeEntryTitle(title, broadcasterId);
+
+  // Create a filename out of the entry title by replacing spaces, adding an
+  // extension and sanitizing it. If the result is not a valid filename, then
+  // this falls back to using the redeem id as the filename to remind you to
+  // make better life choices when naming things.
+  let entryFilename = sanitize(`${entryTitle.replace(/ /g, '_')}.js`);
+  if (entryFilename === '') {
+    entryFilename = redeemId;
+  }
+
+  // Create a name that the function that implements this will be known by.
+  // This is based on the entry title but redacts characters that are not valid
+  // in an identifier.
+  const entryHandler = title.replace(/([^A-Za-z0-9[\]{}_.:-])\s?/g, '');
+
+  // Check to see if there's already an item with the redeem ID that we're
+  // seeing here; if so, ignore this call since we only do additions and not
+  // updates.
+  let existing = api.channelpoints.find(redeemId);
+  if (existing !== null) {
+    api.log.warn(`an entry for '${redeemId}' already exists (${getHumanName(existing)}); cannot add`);
+    return;
+  }
+
+  // Check to see if the title we're trying to use for this new item already
+  // exists and similarly complain.
+  exisiting = api.channelpoints.find(entryTitle);
+  if (existing !== null) {
+    api.log.warn(`an entry with the name '${entryTitle} already exists (${exisiting.name}); cannot add`);
+    return;
+  }
+
+  // Determine the name of the file that this item will be implemented in, and
+  // where we should get a stub from if we need to. The file has two names,
+  // the one that's physical on the disk and the one that's relative and in
+  // the database.
+  const implFile = `channelpoint/${entryFilename}`;
+  const srcFile = path.resolve(api.baseDir, 'extension/runtime/stubs/channelpoint.js');
+  const dstFile = path.resolve(api.baseDir, `extension/runtime/${implFile}`);
+
+  api.log.info(`adding a new redeem '${entryTitle}' in '${entryFilename}'`);
+
+  // Start by adding a new entry to the database for this redeem and then add
+  // a stub entry for it in the handler list so that we can get it to reload.
+  await api.db.getModel('channelpoints').create({
+    name: redeemId,
+    aliases: [entryTitle],
+    sourceFile: implFile,
+    enabled: true,
+  });
+  await api.channelpoints.addItemStub(redeemId);
+
+  // If the file already exists, then we can just get the handler list to
+  // reload it; otherwise, we need to take extra steps to get the initial load
+  // to happen.
+  if (existsSync(dstFile)) {
+    // If this implementation file has previously been loaded, then reload
+    // it now, otherwise we need to do a fresh load because although the
+    // file exists on disk, no commands are currently loaded from it.
+    if (api.channelpoints.sources().indexOf(implFile) === -1) {
+      api.channelpoints.loadNewFile(implFile);
+    } else {
+      api.channelpoints.reload([implFile], false);
+    }
+  } else {
+    try {
+      // Using the incoming source file as a template, expand out the variables
+      // in it to provide a directly usable stub for the new redeem.
+      const templateData = await renderFile(srcFile, {
+        redeem: {
+          title: entryTitle,
+          id: redeemId,
+          handler: entryHandler
+        }
+      });
+
+      // Write the file to disk. The flag indicates that we should open the file
+      // for appending, but fail if it already exists. This makes sure that when
+      // adding a new item using an existing file, we don't clobber over
+      // anything.
+      api.log.info(`writeFileSync(${dstFile}, templateData, {flag: 'ax'})`);
+      writeFileSync(dstFile, templateData, {flag: 'ax'});
+
+      // Tell the channel point system to load a new file
+      api.channelpoints.loadNewFile(implFile);
+    } catch (err) {
+      api.chat.say(`there was an error while putting the stub redeem file in place; please check the console`);
+      api.nodecg.sendMessage('set-chan-log', `${err}\n${err.stack}`);
+    }
+  }
+}
+
+
+// =============================================================================
+
+
+async function removeOldCustomRedeemHandler(api, broadcasterId, title, redeemId) {
   // This does the work of examining the list of existing redeems to find the
   // one that has the redeemId provided as an alias, and then removes it from
   // the list of redeems. This would remove the entry but leave the
@@ -28,7 +170,7 @@ async function removeOldCustomRedeemHandler(api, title, redeemId) {
 // =============================================================================
 
 
-async function renameExistingRedeemHandler(api, title, redeemId) {
+async function renameExistingRedeemHandler(api, broadcasterId, title, redeemId) {
   // This does the work of finding the item in the list whose redeem ID matches
   // the one that's passed in, and then renames the entry in the database to
   // match what the new title is.
@@ -37,17 +179,6 @@ async function renameExistingRedeemHandler(api, title, redeemId) {
   // the appropriate handler, so it will be up to the user to manually fix the
   // file in the online editor and then do a reload.
   api.log.info(`updating a redeem: '${redeemId}' / '${title}'`);
-}
-
-
-// =============================================================================
-
-
-async function dispatchRedeemOperation(api, title, redeemId) {
-  // Given the information about a particular redeem and it's ID, do a check to
-  // see if this is an add, a remove or a rename and then invoke the appropriate
-  // helper method on it in order to carry out the change.
-  api.log.info(`Dispatching '${redeemId}' <=> ${title}`);
 }
 
 
@@ -64,7 +195,6 @@ async function handleAuthEvent(api, info) {
   // Using the Twitch API for the channel's user, request a list of all of the
   // known channel point redeems that are currently available.
   const twitchItems = await api.userTwitch.channelPoints.getCustomRewards(info.userId);
-  // twitchItems.forEach(redeem => dispatchRedeemOperation(api, redeem.title, redeem.id));
   if (twitchItems === null) {
     api.log.warn(`unable to collect the list of custom channel point rewards`);
     return;
@@ -75,7 +205,6 @@ async function handleAuthEvent(api, info) {
   // came from, it will have the fields that we expect it to have.
   let dbItems = await api.db.getModel('channelpoints').find({});
   dbItems = dbItems.map(item => item ? { title: item.aliases[0], id: item.name} : {});
-  // dbItems.forEach(redeem => dispatchRedeemOperation(api, redeem.title, redeem.id));
 
   // Compare the two lists to see which items appear in one but not in the
   // other. Array.some() will indicate if there's at least one item in the array
@@ -102,9 +231,9 @@ async function handleAuthEvent(api, info) {
   //
   // The only information needed is the human readable title and the unique
   // twitch redeem ID.
-  itemsToAdd.forEach(redeem => addNewCustomRedeemHandler(api, redeem.title, redeem.id))
-  itemsToDelete.forEach(redeem => removeOldCustomRedeemHandler(api, redeem.title, redeem.id))
-  itemsToModify.forEach(redeem => renameExistingRedeemHandler(api, redeem.title, redeem.id))
+  itemsToAdd.forEach(redeem => addNewCustomRedeemHandler(api, info.userId, redeem.title, redeem.id))
+  itemsToDelete.forEach(redeem => removeOldCustomRedeemHandler(api, info.userId, redeem.title, redeem.id))
+  itemsToModify.forEach(redeem => renameExistingRedeemHandler(api, info.userId, redeem.title, redeem.id))
 }
 
 
