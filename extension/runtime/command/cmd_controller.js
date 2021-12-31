@@ -1,7 +1,6 @@
 // =============================================================================
 
 
-const os = require('os');
 const path = require('path');
 const { existsSync, writeFileSync } = require('fs');
 

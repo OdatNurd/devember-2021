@@ -1,12 +1,13 @@
 // =============================================================================
 
 
-const os = require('os');
 const path = require('path');
 const { existsSync, writeFileSync } = require('fs');
 
 const { renderFile } = require('template-file');
 const sanitize = require('sanitize-filename');
+
+const { persistItemChanges } = require('./utils');
 
 
 // =============================================================================
@@ -201,15 +202,74 @@ async function removeOldCustomRedeemHandler(api, broadcasterId, title, redeemId)
 // =============================================================================
 
 
+/* This helper handles the case where there's an existing item in the database
+ * that appears to also exist on Twitch as well. We use this as an opportunity
+ * to see if the human readable title for the stream needs to change to match
+ * what Twitch is using.
+ *
+ * This is entirely cosmetic, since the name used to actually invoke the redeem
+ * is the globally unique Twitch channel point redemption ID, but it makes it
+ * easier to track which item is which in the user interface.
+ *
+ * This gracefully handles the situation where the item in the database and the
+ * item that we're given has the same name, and does nothing in response but
+ * potentially display a log.
+ *
+ * In particular, adding a redeem also updates it right away, and we also want
+ * this to be able to handle renames at startup without having to do deep
+ * comparisons elsewhere before calling this. */
 async function renameExistingRedeemHandler(api, broadcasterId, title, redeemId) {
-  // This does the work of finding the item in the list whose redeem ID matches
-  // the one that's passed in, and then renames the entry in the database to
-  // match what the new title is.
-  //
-  // In doing this, the implementation file will no longer be set up to provide
-  // the appropriate handler, so it will be up to the user to manually fix the
-  // file in the online editor and then do a reload.
   api.log.info(`updating a redeem: '${redeemId}' / '${title}'`);
+
+  // Get the version of the redeem title as it would appear if it was in the
+  // database; we decorate them to make sure that they're unique.
+  const entryTitle = makeEntryTitle(title, broadcasterId);
+
+  // Search the list of channel point redeems to find the one with the redeem
+  // ID that we were given. If there is no such redeem found, generate a warning
+  // and leave.
+  //
+  // This should never happen; if it does, it means that someone has adjusted
+  // the database at runtime without properly refreshing the loaded state.
+  const redeem = api.channelpoints.find(redeemId);
+  if (redeem === null) {
+    api.log.warn(`an entry for '${redeemId}' does not exist; cannot update`);
+    return;
+  }
+
+  // We found an item, but if it's name is not the ID value that we looked up,
+  // there's an alias other than the human readable name that we auto generate.
+  // In that case, we don't want to do anything here either.
+  if (redeem.name !== redeemId) {
+    api.log.warn(`the found entry for '${redeemId}' is an alias for '${redeem.name}' ; cannot update`);
+    return;
+  }
+
+  // If there is not exactly one alias for the given redeem, then the state of
+  // things is something that we should not be touching. We only support the
+  // idea of there being a single alias which is the title, so outside of that
+  // we cowardly refuse to do nothing at all.
+  if (redeem.aliases.length !== 1) {
+    api.log.warn(`the entry for '${redeemId}' does not have exactly one alias; cannot update`);
+    return;
+  }
+
+  // If the value of the first alias is the name that we would put in place,
+  // then we can just silently leave because everything is already up to date.
+  const oldName = redeem.aliases[0];
+  if (oldName === entryTitle) {
+    return;
+  }
+
+  api.log.info(`renaming channel point redeem: '${oldName}' <-> '${entryTitle}'`)
+
+  // All seems well, so remove the existing alias for the name as it currently
+  // exists, and then add in the new one to give it a rename.
+  api.channelpoints.removeAlias(redeem.name, oldName);
+  api.channelpoints.addAlias(redeem.name, entryTitle);
+
+  // Update the database now so that it contains the new alias.
+  await persistItemChanges(api, 'channelpoints', redeem, { aliases: [entryTitle]})
 }
 
 
