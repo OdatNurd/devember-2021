@@ -19,9 +19,14 @@ const sanitize = require('sanitize-filename');
  * share a name in a channel, it's possible for channels to share names.
  *
  * Since the bot can run in potentially more than one channel, this is needed to
- * ensure that there is never a collision in names. */
+ * ensure that there is never a collision in names.
+ *
+ * This is intelligent enough to not mark up a title that has already been
+ * marked up using this function on a previous call. */
 function makeEntryTitle(title, userId) {
-  return `${title} [${userId}]`;
+  const trailer = ` [${userId}]`;
+
+  return title.endsWith(trailer) ? title :  `${title}${trailer}`;
 }
 
 
