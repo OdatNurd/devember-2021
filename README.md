@@ -8,6 +8,64 @@ Development work is being done this year on my [Twitch channel](https://twitch.t
 which is also serving as the daily devlog; what better way to follow what the
 day's work was than to actually watch the day's work.
 
+
+# Setup
+
+*Note* this is just a stub to remind us of overall steps; more detailed
+instructions will be forthcoming.
+
+  * Code setup
+    - Clone the NodeCG repository: https://github.com/OdatNurd/nodecg
+    - Check out v1.8.1 (bot is not tested with newer versions)
+    - 'npm install' in NodeCG to install required items
+    - in nodecg/bundles, clone this repo
+    - 'yarn install' or 'npm install' in the bundle to install required items
+
+  * App setup
+    - Set up a Twitch bot application at https://dev.twitch.tv/console
+    - Configure the ClientID and ClientSecret for the app
+    - Set up the crypto secret
+
+  * Event Setup (optional)
+    - Set up the signing secret for verifying incoming Twitch events
+    - Set up a reverse proxy to point to your system
+    - Configure the remote uri and port as appropritate
+
+  * Google TextToSpeech (optional)
+    - Set up a Google cloud account and turn on TTS: https://cloud.google.com/text-to-speech/
+    - TTS is a paid feature, but there is a free tier that is more than adequate
+    - Download the JSON file that google provides with the credentials info
+    - Set the GOOGLE_APPLICATION_CREDENTIALS environment variable to point to it
+
+* Misc config
+    - Check other configuration options to see if there's anything you would
+      like to change.
+
+
+# Running the bot
+
+*Note* this is just a stub to remind us of overall steps; more detailed
+instructions will be forthcoming.
+
+  * use "node index.js" in the root of the NodeCG to start the bot
+  * enjoy (see steps below for setting up your streaming software)
+
+
+# Systems in the bot:
+
+*Note* this is just a stub to remind us of overall steps; more detailed
+instructions will be forthcoming.
+
+    - authorization
+    - event sub
+    - using the web front end
+    - using graphics (overlays)
+    - commands (using, creating, aliasing)
+    - events (customzing handlers)
+    - channel point redeems (setting up and customizing handlers)
+    - online editor
+
+
 OAuth Client Credentials Flow - App Token
 -----------------------------------------
 

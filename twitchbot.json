@@ -4,25 +4,31 @@
 // Each option has a default value specified in the code, which will be used
 // unless there is a value specified in this file. Some configuration options
 // can be set via environment variables, and if so the default and the value
-// in this are ignored in favour of the environment variable.
+// in this file are ignored in favour of the environment variable.
 //
-// Not all configuration options can be configured via an environment variable;
-// those that can are annotated as such.
-
+// To change the value of any of the configuration options, uncomment them and
+// change the value as appropriate.
 {
   "twitch": {
     // The configuration values here represent the core of the bot's ability to
     // talk to Twitch. All of these values must be given or the bot will refuse
     // to function.
     //
+    // You can obtain your client ID and client Secret by setting up a Twitch
+    // application at: https://dev.twitch.tv/console
+    //
     // NOTE: The clientSecret should not be specified in the configuration file
     // as it could be accidentally leaked if you view the code on stream (for
-    // example); it's best set by a private environment variable.
+    // example); it's best set by a private environment variable instead. Treat
+    // it as a password (because it is).
+    //
+    // The callback URL's that are set here need to be added as OAuth redirect
+    // URL's in your application's setting in the Twitch dev console.
     "core": {
-      "clientId": null,         // TWITCHBOT_CLIENT_ID
-      "clientSecret": null,     // TWITCHBOT_CLIENT_SECRET
-      "botCallbackURL": null,   // TWITCHBOT_BOT_AUTH_CALLBACK
-      "userCallbackURL": null,  // TWITCHBOT_USER_AUTH_CALLBACK
+      // "clientId": null,          // TWITCHBOT_CLIENT_ID
+      // "clientSecret": null,      // TWITCHBOT_CLIENT_SECRET
+      "botCallbackURL": "http://localhost:9090/auth/twitch/callback-bot",   // TWITCHBOT_BOT_AUTH_CALLBACK
+      "userCallbackURL": "http://localhost:9090/auth/twitch/callback-user", // TWITCHBOT_USER_AUTH_CALLBACK
     }
   },
 
@@ -31,7 +37,10 @@
     // loaded. This value is used to set up the encryption. Much like
     // twitch.clientSecret this should be kept a secret from everyone, because
     // loose lips make it easy to decrypt.
-    "secret": null,             // TWITCHBOT_CRYPTO_SECRET
+    //
+    // This value should be a randomly selected string exactly 32 characters in
+    // length; something like a randomly generated password is best.
+    // "secret": null,              // TWITCHBOT_CRYPTO_SECRET
   },
 
   "bot": {
@@ -39,14 +48,47 @@
     // roles, so that multiple instances can be running and in the same channel
     // at the same time. Roles allow commands to be directed to specific
     // instances of the bot.
-    "role": null,               // TWITCHBOT_ROLE
-    "defaultPrefix": null,      // TWITCHBOT_DEFAULT_PREFIX
+    "role": "dev",               // TWITCHBOT_ROLE
+
+    // In places where the bot expects a command name to appear, if the name
+    // does not have a valid prefix, assume that this is the prefix to use and
+    // automatically insert it.
+    //
+    // The valid valus for this are: "!", "$", "%", "&", "|" and "~"
+    "defaultPrefix": "!",        // TWITCHBOT_DEFAULT_PREFIX
   },
 
+  // The bot supports Twitch EventSub in order to know when various Twitch
+  // events are occuring, such as follows, subscriptions and raids. This portion
+  // of the bot's functionality is optional; without it, the chat and command
+  // portions wills till work, but anything event related will not (this
+  // includes custom channel point redemptions as well). Leave the uri setting
+  // below unset to disable events.
+  //
+  // In order to set this up, you must have a publicly accessible secured (e.g.
+  // https://) url that can be given to Twitch to set up event callbacks.
+  //
+  // As presented in this sample code this is done via using some form of a
+  // reverse proxy that presents an external URL and directs it towards your
+  // computer.
+  //
+  // The easiest way to set this is up is via ngrok. To do this, set up a pro
+  // ngrok account with a stable, customized subdomain in the ngrok settings.
+  // The notificationUri that you put here would be the name of that subdomain,
+  // e.g. "mycoolsubdomain.ngrok.io".
+  //
+  // The signing secret can be any text you like that's between 10 and 100
+  // characters in length; something like a randomly generated password is best.
+  // Once set, do not change the signing secret, and don't let anyone else see
+  // it either.
   "events": {
-    "notificationUri": null,
-    "serverPort": null,
-    "signingSecret": null
+    // "notificationUri": null,     // TWITCHBOT_NOTIFICATION_URI
+    "serverPort": 3000,          // TWITCHBOT_NOTIFICATION_PORT
+
+    // This should be set via the environment variable; like the Twitch client
+    // secret above, protect the signing secret as if it's your password
+    // (because it is).
+    // "signingSecret": null        // TWITCHBOT_SIGNING_SECRET
   },
 
   // The configuration options for the TTS system, which is powered by Google's
@@ -59,8 +101,8 @@
   // environment variable must be set and must point to the JSON file that
   // provides the auth information for your Google Service Account.
   "tts": {
-    "language": null,          // TWITCHBOT_TTS_LANGUAGE
-    "gender": null,            // TWITCHBOT_TTS_GENDER
-    "voice": null,             // TWITCHBOT_TTS_VOICE
+    "language": "en-US",         // TWITCHBOT_TTS_LANGUAGE
+    "gender": "MALE",            // TWITCHBOT_TTS_GENDER
+    "voice": "en-US-Standard-J", // TWITCHBOT_TTS_VOICE
   }
 }
