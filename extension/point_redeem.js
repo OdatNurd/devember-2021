@@ -250,15 +250,15 @@ async function handleAuthEvent(api, info) {
   // both lists, which  becomes the list of items that may potentially have
   // different names and thus may require a rename to keep themselves in sync
   // with Twitch.
-  const itemsToModify = dbItems.filter(({ id: id1 }) => twitchItems.some(({ id: id2 }) => id2 === id1) === true);
+  const itemsToModify = twitchItems.filter(({ id: id1 }) => dbItems.some(({ id: id2 }) => id2 === id1) === true);
 
   // Trigger the addition and removal of channel point redeems as appropriate.
   // For items that are already in both, ensure that the names are up to date.
   //
   // The only information needed is the human readable title and the unique
   // twitch redeem ID.
-  itemsToAdd.forEach(redeem => addNewCustomRedeemHandler(api, info.userId, redeem.title, redeem.id))
   itemsToDelete.forEach(redeem => removeOldCustomRedeemHandler(api, info.userId, redeem.title, redeem.id))
+  itemsToAdd.forEach(redeem => addNewCustomRedeemHandler(api, info.userId, redeem.title, redeem.id))
   itemsToModify.forEach(redeem => renameExistingRedeemHandler(api, info.userId, redeem.title, redeem.id))
 }
 
