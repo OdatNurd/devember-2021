@@ -24,7 +24,7 @@ function incoming_raid(api, name, event) {
 
   // // Check to see if there's a shoutout command, and if so, auto shout-out
   // // people when they raid.
-  // const cmd = api.commands.find('$so');
+  // const cmd = api.commands.find('!so');
   // if (cmd !== null) {
   //   // Parse a fake message that looks like someone is trying to should out the
   //   // broadcaster that just raided, and then invoke the command.

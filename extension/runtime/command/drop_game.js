@@ -142,12 +142,12 @@ module.exports = {
     api.nodecg.listenFor('drop-game-drop-result', api.shared.dropHandler);
 
     return {
-      '$drop': drop_cmd,
-      '$cut': cut_cmd,
-      '$abdicate': abdicate_cmd,
-      '$bdrop': bdrop_cmd,
-      '$bcut': bcut_cmd,
-      '$babdicate': babdicate_cmd
+      '!drop': drop_cmd,
+      '!cut': cut_cmd,
+      '!abdicate': abdicate_cmd,
+      '!bdrop': bdrop_cmd,
+      '!bcut': bcut_cmd,
+      '!babdicate': babdicate_cmd
     };
   },
 

@@ -14,8 +14,8 @@ const { twitch_event_list } = require('./event_list');
  * in the database at startup if they're not already there. */
 const commands = [
   {
-      name: "$debug",
-      aliases: ["$dbg"],
+      name: "!debug",
+      aliases: ["!dbg"],
       enabled: 1,
       sourceFile: "command/debug.js",
       core: 1,
@@ -24,8 +24,8 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$reload",
-      aliases: ["$rehash"],
+      name: "!reload",
+      aliases: ["!rehash"],
       enabled: 1,
       sourceFile: "command/reload.js",
       core: 1,
@@ -34,8 +34,8 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$addcommand",
-      aliases: ["$addcmd"],
+      name: "!addcommand",
+      aliases: ["!addcmd"],
       enabled: 1,
       sourceFile: "command/cmd_controller.js",
       core: 1,
@@ -44,8 +44,8 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$removecommand",
-      aliases: ["$delcmd", "$rmcmd"],
+      name: "!removecommand",
+      aliases: ["!delcmd", "!rmcmd"],
       enabled: 1,
       sourceFile: "command/cmd_controller.js",
       core: 1,
@@ -54,8 +54,8 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$enable",
-      aliases: ["$disable"],
+      name: "!enable",
+      aliases: ["!disable"],
       enabled: 1,
       sourceFile: "command/cmd_controller.js",
       core: 1,
@@ -64,8 +64,8 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$accesslevel",
-      aliases: ["$access"],
+      name: "!accesslevel",
+      aliases: ["!access"],
       enabled: 1,
       sourceFile: "command/cmd_controller.js",
       core: 1,
@@ -74,7 +74,7 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$cooldown",
+      name: "!cooldown",
       aliases: [],
       enabled: 1,
       sourceFile: "command/cmd_controller.js",
@@ -84,8 +84,8 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$alias",
-      aliases: ["$aliases"],
+      name: "!alias",
+      aliases: ["!aliases"],
       enabled: 1,
       sourceFile: "command/cmd_controller.js",
       core: 1,
@@ -94,8 +94,8 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$cmdinfo",
-      aliases: ["$info"],
+      name: "!cmdinfo",
+      aliases: ["!info"],
       enabled: 1,
       sourceFile: "command/cmd_controller.js",
       core: 1,
@@ -104,7 +104,7 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$role",
+      name: "!role",
       aliases: [],
       enabled: 1,
       sourceFile: "command/role.js",
@@ -114,8 +114,8 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$regulars",
-      aliases: ["$regular", "$regs"],
+      name: "!regulars",
+      aliases: ["!regular", "!regs"],
       enabled: 1,
       sourceFile: "command/regulars.js",
       core: 1,
@@ -124,7 +124,7 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$text",
+      name: "!text",
       aliases: [],
       enabled: 1,
       sourceFile: "command/text.js",
@@ -144,8 +144,8 @@ const commands = [
   // ==================================================
 
   {
-      name: "$shoutout",
-      aliases: ["$so"],
+      name: "!shoutout",
+      aliases: ["!so"],
       enabled: 1,
       sourceFile: "command/shoutout.js",
       core: 0,
@@ -154,8 +154,8 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$tts",
-      aliases: ["$say"],
+      name: "!tts",
+      aliases: ["!say"],
       enabled: 1,
       sourceFile: "command/tts_speak.js",
       core: 0,
@@ -165,7 +165,7 @@ const commands = [
   },
 
   {
-      name: "$drop",
+      name: "!drop",
       aliases: [],
       enabled: 1,
       sourceFile: "command/drop_game.js",
@@ -175,7 +175,7 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$cut",
+      name: "!cut",
       aliases: [],
       enabled: 1,
       sourceFile: "command/drop_game.js",
@@ -185,7 +185,7 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$abdicate",
+      name: "!abdicate",
       aliases: [],
       enabled: 1,
       sourceFile: "command/drop_game.js",
@@ -195,7 +195,7 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$bdrop",
+      name: "!bdrop",
       aliases: [],
       enabled: 1,
       sourceFile: "command/drop_game.js",
@@ -205,7 +205,7 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$bcut",
+      name: "!bcut",
       aliases: [],
       enabled: 1,
       sourceFile: "command/drop_game.js",
@@ -215,7 +215,7 @@ const commands = [
       cooldown: 0
   },
   {
-      name: "$babdicate",
+      name: "!babdicate",
       aliases: [],
       enabled: 1,
       sourceFile: "command/drop_game.js",
@@ -234,8 +234,8 @@ const commands = [
  * database if they're missing. */
 const responders = [
   {
-      name: "$code",
-      aliases: ["$repo"],
+      name: "!code",
+      aliases: ["!repo"],
       text: _(`The code for this simple bot can be found in the repository at
               https://github.com/OdatNurd/devember-2021 ; if you have any questions
               about it or how it works don't hestiate to ask!`),

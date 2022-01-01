@@ -57,7 +57,7 @@ module.exports = {
       gender: api.config.get('tts.gender')
     };
     return {
-      '$tts': tts_speak
+      '!tts': tts_speak
     };
   },
 

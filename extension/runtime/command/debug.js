@@ -86,7 +86,7 @@ function debug_command(api, cmd, userInfo) {
 module.exports = {
   load: async api => {
     return {
-      '$debug': debug_command
+      '!debug': debug_command
     };
   },
 

@@ -74,7 +74,7 @@ module.exports = {
     //
     // api.shared.mydata = {}
     return {
-      '$shoutout': perform_shoutout
+      '!shoutout': perform_shoutout
     };
   },
 

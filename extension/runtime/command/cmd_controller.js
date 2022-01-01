@@ -619,18 +619,18 @@ async function remove_existing_command(api, cmd, userInfo) {
 module.exports = {
   load: async api => {
     return {
-      '$addcommand': add_new_command,
-      '$removecommand': remove_existing_command,
+      '!addcommand': add_new_command,
+      '!removecommand': remove_existing_command,
 
-      '$enable': change_enabled_state,
-      '$accesslevel': change_access_level,
-      '$cooldown': change_cmd_cooldown,
+      '!enable': change_enabled_state,
+      '!accesslevel': change_access_level,
+      '!cooldown': change_cmd_cooldown,
 
       // This command specifically does not allow the enable command or its
       // aliases to be modified; change the code if we decide to change the
       // names that command is known by.
-      '$alias': modify_cmd_aliases,
-      '$cmdinfo': get_command_info
+      '!alias': modify_cmd_aliases,
+      '!cmdinfo': get_command_info
     };
   },
 

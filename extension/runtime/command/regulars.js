@@ -98,7 +98,7 @@ module.exports = {
     }
 
     return {
-      '$regulars': modify_regulars,
+      '!regulars': modify_regulars,
     };
   },
 

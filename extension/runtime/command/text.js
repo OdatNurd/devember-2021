@@ -475,7 +475,7 @@ async function generate_text_response(api, cmd, userInfo) {
 module.exports = {
   load: async api => {
     return {
-      '$text': generate_text_response,
+      '!text': generate_text_response,
     };
   },
 

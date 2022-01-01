@@ -61,7 +61,7 @@ module.exports = {
       // but the reload command should always be in it's own file, so that
       // an error while reloading a core command doesn't stop anyone's ability
       // to reload and fix the problem.
-      '$role': modify_role,
+      '!role': modify_role,
     };
   },
 
