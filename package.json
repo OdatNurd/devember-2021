@@ -54,6 +54,14 @@
         "workspace": "Bot"
       },
       {
+        "name": "bot-sounds",
+        "width": 3,
+        "title": "Sound Board",
+        "file": "bot_soundcues.html",
+        "headerColor": "#525F78",
+        "workspace": "Bot"
+      },
+      {
         "name": "reload-log",
         "width": 6,
         "title": "Dynamic Command Loader",
@@ -100,6 +108,63 @@
         "file": "drop_game.html",
         "width": 1920,
         "height": 1080
+      },
+      {
+        "file": "soundboard.html",
+        "width": 1920,
+        "height": 1080
+      }
+    ],
+    "soundCues": [
+      {
+        "name": "success",
+        "defaultFile": "soundcues/01_success.mp3",
+        "assignable": false
+      },
+      {
+        "name": "you_fail",
+        "defaultFile": "soundcues/02_you_fail.mp3",
+        "assignable": false
+      },
+      {
+        "name": "winner_bell",
+        "defaultFile": "soundcues/03_winner_bell.mp3",
+        "assignable": false
+      },
+      {
+        "name": "wrong_buzzer",
+        "defaultFile": "soundcues/04_wrong_buzzer.mp3",
+        "assignable": false
+      },
+      {
+        "name": "applause",
+        "defaultFile": "soundcues/05_applause.mp3",
+        "assignable": false
+      },
+      {
+        "name": "congratulations",
+        "defaultFile": "soundcues/06_congratulations.mp3",
+        "assignable": false
+      },
+      {
+        "name": "drumroll",
+        "defaultFile": "soundcues/07_drumroll.mp3",
+        "assignable": false
+      },
+      {
+        "name": "rimshot",
+        "defaultFile": "soundcues/08_rimshot.mp3",
+        "assignable": false
+      },
+      {
+        "name": "airhorn",
+        "defaultFile": "soundcues/09_airhorn.mp3",
+        "assignable": false
+      },
+      {
+        "name": "price_is_wrong",
+        "defaultFile": "soundcues/10_price_is_wrong.mp3",
+        "assignable": false
       }
     ]
   },

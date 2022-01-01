@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <script>
+    nodecg.listenFor('play-sound-cue', cue => {
+      console.log(`playing sound cue ${cue}`);
+      nodecg.playSound(cue)
+    });
+  </script>
+</body>
+</html>

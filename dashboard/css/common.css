@@ -50,6 +50,21 @@ panel-buttons {
   flex-grow: 2;
 }
 
+.sound-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.sound-cue {
+  box-sizing: border-box;
+  flex-grow: 1;
+  width: 45%;
+  margin: 4px;
+}
+
 .mx-sm {
   margin-left: 6px;
   margin-right: 6px;

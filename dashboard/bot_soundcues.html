@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="css/common.css">
+</head>
+<body>
+  <div class="pure-g">
+
+  <panel-container>
+    <div class="sound-container">
+      <button cue="success" class="pure-button sound-cue">success</button>
+      <button cue="you_fail" class="pure-button sound-cue">you_fail</button>
+      <button cue="winner_bell" class="pure-button sound-cue">winner_bell</button>
+      <button cue="wrong_buzzer" class="pure-button sound-cue">wrong_buzzer</button>
+      <button cue="applause" class="pure-button sound-cue">applause</button>
+      <button cue="congratulations" class="pure-button sound-cue">congratulations</button>
+      <button cue="drumroll" class="pure-button sound-cue">drumroll</button>
+      <button cue="rimshot" class="pure-button sound-cue">rimshot</button>
+      <button cue="airhorn" class="pure-button sound-cue">airhorn</button>
+      <button cue="price_is_wrong" class="pure-button sound-cue">price_is_wrong</button>
+    </div>
+  </panel-container>
+
+  </div>
+
+  <script type="text/javascript">
+    const buttons = document.querySelectorAll('.sound-cue');
+    buttons.forEach(cue => {
+      cue.addEventListener('click', e => {
+        console.log(`triggering sound cue ${cue.getAttribute('cue')}`);
+        nodecg.sendMessage('play-sound-cue', cue.getAttribute('cue'));
+      });
+    });
+  </script>
+</body>
+</html>
