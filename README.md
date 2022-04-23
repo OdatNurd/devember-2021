@@ -29,7 +29,7 @@ instructions will be forthcoming.
   * Event Setup (optional)
     - Set up the signing secret for verifying incoming Twitch events
     - Set up a reverse proxy to point to your system
-    - Configure the remote uri and port as appropritate
+    - Configure the remote uri and port as appropriate
 
   * Google TextToSpeech (optional)
     - Set up a Google cloud account and turn on TTS: https://cloud.google.com/text-to-speech/
@@ -61,7 +61,7 @@ instructions will be forthcoming.
     - using the web front end
     - using graphics (overlays)
     - commands (using, creating, aliasing)
-    - events (customzing handlers)
+    - events (customizing handlers)
     - channel point redeems (setting up and customizing handlers)
     - online editor
 
@@ -112,7 +112,7 @@ After the user authenticates, you get redirected to the given redirect URL,
 which should be a back end URL that allows the server to make a request to get
 a token based on the code provided in the callback URL.
 
-Regardless of wether the user authorizes or not, the request will come back to
+Regardless of whether the user authorizes or not, the request will come back to
 our registered redirect URI; the response that comes back will have a code in it
 if they said yes, and no code if no.
 
