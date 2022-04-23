@@ -440,6 +440,11 @@ function setChatHelpers(api, enabled) {
       api.chat.client.say(api.chat.channel, text, {replyTo: replyTo});
     }
 
+    api.chat.announce = (text) => {
+      api.log.info(`${api.chat.channel}:*ANNOUNCE*<${api.chat.client.currentNick}> ${text}`);
+      api.chat.client.announce(api.chat.channel, text);
+    }
+
     // Send an action to the chat.
     api.chat.do = (text) => {
       api.log.info(`${api.chat.channel}:*${api.chat.client.currentNick} ${text}`);
@@ -448,6 +453,7 @@ function setChatHelpers(api, enabled) {
   } else {
     api.chat.say = (text, replyTo) => api.log.warn('cannot send text to chat; not currently connected')
     api.chat.do = api.chat.say;
+    api.chat.announce = api.chat.say;
   }
 }
 
@@ -508,6 +514,14 @@ async function setup_chat(api) {
     // If we got any text, say it.
     if (text !== '') {
       api.chat.say(text, replyTo);
+    }
+  });
+
+  // Since Twitch chat is based on IRC, you can also do an action instead of
+  // just a regular message.
+  api.nodecg.listenFor('announce-in-chat', text => {
+    if (text !== '') {
+      api.chat.announce(text);
     }
   });
 

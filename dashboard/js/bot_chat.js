@@ -14,7 +14,7 @@ const method = document.getElementById('text-send-method');
 // Respond to submitting the form by sending text to the chat via a message.
 form.addEventListener('submit', e => {
   e.preventDefault();
-  nodecg.sendMessage(method.value === 'say' ? 'say-in-chat' : 'do-in-chat', text.value);
+  nodecg.sendMessage(method.value, text.value);
   text.value = '';
 });
 
