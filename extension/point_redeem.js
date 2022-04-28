@@ -91,7 +91,7 @@ async function addNewCustomRedeemHandler(api, broadcasterId, title, redeemId) {
 
   // Check to see if the title we're trying to use for this new item already
   // exists and similarly complain.
-  exisiting = api.channelpoints.find(entryTitle);
+  let exisiting = api.channelpoints.find(entryTitle);
   if (existing !== null) {
     api.log.warn(`an entry with the name '${entryTitle} already exists (${exisiting.name}); cannot add`);
     return;

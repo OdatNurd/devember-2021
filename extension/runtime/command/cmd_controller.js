@@ -382,7 +382,7 @@ async function modify_cmd_aliases(api, cmd, userInfo) {
   let postUpdate = undefined;
 
   // Gather all arguments.
-  const opOrNameArg = cmd.words[0];
+  let opOrNameArg = cmd.words[0];
   switch(opOrNameArg) {
     case 'add':
       // Use the sub handler to get the aliased command and the new alias; this

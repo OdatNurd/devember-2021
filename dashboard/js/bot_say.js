@@ -61,7 +61,7 @@ function filterVoiceList(language, gender, voiceData) {
   // Filter the voice data down to the list of voices that apply to the critera
   // that we were given, and create option tags out of them for insertion into
   // the parent.
-  voices = voiceData.filter(e => e.language === language && e.gender === gender)
+  const voices = voiceData.filter(e => e.language === language && e.gender === gender)
                     .map(e => {
                       const tag = document.createElement('option');
                       tag.value = e.voice;

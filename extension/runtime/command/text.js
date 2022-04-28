@@ -339,7 +339,7 @@ async function modify_text_access(api, cmd, userInfo) {
 
   // Gather all arguments.
   const nameArg = getValidCmdName(api, cmd.words[1]);
-  const intervalArg = cmd.words[2];
+  const levelArg = cmd.words[2];
 
   // If the name given is not in the list of responders, we can't edit it.
   const item = api.responders.find(nameArg);
